@@ -77,7 +77,7 @@ export function EmployeeWorkspacePage({
                     : 'bg-[var(--surface-card)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
                 }`}
               >
-                {lang === 'th' ? emp.nameTh : emp.name} ({lang === 'th' ? emp.tagTh : emp.tag})
+                {lang === 'th' ? emp.nameTh : emp.name} · {lang === 'th' ? emp.tagTh : emp.tag}
               </button>
             );
           })}

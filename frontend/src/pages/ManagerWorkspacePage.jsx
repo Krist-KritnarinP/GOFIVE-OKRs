@@ -16,6 +16,12 @@ export function ManagerWorkspacePage({
   const [selectedReview, setSelectedReview] = useState(null);
 
   const teamReviews = reviews.filter((r) => r.managerId === activeManagerId);
+  const completedTeam = teamReviews.filter(
+    (r) => r.status === 'READY_FOR_RELEASE' || r.status === 'PUBLISHED'
+  ).length;
+  const teamCompletionPct =
+    teamReviews.length > 0 ? Math.round((completedTeam / teamReviews.length) * 100) : 0;
+  const pendingTeamCount = teamReviews.length - completedTeam;
   const scoredTeam = teamReviews.filter((r) => typeof r.overallScore === 'number');
   const teamAvg =
     scoredTeam.length > 0
@@ -56,6 +62,37 @@ export function ManagerWorkspacePage({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* 3 Team KPI Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamCompletion}</p>
+          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+            {teamCompletionPct}%{' '}
+            <span className="text-sm font-normal text-[var(--ink-muted)]">
+              ({completedTeam}/{teamReviews.length})
+            </span>
+          </p>
+        </div>
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamPending}</p>
+          <p
+            className="mt-1.5 text-2xl font-bold tabular-nums"
+            style={{ color: pendingTeamCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
+          >
+            {pendingTeamCount}
+          </p>
+        </div>
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamVsOrg}</p>
+          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+            {teamAvg !== null ? teamAvg.toFixed(2) : '—'}{' '}
+            <span className="text-sm font-normal text-[var(--ink-muted)]">
+              vs {analytics.orgAverageScore.toFixed(2)}
+            </span>
+          </p>
         </div>
       </div>
 

@@ -7,12 +7,15 @@ const ROLE_COLUMNS = [ROLES.SUPER_ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EM
 export function SuperAdminPage({
   users,
   rolePermissions,
+  auditLogCount = 0,
   t,
   lang,
   onUpdateUser,
   onTogglePermission,
 }) {
   const pendingUsers = users.filter((u) => u.accountStatus === 'PENDING_APPROVAL');
+  const activeCount = users.filter((u) => u.accountStatus === 'ACTIVE').length;
+  const suspendedCount = users.filter((u) => u.accountStatus === 'SUSPENDED').length;
 
   return (
     <div className="w-full space-y-6">
@@ -21,6 +24,31 @@ export function SuperAdminPage({
           {t.superTitle}
         </h1>
         <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.superSubtitle}</p>
+      </div>
+
+      {/* 4 Governance KPI Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiActiveAccounts}</p>
+          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{activeCount}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiPendingApprovals}</p>
+          <p
+            className="mt-1.5 text-2xl font-bold tabular-nums"
+            style={{ color: pendingUsers.length > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
+          >
+            {pendingUsers.length}
+          </p>
+        </div>
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiSuspendedAccounts}</p>
+          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{suspendedCount}</p>
+        </div>
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
+          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiAuditEvents}</p>
+          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{auditLogCount}</p>
+        </div>
       </div>
 
       {/* Pending Registration Approvals */}

@@ -48,6 +48,7 @@ export function App() {
         <SuperAdminPage
           users={store.users}
           rolePermissions={store.rolePermissions}
+          auditLogCount={store.auditLogs.length}
           t={t}
           lang={lang}
           onUpdateUser={store.handleUpdateUser}

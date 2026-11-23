@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, KeyRound, Languages, ShieldCheck } from 'lucide-react';
+import { AlertCircle, KeyRound, Languages } from 'lucide-react';
 import { DEMO_PERSONAS } from '../constants/roles.js';
 
 export function LoginPage({ t, lang, onToggleLanguage, onLogin, onGoRegister }) {
@@ -27,10 +27,9 @@ export function LoginPage({ t, lang, onToggleLanguage, onLogin, onGoRegister }) 
       <header className="w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[var(--brand-primary)] text-white">
-              <ShieldCheck className="w-4 h-4" aria-hidden="true" />
+            <span className="text-xl font-extrabold tracking-tight text-[var(--ink-primary)]">
+              {t.appName}
             </span>
-            <span className="text-lg font-bold tracking-tight">{t.appName}</span>
             <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
               {t.moduleBadge}
             </span>

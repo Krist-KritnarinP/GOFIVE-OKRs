@@ -1,4 +1,4 @@
-import { Languages, Lock, LogOut, ShieldCheck } from 'lucide-react';
+import { Languages, Lock, LogOut } from 'lucide-react';
 import { DEMO_PERSONAS } from '../../constants/roles.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 
@@ -17,13 +17,13 @@ export function AppShell({
     <div className="min-h-screen w-full flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
       <header className="sticky top-0 z-30 w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
         <div className="w-full px-4 sm:px-6 lg:px-8 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
-          {/* Left: Brand, Cycle & Logged-in Employee Code */}
+          {/* Left: Text-only Wordmark, Cycle & Logged-in Employee Code */}
           <div className="flex items-center gap-3 min-w-0 flex-wrap">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[var(--brand-primary)] text-white shrink-0">
-              <ShieldCheck className="w-4 h-4" aria-hidden="true" />
-            </span>
-            <span className="text-lg font-bold tracking-tight text-[var(--ink-primary)]">
+            <span className="text-xl font-extrabold tracking-tight text-[var(--ink-primary)]">
               {t.appName}
+            </span>
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+              {t.moduleBadge}
             </span>
             {currentUser && (
               <span className="text-xs font-bold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-primary)] tabular-nums">

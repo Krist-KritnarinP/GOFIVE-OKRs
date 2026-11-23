@@ -18,13 +18,13 @@ export function OrgDistributionBar({ distribution, biasAlerts, t, lang }) {
           const widthPct = Math.round((bucket.pct / maxPct) * 100);
           return (
             <div key={bucket.score} className="grid grid-cols-12 items-center gap-3">
-              <div className="col-span-4 sm:col-span-3 text-sm font-semibold text-[var(--ink-primary)] truncate">
+              <div className="col-span-5 text-sm font-semibold text-[var(--ink-primary)] truncate">
                 <span className="tabular-nums mr-1.5">{bucket.score}.0</span>
                 <span className="text-xs font-normal text-[var(--ink-secondary)]">
                   {lang === 'th' ? rubric.labelTh : rubric.label}
                 </span>
               </div>
-              <div className="col-span-6 sm:col-span-7 h-6 rounded bg-[var(--surface-subtle)] border border-[var(--border-subtle)] overflow-hidden">
+              <div className="col-span-5 h-6 rounded bg-[var(--surface-subtle)] border border-[var(--border-subtle)] overflow-hidden">
                 <div
                   className="h-full transition-all duration-150 ease-out"
                   style={{

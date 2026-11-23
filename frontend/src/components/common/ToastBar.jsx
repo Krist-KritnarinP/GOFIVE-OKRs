@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 const ACCENT_BAR = {
@@ -7,6 +8,12 @@ const ACCENT_BAR = {
 };
 
 export function ToastBar({ toast, onDismiss }) {
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = window.setTimeout(onDismiss, 4000);
+    return () => window.clearTimeout(timer);
+  }, [toast, onDismiss]);
+
   if (!toast) return null;
 
   const barColor = ACCENT_BAR[toast.tone] || ACCENT_BAR.success;
@@ -15,7 +22,7 @@ export function ToastBar({ toast, onDismiss }) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-5 right-5 z-50 max-w-md flex items-center justify-between gap-4 rounded-md px-4 py-3 text-sm font-medium shadow-md"
+      className="fixed bottom-5 left-5 z-50 max-w-md flex items-center justify-between gap-4 rounded-md px-4 py-3 text-sm font-medium shadow-md"
       style={{
         backgroundColor: '#0F172A',
         color: '#FFFFFF',
