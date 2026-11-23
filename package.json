@@ -1,0 +1,13 @@
+{
+  "name": "empeo-performance-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "trap 'kill 0' INT TERM; npm --prefix backend run dev & npm --prefix frontend run dev & wait",
+    "dev:front": "npm --prefix frontend run dev",
+    "dev:back": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "test": "npm --prefix backend test"
+  }
+}
