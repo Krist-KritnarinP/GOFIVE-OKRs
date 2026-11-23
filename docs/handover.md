@@ -18,14 +18,11 @@ Build a working, clickable web prototype for **empeo Performance Management** (H
 
 ## 2. Architecture & Role Boundaries (Pure JS ONLY)
 - **Hard Rule:** Zero TypeScript (`.ts` / `.tsx`). Strict Pure JavaScript (`.js`, `.jsx`) across both apps.
-- **`docs/agent-hub/` (PM / PO):**
-  - `00-brief.md` — Product brief, v1 vs. out-of-scope, User Stories & AC
-  - `01-api-contract.md` — REST API contract, Zod validation, RBAC rules, Review State Machine, Prisma models
-  - `02-ui-spec.md` — Neutral semantic tokens, Full-screen responsive layout, 3 Role views, EN/TH natural copy guide
-  - `03-security-baseline.md` — OWASP controls, Helmet/CORS/Rate-Limit, server-side unpublished score stripping
-  - `04-qa-report.md` — Gate 3 verification template
-  - `99-status-log.md` — Shared team log
-- **`note/guidelines.md`:** Standing 5-step workflow, Clean Code, Security Gate, and Multi-Agent governance.
+- **`docs/` (Central Non-Code Documentation):**
+  - `docs/guidelines.md` — Standing 5-step workflow, Pure JS Mandate, Nordic Slate & Electric Cobalt guardrails, Security Gate, Multi-Agent Role Boundaries
+  - `docs/handover.md` — Canonical handover document
+  - `docs/note.md` — Central project notes & Part 2 Q1–Q3 scratchpad
+  - `docs/agent-hub/` (PM / PO): `00-brief.md`, `01-api-contract.md`, `02-ui-spec.md`, `03-security-baseline.md`, `04-qa-report.md`, `99-status-log.md`
 - **`frontend/` (Dev Front — Port `5173`):** React `19.3.1` (`.jsx`), Vite `8.3.8`, Tailwind CSS `4.3.5`, `lucide-react` `1.78.0`, `axios` `1.21.1`, `react-router-dom` `7.18.6`, `oxlint` `1.94.0`.
   - **Brand CI Locked:** **"Nordic Slate & Electric Cobalt"** (`#F6F7F9` canvas, `#FFFFFF` opaque surfaces, `#0F172A` text, `#0052FF` Electric Cobalt primary CTA max 5% viewport, 4 locked WCAG AA semantic status pairs) in `frontend/src/index.css`.
   - **Zero Heavy Libraries & 0ms Instant UI:** `motion` and `recharts` removed per guardrail; 9-Box Performance Grid & Org Distribution Bar will be built with pure semantic HTML, Tailwind CSS Grid, lightweight inline SVG, and `150ms` CSS-only transitions. Zero glassmorphism (`backdrop-blur` banned).

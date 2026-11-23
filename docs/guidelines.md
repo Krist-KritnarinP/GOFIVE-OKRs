@@ -6,7 +6,7 @@ Before writing code, modifying files, or running state-changing commands, every 
 2. **Recommend Approach, Skills & Tech Stack (แนะนำแนวทาง + Skill + Tech Stack):** Present options with **Capabilities, Pros, and Cons**. *(Exception: trivial 1-line edits may abbreviate this step, but must still restate the task and summarize.)*
 3. **Restate Task & Summarize Plan (ทวน Task และสรุปแผนงาน):** Clearly state scope, affected files, and expected outcomes.
 4. **Execute After Alignment (รอการยืนยันแล้วค่อยลงมือทำ):** Never make large or structural changes without user confirmation.
-5. **Summarize, Handover & Push (สรุปผล + อัปเดตเอกสาร + Git):** Summarize changes and verification results, update `handover.md` and `docs/agent-hub/99-status-log.md`, and run `git commit` + `git push origin main` *(once the project's GitHub remote URL is confirmed by the user)*.
+5. **Summarize, Handover & Push (สรุปผล + อัปเดตเอกสาร + Git):** Summarize changes and verification results, update `docs/handover.md`, `docs/note.md`, and `docs/agent-hub/99-status-log.md`, and run `git commit` + `git push origin main` *(once the project's GitHub remote URL is confirmed by the user)*.
 
 ---
 
@@ -41,7 +41,7 @@ Before writing code, modifying files, or running state-changing commands, every 
 | **Dev Front** | Build UI per `02-ui-spec.md` and integrate per `01-api-contract.md` | `frontend/` ONLY |
 | **Dev Back** | Build API, DB/Prisma, Security, Business Logic, Unit Tests per Contract | `backend/` ONLY |
 | **QA / QC & Tester** | Run real tests, verify AC, security checks, and UI/anti-slop review (`hallmark` / `anti-slop-craft`) | Read all + write tests & `docs/agent-hub/04-qa-report.md` (no silent logic edits) |
-| **Reporter** | Summarize status, release notes, pass/fail blockers in one readable view | Read-only + summary reports / `handover.md` |
+| **Reporter** | Summarize status, release notes, pass/fail blockers in one readable view | Read-only + summary reports / `docs/handover.md` |
 
 ---
 
@@ -53,6 +53,6 @@ Before writing code, modifying files, or running state-changing commands, every 
 ---
 
 ## 5. Multi-Agent Collaboration Rules
-- **Context Sync:** Every agent MUST read `docs/agent-hub/99-status-log.md` and `handover.md` before starting, and update `99-status-log.md` upon completion.
+- **Context Sync:** Every agent MUST read `docs/agent-hub/99-status-log.md` and `docs/handover.md` before starting, and update `99-status-log.md` upon completion.
 - **Parallel Work:** When Dev Front and Dev Back work simultaneously, use `/teamwork` (isolated workspaces) to prevent merge/write conflicts.
 - **Right-Sized Delegation:** Use a single agent for small fixes; reserve the full multi-agent pipeline for new milestones and major features.
