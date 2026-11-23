@@ -24,9 +24,9 @@ Many organizations still run annual performance reviews on spreadsheets and emai
 3. **Dual-Axis Performance Model (What + How):**
    - **Axis 1 — Goal Achievement (What, e.g., 60%):** Concrete KPI/OKR attainment.
    - **Axis 2 — Core Competencies (How, e.g., 40%):** Collaboration, ownership, problem-solving, reliability.
-   - Combined into a **Talent Matrix (High Performer / Solid Contributor / High Potential / At-Risk)** plus a **Score Distribution & Manager Bias Alert** for HR.
-4. **Role-Based Experience in One System:** Distinct workspaces and server-enforced permissions for **HR Admin**, **Manager**, and **Employee**, plus a **Demo Role Switcher** (clearly labeled for prototype evaluation) that switches authenticated demo sessions cleanly.
-5. **Exception Handling (When Things Don't Go to Plan):** Realistic handling of overdue self-reviews and overdue manager evaluations via **Send Nudge**, **Extend Grace Period**, and **Escalate to Skip-Level Manager**, all recorded in an Audit Trail.
+   - Combined into a **9-Box Performance Grid** & **Org Distribution Bar** (surfacing High Performers, Solid Contributors, High Potential, and Low Performers / Needs Action) plus a **Manager Bias & Distribution Guardrail** for HR and Managers.
+4. **Role-Based Experience in One System:** Distinct workspaces and server-enforced permissions for **HR Admin**, **Manager**, and **Employee**, plus a persistent 1-click **Role Switcher** (`HR Admin | Manager | Employee`) in the static top bar sharing live synchronized state.
+5. **Exception Handling (When Things Don't Go to Plan):** Realistic handling of overdue self-reviews and overdue manager evaluations via **Send Nudge**, **Extend Grace Period / Lock Cycle toggle**, and **Escalate to Skip-Level Manager**, all recorded in an Audit Trail.
 6. **Bilingual Support (EN Default + Natural TH):** English by default with a 1-click toggle to natural, idiomatic Thai HR/business copy.
 
 ---

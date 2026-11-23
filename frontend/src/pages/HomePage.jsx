@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 import { Activity, CheckCircle2 } from 'lucide-react';
 import { fetchHealthStatus } from '../services/apiClient.js';
 
@@ -28,17 +27,31 @@ export function HomePage({ t }) {
     };
   }, []);
 
+  const statusStyles = apiState.online
+    ? {
+        backgroundColor: 'var(--status-high-bg)',
+        color: 'var(--status-high-text)',
+        borderColor: 'var(--status-high-border)',
+      }
+    : {
+        backgroundColor: 'var(--status-warn-bg)',
+        color: 'var(--status-warn-text)',
+        borderColor: 'var(--status-warn-border)',
+      };
+
   return (
-    <div className="w-full space-y-8">
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 sm:p-8"
-      >
+    <div className="w-full space-y-6">
+      <section className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-3 max-w-3xl">
-            <span className="inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full bg-[var(--surface-muted)] text-[var(--ink-secondary)]">
+            <span
+              className="inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-md border"
+              style={{
+                backgroundColor: 'var(--status-track-bg)',
+                color: 'var(--status-track-text)',
+                borderColor: 'var(--status-track-border)',
+              }}
+            >
               <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
               {t.gateBadge}
             </span>
@@ -48,27 +61,25 @@ export function HomePage({ t }) {
             <p className="text-base text-[var(--ink-secondary)]">{t.heroSubtitle}</p>
           </div>
 
-          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4 min-w-[260px]">
-            <div className="flex items-center gap-2 text-sm font-medium text-[var(--ink-muted)]">
+          <div
+            className="rounded-lg border p-4 min-w-[260px]"
+            style={statusStyles}
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold">
               <Activity className="w-4 h-4" aria-hidden="true" />
               <span>{t.apiStatusLabel}</span>
             </div>
-            <p
-              className="mt-2 text-base font-semibold"
-              style={{
-                color: apiState.online ? 'var(--status-success)' : 'var(--status-warning)',
-              }}
-            >
+            <p className="mt-1.5 text-base font-bold">
               {apiState.online ? t.apiOnline : t.apiOffline}
             </p>
             {apiState.storageMode && (
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">
+              <p className="mt-1 text-sm tabular-nums">
                 Mode: <code>{apiState.storageMode}</code>
               </p>
             )}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       <section className="w-full space-y-4">
         <h2 className="text-xl font-bold text-[var(--ink-primary)]">{t.pillarsTitle}</h2>
@@ -76,7 +87,7 @@ export function HomePage({ t }) {
           {t.pillars.map((pillar) => (
             <article
               key={pillar.title}
-              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-2"
+              className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-2"
             >
               <h3 className="text-base font-semibold text-[var(--ink-primary)]">{pillar.title}</h3>
               <p className="text-sm sm:text-base text-[var(--ink-secondary)]">{pillar.desc}</p>

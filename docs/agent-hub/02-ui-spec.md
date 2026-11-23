@@ -1,89 +1,70 @@
-# 02 — UI/UX & Responsive Specification
+# 02 — UI/UX, Color System & Strict Accessibility Specification
 
-**Stack:** React 19 (Pure JS `.jsx`), Vite 8, Tailwind CSS 4, `motion`, `recharts`, `lucide-react`  
-**Brand CI Status:** Pending final palette in next session — all colors MUST reference semantic CSS variables in `frontend/src/index.css` (`--surface-*`, `--ink-*`, `--accent-*`, `--status-*`) so Brand CI can be swapped in 1 file without touching components.
-
----
-
-## 1. Layout, Accessibility & Typography Mandates
-- **Full Screen 100% Edge-to-Edge:** Application shell uses `min-h-screen w-full` with a collapsible sidebar on desktop (`>= 1024px`) and responsive top bar + drawer on tablet/mobile. No cramped fixed-width centered box leaving empty side margins.
-- **Universal Responsiveness:**
-  - **Desktop (`>= 1280px`):** Persistent left navigation rail (`248px`) + full-width fluid workspace grid.
-  - **Tablet / iPad (`768px`–`1279px`):** Collapsible navigation drawer + 2-column adaptive cards/split views.
-  - **Mobile (`< 768px`):** Sticky header with Role Switcher + EN/TH toggle + single-column touch-friendly stacked layout (`min-h-11` / `44px` tap targets).
-- **Typography for All Ages & Genders:**
-  - Base body text `16px` (`1rem`), relaxed line-height (`1.55`), never smaller than `13px` even for helper/metadata labels.
-  - Clear font pairing supporting both Latin & Thai cleanly (e.g., `Plus Jakarta Sans` / `Inter` + `Noto Sans Thai` fallback to system UI sans).
-  - Minimum WCAG AA contrast (`>= 4.5:1` for body text, `>= 3:1` for interactive borders/icons).
-  - Support `prefers-reduced-motion` on all `motion` transitions.
+**Aesthetic Direction:** **Nordic Slate & Electric Cobalt** *(Linear / Stripe / Swiss Grid Enterprise UI — crisp 1px hairlines, high contrast, generous whitespace, zero AI slop, zero glassmorphism)*  
+**Stack:** React 19 (Pure JS `.jsx`), Vite 8, Tailwind CSS 4, `lucide-react` (sparingly), Pure Semantic HTML + Tailwind CSS Grid + Lightweight Inline SVG  
+**Banned Heavy UI Libraries:** Do **NOT** install `motion` / Framer Motion, `recharts`, `chart.js`, or `apexcharts`.
 
 ---
 
-## 2. Global App Shell & Navigation
-- **Top Utility Bar (Always visible):**
-  - Left: Mobile menu button + Product wordmark (`empeo` + `Performance` pill) + Active Cycle badge (`FY 2026 Annual Review`).
-  - Right:
-    1. **Demo Persona / Role Switcher** (1-click switch between `HR Admin`, `Manager — Sarah (Engineering)`, `Manager — Somchai (Sales, Overdue + Bias Alert)`, `Employee — Nida (Ready/Published)`, `Employee — Ton (Draft Self-Review)`).
-    2. **Language Toggle (`EN` / `ไทย`)** — switches entire UI immediately with natural, idiomatic Thai HR phrasing.
-- **Left Navigation Rail (Role-scoped):**
-  - `HR_ADMIN`: Overview & Fairness, Talent Matrix, Exceptions & Overdue, Cycle & Rubric, Audit Log.
-  - `MANAGER`: My Team Reviews, Team Distribution Preview, My Own Review.
-  - `EMPLOYEE`: My Goals & Self-Review, My Results.
+## 1. Locked Color System ("Nordic Slate & Electric Cobalt")
+All tokens live in `frontend/src/index.css`:
+
+| Category | Token / Role | Hex / Value | Contrast / Usage Rule |
+| :--- | :--- | :--- | :--- |
+| **Canvas & Surfaces** | App Background (Cool Alabaster) | `#F6F7F9` | Page canvas |
+| | Card / Table / Drawer Surface | `#FFFFFF` | Pure White, opaque only |
+| | Subtle Header / Alternating Row | `#F0F2F5` | Soft Slate |
+| | Hairline Border | `#E2E5EB` | `1px solid` default border |
+| | Elevated Layer Border | `#CBD5E1` | `1px solid` for drawers, modals, secondary buttons |
+| **Typography** | Primary Text (Deep Obsidian) | `#0F172A` | 17.5:1 on `#FFFFFF` (headings, names, metrics) |
+| | Secondary Text (Slate Gray) | `#475569` | 7.0:1 on `#FFFFFF` (roles, descriptions) |
+| | Muted Text | `#64748B` | 4.7:1 on `#FFFFFF` (timestamps, captions — never lighter!) |
+| **Brand & Accents** | Primary Brand CTA (Electric Cobalt) | `#0052FF` | Max 5% of viewport; 1 Primary CTA per section |
+| *(Max 5% viewport)* | Primary Brand Hover | `#003ECC` | Hover state for primary CTA |
+| | Secondary Data Accent (Crisp Indigo) | `#6366F1` | Strictly for comparative chart bars |
+| **Status: High / Exceeds** | Bg / Text / Border | `#ECFDF5` / `#065F46` / `#A7F3D0` | 7.4:1 contrast |
+| **Status: On Track / Meets** | Bg / Text / Border | `#F0F9FF` / `#0369A1` / `#BAE6FD` | 6.8:1 contrast |
+| **Status: Overdue / Warning** | Bg / Text / Border | `#FFFBEB` / `#92400E` / `#FDE68A` | 7.1:1 contrast |
+| **Status: Low / Needs Action** | Bg / Text / Border | `#FEF2F2` / `#991B1B` / `#FECACA` | 7.3:1 contrast |
 
 ---
 
-## 3. Core Views & Key Interactions
-
-### View 1: HR Admin — Fairness & Oversight Console
-1. **KPI Strip (4 scannable cards):** Completion Rate (%), Overdue Reviews (highlighted with quick jump), Org Average Score, Active Bias Alerts.
-2. **Dual-Axis Talent Matrix (Interactive Scatter/Quadrant Chart via `recharts`):**
-   - X-axis: Goal Achievement (`What`, 1.0–5.0)
-   - Y-axis: Core Competencies (`How`, 1.0–5.0)
-   - 4 clear quadrants: **High Performer**, **High Potential**, **Solid Contributor**, **At-Risk / Low Performer**
-   - Clicking any employee dot opens a slide-over detail drawer showing their goals, evidence, and scores.
-3. **Score Distribution & Manager Bias Alerts:**
-   - Bar chart comparing org-wide score spread (`1`–`5`) with a clear alert list flagging managers with Leniency Bias / Severity Bias / Uniform Rating (e.g., *"Somchai rated 80% of Sales team at 5.0 vs. 3.6 org avg"*).
-4. **Exception Queue (Missed Deadlines):**
-   - Dedicated panel listing overdue employees/managers with `Days Overdue` pill and inline action buttons: **Send Nudge**, **Extend Deadline**, **Escalate**.
-   - Each action opens a clean modal (requiring a short reason for Extend/Escalate), updates status optimistically/via API, and appends to the **Audit Log** tab.
-5. **Publish Results Control:**
-   - Clear banner showing how many reviews are `READY_FOR_RELEASE` vs. `PUBLISHED`, with a confirmation modal before publishing results to employees.
-
-### View 2: Manager — Evidence-First Evaluation Workspace
-1. **Team Roster Table/Cards:** Shows each direct report, Goals count, Self-Review status, Deadline / Overdue badge, and primary CTA (`Evaluate` / `Continue Draft` / `View Submitted`).
-2. **Side-by-Side Evaluation Workbench:**
-   - **Left Column:** Employee's Goals/KPIs (with weight & progress bar) + Employee's submitted Self-Review & Self-Evidence.
-   - **Right Column:** Interactive 1–5 Rating Selector with **Inline Behavioral Anchor Card** (shows exact org-wide definition for the hovered/selected score).
-   - **Evidence Guardrail:** Selecting `1`, `2`, or `5` smoothly expands a required **"Supporting Evidence"** textarea with live character counter (`min 20 chars`) and clear explanation (*"Extreme ratings require concrete examples to keep reviews fair across teams"*).
-3. **Team Distribution Check:** Compact live chart comparing this manager's current team scores against the org average before clicking **Submit Evaluation**.
-
-### View 3: Employee — Goals, Self-Review & Result Transparency
-1. **Review Progress Stepper:** Visual 4-step lifecycle bar (`Goals Set` → `Self-Review` → `Manager Review` → `Results Published`).
-2. **My Goals & Self-Review:** Clean cards showing each KPI, weight, progress %, and self-assessment score + evidence input (`Save Draft` / `Submit Self-Review`).
-3. **Results Panel (Two Distinct States):**
-   - **Locked State (Before Publish):** Calm, transparent card explaining *"Your manager's evaluation is complete / in progress. Results will be visible once HR publishes the cycle."* (Zero leaked numbers.)
-   - **Published State (After HR Publish):** Clear Dual-Axis Outcome card (What score, How score, Overall weighted score, Performance Tier badge), goal-by-goal feedback with evidence, and **Next-Step Development Focus**.
+## 2. Strict Accessibility & Contrast Guardrails (WCAG 2.1 AA / APCA)
+1. **Mandatory Minimum Contrast:**
+   - Body text, table cells, labels, and placeholders MUST maintain **>= 4.5:1** contrast. Never use `#94A3B8` or lighter for readable text/placeholders on `#FFFFFF`.
+   - Large headings (`>= 18px` bold) and UI borders/icons MUST maintain **>= 3.0:1** contrast.
+2. **Opaque Floating Layers Only (Zero Glassmorphism):**
+   - Never use translucent or blurred (`backdrop-blur`) backgrounds on headers, modals, drawers, dropdowns, tooltips, or toasts.
+   - **Dropdowns / Popovers:** Solid `#FFFFFF` surface + `1px solid #CBD5E1` + `0 4px 12px rgba(15, 23, 42, 0.08)` + `#0F172A` text. Hover row: `#F1F5F9` bg with `#0F172A` text.
+   - **Toasts & Tooltips:** Solid `#0F172A` surface + `#FFFFFF` text (17.5:1) with a `4px` left semantic accent bar (`#10B981`, `#F59E0B`, or `#EF4444`).
+   - **Modals & Slide-over Drawers:** Opaque darkened backdrop (`rgba(15, 23, 42, 0.55)`) + crisp `#FFFFFF` surface + `#0F172A` text.
+3. **Disabled States:** `#F1F5F9` bg, `#E2E5EB` border, `#64748B` text. Never lower `opacity` below `0.6`.
+4. **Full Screen & Universal Responsiveness:**
+   - 100% Edge-to-Edge layout (`w-full min-h-screen`), zero horizontal overflow on Mobile (`375px`), Tablet/iPad (`768px`–`1024px`), and Desktop (`1280px+`).
+   - Base font `16px`, touch targets `min-h-11` (`44px`), readable for all genders and age groups.
 
 ---
 
-## 4. Required UI States Checklist (All Views)
-- **Loading:** Skeleton blocks matching layout geometry (no jarring layout shift).
-- **Empty:** Helpful empty state with next action (e.g., *"No overdue reviews — every team is on track"*).
-- **Error:** Recoverable inline alert preserving user's unsaved form input + Retry action.
-- **Validation:** Field-level inline error messages (especially Evidence requirement for scores `1`, `2`, `5`).
-- **Permission / Locked:** Clear explanation when a view or result is locked by role or cycle state.
-- **Success:** Subtle toast confirmation after Save, Submit, Nudge, Extend, Escalate, or Publish.
+## 3. Speed, Zero-Latency & Radical Minimalism Rules
+1. **0ms Instant UI (No Fake Spinners):** Never use `setTimeout`, fake skeleton loaders, or artificial delays. Role switches, filters, score adjustments, nudges, and cycle toggles update React state instantaneously (`0ms`) with crisp `150ms` CSS-only transitions (`transition-colors duration-150 ease-out`).
+2. **Zero Heavy Libraries:** Build **9-Box Performance Grid**, **Org Distribution Bar**, and score meters using pure semantic HTML, Tailwind CSS Grid, and lightweight inline SVG.
+3. **Radical Simplicity & Progressive Disclosure:**
+   - 1 Primary CTA (`#0052FF`) per viewport section; secondary actions use `#FFFFFF` bg + `1px solid #CBD5E1` + `#0F172A` text.
+   - Tight border radius (`rounded-md` / `6px` or `rounded-lg` / `8px`) + `1px solid #E2E5EB` borders (no heavy drop shadows).
+   - Tables stay scannable (max 5–6 columns). Detailed rubric scoring, KPI breakdowns, and bias alerts live inside a **Slide-over Drawer** on row click.
+   - Apply `tabular-nums` (`font-variant-numeric: tabular-nums`) to every score, percentage, and count.
+4. **Static Shell (`CLS = 0`):** Persistent top navigation bar (`empeo` logo, Active Review Cycle badge, 1-click **Role Switcher** `HR Admin | Manager | Employee`, and **EN / ไทย** toggle) stays fixed while inner role views swap seamlessly.
 
 ---
 
-## 5. Natural Bilingual Copy Guide (EN → TH Examples)
-Thai copy must read like a real Thai HR SaaS product — never robotic Google Translate:
-- `Performance Management` → `บริหารผลการปฏิบัติงาน`
-- `High Performer` → `พนักงานผลงานโดดเด่น`
-- `At-Risk / Needs Support` → `ต้องดูแลและพัฒนาเร่งด่วน`
-- `Evidence Required` → `กรุณาระบุหลักฐานผลงานประกอบ`
-- `Leniency Bias Alert` → `แจ้งเตือนแนวโน้มให้คะแนนสูงเกินเกณฑ์`
-- `Send Nudge` → `ส่งแจ้งเตือนติดตาม`
-- `Extend Grace Period` → `ขยายเวลาส่งประเมิน`
-- `Escalate to Skip-Level` → `ส่งเรื่องต่อผู้บริหารระดับถัดไป`
-- `Pending HR Release` → `รอฝ่ายบุคคลประกาศผล`
+## 4. Core Views & Natural Bilingual Copy (EN Default + Idiomatic TH)
+- **HR Admin:** Cycle setup (What/How weights, rubric anchors, deadline, Grace Period / Lock Cycle toggle), Org-wide **9-Box Performance Grid** + **Org Distribution Bar** + **Bias Alerts**, Overdue Exception Queue (`Send Nudge` / `Extend Grace Period` / `Escalate`), Publish Results gate, and Audit Log.
+- **Manager:** Scannable team table (max 5–6 columns) with overdue badges; clicking a row opens the **Slide-over Drawer** showing Employee Goals/KPIs & Self-Review alongside 1–5 Behavioral Anchor Rubric scoring, Evidence guardrail (`1`, `2`, `5`), and live Team Bias/Distribution indicator.
+- **Employee:** Own OKRs/KPIs with progress bars, Self-Reflection & Evidence submission, lifecycle stepper, and locked vs. published final review breakdown.
+- **Thai Copy Standard:** Natural HR/business Thai (never literal Google Translate):
+  - `Performance Management` → `บริหารผลการปฏิบัติงาน`
+  - `High Performer` → `พนักงานผลงานโดดเด่น`
+  - `Needs Action` → `ต้องดูแลและพัฒนาเร่งด่วน`
+  - `Send Nudge` → `ส่งแจ้งเตือนติดตาม`
+  - `Grace Period` → `ช่วงผ่อนผันส่งประเมิน`
+  - `Lock Cycle` → `ปิดรอบการประเมิน`

@@ -21,5 +21,11 @@
   - Drafted Gate 1 specifications in `docs/agent-hub/` (`00-brief.md`, `01-api-contract.md`, `02-ui-spec.md`, `03-security-baseline.md`, `04-qa-report.md`).
   - Scaffolded Pure JS `backend/` (Express 5 + Prisma 6.19.3 Dual-URL + Helmet/CORS/Rate-Limit + Zod env + JWT/RBAC middleware + health smoke test) and `frontend/` (React 19 + Vite 8 + Tailwind CSS 4 neutral tokens + `motion` + `recharts` + EN/TH natural toggle).
   - Verified `backend` (`npm test` 1/1 pass, `prisma validate` valid) and `frontend` (`oxlint` 0 errors/0 warnings, `vite build` pass).
+### 2026-11-23 — Coordinator (Brand CI & Guardrails Locked)
+- **Completed:**
+  - Locked **"Nordic Slate & Electric Cobalt"** color tokens, strict WCAG 2.1 AA opaque floating layers (zero glassmorphism), `0ms` instant UI, and Zero Heavy Libraries guardrails across `note/guidelines.md`, `docs/agent-hub/00-brief.md`, `docs/agent-hub/02-ui-spec.md`, and `frontend/src/index.css`.
+  - Uninstalled `motion` and `recharts` from `frontend/` (removed 49 packages; 0 vulnerabilities).
+  - Updated `AppShell.jsx`, `HomePage.jsx`, and `App.jsx` to solid opaque surfaces, `#0052FF` Electric Cobalt primary accent, `rounded-md`/`rounded-lg`, and `150ms` CSS transitions.
+  - Verified `frontend` (`oxlint`: 0 warnings/0 errors; `vite build`: 319ms).
 - **Open Decisions / Next Actions:**
-  - Await user Gate 1 approval, Brand CI palette (next session), and new GitHub remote URL before pushing and starting Phase 2.
+  - Await user Gate 1 approval and new GitHub remote URL to begin Phase 2.
