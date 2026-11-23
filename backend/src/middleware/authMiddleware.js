@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { getUserById, hasPermission } from '../services/storeService.js';
 
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
@@ -17,11 +18,24 @@ export function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
+    const liveUser = getUserById(payload.sub);
+
+    if (!liveUser || liveUser.accountStatus !== 'ACTIVE') {
+      return res.status(403).json({
+        ok: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Account is not active. Contact Super Admin.',
+        },
+      });
+    }
+
     req.user = {
-      id: payload.sub,
-      role: payload.role,
-      email: payload.email,
-      name: payload.name,
+      id: liveUser.id,
+      employeeCode: liveUser.employeeCode,
+      role: liveUser.role,
+      email: liveUser.email,
+      name: liveUser.name,
     };
     return next();
   } catch {
@@ -43,6 +57,21 @@ export function requireRole(...allowedRoles) {
         error: {
           code: 'FORBIDDEN',
           message: 'You do not have permission to perform this action.',
+        },
+      });
+    }
+    return next();
+  };
+}
+
+export function requirePermission(permissionKey) {
+  return (req, res, next) => {
+    if (!req.user || !hasPermission(req.user.role, permissionKey)) {
+      return res.status(403).json({
+        ok: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: `Missing required permission: ${permissionKey}`,
         },
       });
     }

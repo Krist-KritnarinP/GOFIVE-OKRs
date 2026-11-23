@@ -1,14 +1,47 @@
 import { z } from 'zod';
 
 const scoreField = z.coerce.number().int().min(1).max(5);
+const employeeCodeField = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z]{2,6}-\d{3,6}$/, 'Employee code must follow format e.g. EMP-1001.');
 
 export const demoSwitchSchema = z.object({
   userId: z.string().min(1, 'userId is required'),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  employeeCode: employeeCodeField,
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+});
+
+export const registerSchema = z.object({
+  employeeCode: employeeCodeField,
+  name: z.string().trim().min(2, 'Full name is required.').max(100),
+  department: z.string().trim().min(2, 'Department is required.').max(80),
+  title: z.string().trim().min(2, 'Job title is required.').max(100),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(100),
+});
+
+export const adminUpdateUserSchema = z.object({
+  role: z.enum(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']).optional(),
+  accountStatus: z.enum(['PENDING_APPROVAL', 'ACTIVE', 'SUSPENDED']).optional(),
+});
+
+export const adminUpdatePermissionSchema = z.object({
+  role: z.enum(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']),
+  permissionKey: z.enum([
+    'rbac:manage',
+    'cycle:configure',
+    'analytics:view_org',
+    'exception:manage',
+    'review:publish',
+    'team:evaluate',
+    'self:submit',
+    'audit:view',
+  ]),
+  allowed: z.boolean(),
 });
 
 export const updateCycleSchema = z
@@ -81,7 +114,6 @@ export const managerReviewSchema = z
   .superRefine((data, ctx) => {
     if (!data.submit) return;
 
-    // Fairness Guardrail: extreme ratings (1, 2, or 5) require concrete evidence (>= 20 chars)
     data.goalRatings.forEach((item, idx) => {
       if ((item.score <= 2 || item.score === 5) && item.evidence.trim().length < 20) {
         ctx.addIssue({

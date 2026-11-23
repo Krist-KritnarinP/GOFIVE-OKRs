@@ -12,6 +12,7 @@ export function HrDashboardPage({
   reviews,
   auditLogs,
   analytics,
+  can,
   t,
   lang,
   onToggleGracePeriod,
@@ -24,6 +25,9 @@ export function HrDashboardPage({
 }) {
   const [selectedReview, setSelectedReview] = useState(null);
   const [modalAction, setModalAction] = useState(null);
+
+  const canConfigure = can ? can('cycle:configure') : true;
+  const canPublish = can ? can('review:publish') : true;
 
   const completed = reviews.filter(
     (r) => r.status === 'READY_FOR_RELEASE' || r.status === 'PUBLISHED'
@@ -46,8 +50,9 @@ export function HrDashboardPage({
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             type="button"
+            disabled={!canConfigure}
             onClick={onToggleGracePeriod}
-            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed"
           >
             <Clock className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
             <span>{t.graceToggleLabel}: {cycle.isGracePeriodActive ? 'ON' : 'OFF'}</span>
@@ -55,8 +60,9 @@ export function HrDashboardPage({
 
           <button
             type="button"
+            disabled={!canConfigure}
             onClick={onToggleLockCycle}
-            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed"
           >
             <Lock className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
             <span>{t.lockToggleLabel}: {cycle.isLocked ? 'ON' : 'OFF'}</span>
@@ -64,8 +70,9 @@ export function HrDashboardPage({
 
           <button
             type="button"
-            disabled={readyCount === 0}
+            disabled={readyCount === 0 || !canPublish}
             onClick={onPublishReady}
+            title={!canPublish ? t.permDeniedBanner : undefined}
             className="inline-flex items-center gap-2 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] disabled:border disabled:border-[var(--border-subtle)] text-sm font-semibold text-white transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed tabular-nums"
           >
             <Send className="w-4 h-4" aria-hidden="true" />

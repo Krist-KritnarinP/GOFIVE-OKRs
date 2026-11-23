@@ -1,6 +1,9 @@
 import { ROLES } from './constants/roles.js';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { ToastBar } from './components/common/ToastBar.jsx';
+import { LoginPage } from './pages/LoginPage.jsx';
+import { RegisterPage } from './pages/RegisterPage.jsx';
+import { SuperAdminPage } from './pages/SuperAdminPage.jsx';
 import { HrDashboardPage } from './pages/HrDashboardPage.jsx';
 import { ManagerWorkspacePage } from './pages/ManagerWorkspacePage.jsx';
 import { EmployeeWorkspacePage } from './pages/EmployeeWorkspacePage.jsx';
@@ -11,21 +14,54 @@ export function App() {
   const { lang, toggleLanguage, t } = useLanguage('en');
   const store = usePerformanceStore(t);
 
+  if (!store.currentUser) {
+    return store.authScreen === 'register' ? (
+      <RegisterPage
+        t={t}
+        onToggleLanguage={toggleLanguage}
+        onRegister={store.handleRegister}
+        onBackToLogin={() => store.setAuthScreen('login')}
+      />
+    ) : (
+      <LoginPage
+        t={t}
+        lang={lang}
+        onToggleLanguage={toggleLanguage}
+        onLogin={store.handleLogin}
+        onGoRegister={() => store.setAuthScreen('register')}
+      />
+    );
+  }
+
   return (
     <AppShell
       t={t}
       lang={lang}
       cycle={store.cycle}
+      currentUser={store.currentUser}
       activeRole={store.activeRole}
       onSelectRole={store.setActiveRole}
       onToggleLanguage={toggleLanguage}
+      onLogout={store.handleLogout}
     >
+      {store.activeRole === ROLES.SUPER_ADMIN && (
+        <SuperAdminPage
+          users={store.users}
+          rolePermissions={store.rolePermissions}
+          t={t}
+          lang={lang}
+          onUpdateUser={store.handleUpdateUser}
+          onTogglePermission={store.handleTogglePermission}
+        />
+      )}
+
       {store.activeRole === ROLES.HR_ADMIN && (
         <HrDashboardPage
           cycle={store.cycle}
           reviews={store.reviews}
           auditLogs={store.auditLogs}
           analytics={store.analytics}
+          can={store.can}
           t={t}
           lang={lang}
           onToggleGracePeriod={store.handleToggleGracePeriod}

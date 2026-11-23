@@ -1,4 +1,5 @@
 import { COMPETENCIES, RUBRIC_LEVELS } from '../constants/rubric.js';
+import { DEFAULT_ROLE_PERMISSIONS } from '../constants/roles.js';
 
 const ROUND2 = (n) => Math.round(n * 100) / 100;
 
@@ -451,5 +452,20 @@ export function createInitialClientState() {
     },
   ];
 
-  return { cycle, reviews, auditLogs };
+  const users = [
+    { id: 'usr-super', employeeCode: 'EMP-0001', name: 'Kritnarin P.', nameTh: 'กฤตนรินทร์ พ.', title: 'System Super Administrator', department: 'IT & Governance', role: 'SUPER_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', title: 'Engineering Manager', department: 'Engineering', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', title: 'Enterprise Sales Director', department: 'Sales', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', title: 'Head of Product', department: 'Product', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-bank', employeeCode: 'EMP-3003', name: 'Bank Jiraporn', nameTh: 'แบงค์ จิราพร', title: 'QA Automation Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-fah', employeeCode: 'EMP-3007', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-pending', employeeCode: 'EMP-3099', name: 'Pimchanok D.', nameTh: 'พิมพ์ชนก ด.', title: 'Junior Data Analyst', department: 'Operations', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
+  ];
+
+  const rolePermissions = structuredClone(DEFAULT_ROLE_PERMISSIONS);
+
+  return { cycle, reviews, auditLogs, users, rolePermissions };
 }

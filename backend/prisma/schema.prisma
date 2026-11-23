@@ -9,9 +9,16 @@ datasource db {
 }
 
 enum UserRole {
+  SUPER_ADMIN
   HR_ADMIN
   MANAGER
   EMPLOYEE
+}
+
+enum AccountStatus {
+  PENDING_APPROVAL
+  ACTIVE
+  SUSPENDED
 }
 
 enum ReviewStatus {
@@ -34,17 +41,19 @@ enum NineBoxCell {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String        @id @default(cuid())
+  employeeCode  String        @unique
+  email         String        @unique
   passwordHash  String
   name          String
   nameTh        String?
   title         String
   department    String
-  role          UserRole @default(EMPLOYEE)
+  role          UserRole      @default(EMPLOYEE)
+  accountStatus AccountStatus @default(PENDING_APPROVAL)
   managerId     String?
-  manager       User?    @relation("ManagerReports", fields: [managerId], references: [id])
-  directReports User[]   @relation("ManagerReports")
+  manager       User?         @relation("ManagerReports", fields: [managerId], references: [id])
+  directReports User[]        @relation("ManagerReports")
 
   goals           Goal[]
   employeeReviews Review[]   @relation("EmployeeReviews")
@@ -53,6 +62,16 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model RolePermission {
+  id            String   @id @default(cuid())
+  role          UserRole
+  permissionKey String
+  allowed       Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([role, permissionKey])
 }
 
 model ReviewCycle {

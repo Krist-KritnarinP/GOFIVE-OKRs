@@ -172,3 +172,76 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
     assert.ok(logsRes.json.data.auditLogs.length >= 5);
   });
 });
+
+test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login + Live Permission Toggle', async () => {
+  await withServer(async ({ req }) => {
+    // 1. Register new employee with Employee Code
+    const regRes = await req('/auth/register', {
+      method: 'POST',
+      body: {
+        employeeCode: 'EMP-4001',
+        name: 'Korn Supakit',
+        department: 'Engineering',
+        title: 'Software Engineer',
+        password: 'NewUserPass123!',
+      },
+    });
+    assert.equal(regRes.status, 201);
+    assert.equal(regRes.json.data.user.accountStatus, 'PENDING_APPROVAL');
+    const newUserId = regRes.json.data.user.id;
+
+    // 2. Pending account cannot log in yet
+    const blockedLogin = await req('/auth/login', {
+      method: 'POST',
+      body: { employeeCode: 'EMP-4001', password: 'NewUserPass123!' },
+    });
+    assert.equal(blockedLogin.status, 403);
+    assert.equal(blockedLogin.json.error.code, 'ACCOUNT_PENDING');
+
+    // 3. Super Admin logs in with Employee Code + Password and approves account
+    const superLogin = await req('/auth/login', {
+      method: 'POST',
+      body: { employeeCode: 'EMP-0001', password: 'DemoPass123!' },
+    });
+    assert.equal(superLogin.status, 200);
+    const superToken = superLogin.json.data.token;
+
+    const approveRes = await req(`/admin/users/${newUserId}`, {
+      method: 'PATCH',
+      token: superToken,
+      body: { accountStatus: 'ACTIVE', role: 'EMPLOYEE' },
+    });
+    assert.equal(approveRes.status, 200);
+    assert.equal(approveRes.json.data.user.accountStatus, 'ACTIVE');
+
+    // 4. Now EMP-4001 can log in
+    const okLogin = await req('/auth/login', {
+      method: 'POST',
+      body: { employeeCode: 'EMP-4001', password: 'NewUserPass123!' },
+    });
+    assert.equal(okLogin.status, 200);
+    assert.equal(okLogin.json.data.user.employeeCode, 'EMP-4001');
+
+    // 5. Super Admin revokes review:publish from HR_ADMIN -> HR gets 403 immediately
+    const hrLogin = await req('/auth/login', {
+      method: 'POST',
+      body: { employeeCode: 'EMP-1001', password: 'DemoPass123!' },
+    });
+    const hrToken = hrLogin.json.data.token;
+
+    const revokeRes = await req('/admin/permissions', {
+      method: 'PUT',
+      token: superToken,
+      body: { role: 'HR_ADMIN', permissionKey: 'review:publish', allowed: false },
+    });
+    assert.equal(revokeRes.status, 200);
+
+    const deniedPublish = await req('/hr/cycles/cycle-fy2026/publish', {
+      method: 'POST',
+      token: hrToken,
+      body: {},
+    });
+    assert.equal(deniedPublish.status, 403);
+    assert.equal(deniedPublish.json.error.code, 'FORBIDDEN');
+  });
+});

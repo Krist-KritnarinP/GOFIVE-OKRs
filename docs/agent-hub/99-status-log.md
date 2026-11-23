@@ -14,6 +14,16 @@
 
 ## Activity Log
 
+### 2026-11-23 — Auth & Super Admin Dynamic RBAC Upgrade (Passed Gate 2)
+- **Backend (`backend/`):**
+  - Added `SUPER_ADMIN` role, `AccountStatus` (`PENDING_APPROVAL | ACTIVE | SUSPENDED`), `employeeCode @unique`, and `RolePermission` table to `prisma/schema.prisma`.
+  - Switched login to `employeeCode + password` with account-status enforcement (`403 ACCOUNT_PENDING` / `ACCOUNT_SUSPENDED`), added `POST /auth/register`, dynamic `requirePermission(...)` middleware, and `/api/v1/admin/*` endpoints.
+  - Expanded `tests/api.test.js` — **6/6 tests pass**, `prisma validate` valid.
+- **Frontend (`frontend/`):**
+  - Added `LoginPage.jsx` (Employee Code + Password + 4 Quick-Fill Demo Accounts), `RegisterPage.jsx` (`PENDING_APPROVAL` flow), and `SuperAdminPage.jsx` (Pending Approvals, User Directory, Dynamic Role Permission Matrix).
+  - Connected live permission gating (`can(...)`) to `HrDashboardPage.jsx` and added Employee Code + Sign Out to `AppShell.jsx`.
+  - Verified `oxlint` (0 warnings/0 errors across 23 files) and `vite build` (98.01 kB gzip).
+
 ### 2026-11-23 — Dev Back & Dev Front (Phase 2 Complete — Gate 2 Passed)
 - **Backend (`backend/`):**
   - Updated `prisma/schema.prisma` (`NineBoxCell`, `whatPct`, `isGracePeriodActive`, `isLocked`, `rubricConfig`) and `01-api-contract.md`.

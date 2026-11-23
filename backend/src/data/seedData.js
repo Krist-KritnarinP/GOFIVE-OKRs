@@ -47,6 +47,49 @@ export const COMPETENCIES = [
   { id: 'comp-problem', name: 'Problem Solving & Craft', nameTh: 'การแก้ปัญหาและคุณภาพงาน' },
 ];
 
+export const DEFAULT_ROLE_PERMISSIONS = {
+  SUPER_ADMIN: {
+    'rbac:manage': true,
+    'cycle:configure': true,
+    'analytics:view_org': true,
+    'exception:manage': true,
+    'review:publish': true,
+    'team:evaluate': true,
+    'self:submit': true,
+    'audit:view': true,
+  },
+  HR_ADMIN: {
+    'rbac:manage': false,
+    'cycle:configure': true,
+    'analytics:view_org': true,
+    'exception:manage': true,
+    'review:publish': true,
+    'team:evaluate': true,
+    'self:submit': true,
+    'audit:view': true,
+  },
+  MANAGER: {
+    'rbac:manage': false,
+    'cycle:configure': false,
+    'analytics:view_org': false,
+    'exception:manage': false,
+    'review:publish': false,
+    'team:evaluate': true,
+    'self:submit': true,
+    'audit:view': false,
+  },
+  EMPLOYEE: {
+    'rbac:manage': false,
+    'cycle:configure': false,
+    'analytics:view_org': false,
+    'exception:manage': false,
+    'review:publish': false,
+    'team:evaluate': false,
+    'self:submit': true,
+    'audit:view': false,
+  },
+};
+
 export function createInitialSeed() {
   const now = new Date();
   const daysAgo = (d) => new Date(now.getTime() - d * 86400000).toISOString();
@@ -70,7 +113,21 @@ export function createInitialSeed() {
 
   const users = [
     {
+      id: 'usr-super',
+      employeeCode: 'EMP-0001',
+      email: 'krit.admin@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Kritnarin P.',
+      nameTh: 'กฤตนรินทร์ พ.',
+      title: 'System Super Administrator',
+      department: 'IT & Governance',
+      role: 'SUPER_ADMIN',
+      accountStatus: 'ACTIVE',
+      managerId: null,
+    },
+    {
       id: 'usr-hr',
+      employeeCode: 'EMP-1001',
       email: 'pluem.hr@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Pluem Srisuk',
@@ -78,10 +135,12 @@ export function createInitialSeed() {
       title: 'People Operations Lead',
       department: 'Human Resources',
       role: 'HR_ADMIN',
-      managerId: null,
+      accountStatus: 'ACTIVE',
+      managerId: 'usr-super',
     },
     {
       id: 'usr-mgr-eng',
+      employeeCode: 'EMP-2001',
       email: 'sarah.eng@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Sarah Chen',
@@ -89,10 +148,12 @@ export function createInitialSeed() {
       title: 'Engineering Manager',
       department: 'Engineering',
       role: 'MANAGER',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
     },
     {
       id: 'usr-mgr-sales',
+      employeeCode: 'EMP-2002',
       email: 'somchai.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Somchai Wattana',
@@ -100,10 +161,12 @@ export function createInitialSeed() {
       title: 'Enterprise Sales Director',
       department: 'Sales',
       role: 'MANAGER',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
     },
     {
       id: 'usr-mgr-prod',
+      employeeCode: 'EMP-2003',
       email: 'kanya.prod@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Kanya Rattanapong',
@@ -111,11 +174,12 @@ export function createInitialSeed() {
       title: 'Head of Product',
       department: 'Product',
       role: 'MANAGER',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
     },
-    // Engineering direct reports (Sarah Chen)
     {
       id: 'usr-emp-nida',
+      employeeCode: 'EMP-3001',
       email: 'nida.dev@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Nida Phanich',
@@ -123,10 +187,12 @@ export function createInitialSeed() {
       title: 'Senior Backend Engineer',
       department: 'Engineering',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-eng',
     },
     {
       id: 'usr-emp-ton',
+      employeeCode: 'EMP-3002',
       email: 'ton.dev@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Tonrak Chaiyawat',
@@ -134,10 +200,12 @@ export function createInitialSeed() {
       title: 'Frontend Engineer',
       department: 'Engineering',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-eng',
     },
     {
       id: 'usr-emp-bank',
+      employeeCode: 'EMP-3003',
       email: 'bank.qa@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Bank Jiraporn',
@@ -145,11 +213,12 @@ export function createInitialSeed() {
       title: 'QA Automation Engineer',
       department: 'Engineering',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-eng',
     },
-    // Sales direct reports (Somchai — triggers Leniency Bias Alert!)
     {
       id: 'usr-emp-may',
+      employeeCode: 'EMP-3004',
       email: 'may.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Mayuree Lim',
@@ -157,10 +226,12 @@ export function createInitialSeed() {
       title: 'Enterprise Account Executive',
       department: 'Sales',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-sales',
     },
     {
       id: 'usr-emp-art',
+      employeeCode: 'EMP-3005',
       email: 'art.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Arthit Kongkiat',
@@ -168,10 +239,12 @@ export function createInitialSeed() {
       title: 'Account Executive',
       department: 'Sales',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-sales',
     },
     {
       id: 'usr-emp-beam',
+      employeeCode: 'EMP-3006',
       email: 'beam.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Beam Chotika',
@@ -179,11 +252,12 @@ export function createInitialSeed() {
       title: 'Sales Operations Specialist',
       department: 'Sales',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-sales',
     },
-    // Product direct reports (Kanya — includes Low Performer + High Potential)
     {
       id: 'usr-emp-fah',
+      employeeCode: 'EMP-3007',
       email: 'fah.prod@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Fah Prapaporn',
@@ -191,10 +265,12 @@ export function createInitialSeed() {
       title: 'Product Designer',
       department: 'Product',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-prod',
     },
     {
       id: 'usr-emp-nut',
+      employeeCode: 'EMP-3008',
       email: 'nut.ops@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Nattapong Meekul',
@@ -202,6 +278,20 @@ export function createInitialSeed() {
       title: 'Product Operations Analyst',
       department: 'Product',
       role: 'EMPLOYEE',
+      accountStatus: 'ACTIVE',
+      managerId: 'usr-mgr-prod',
+    },
+    {
+      id: 'usr-emp-pending',
+      employeeCode: 'EMP-3099',
+      email: 'pim.new@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Pimchanok D.',
+      nameTh: 'พิมพ์ชนก ด.',
+      title: 'Junior Data Analyst',
+      department: 'Operations',
+      role: 'EMPLOYEE',
+      accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-mgr-prod',
     },
   ];
@@ -532,5 +622,7 @@ export function createInitialSeed() {
     },
   ];
 
-  return { cycle, users, goals, reviews, auditLogs, nextDeadlineSample: daysFromNow(5) };
+  const rolePermissions = structuredClone(DEFAULT_ROLE_PERMISSIONS);
+
+  return { cycle, users, goals, reviews, auditLogs, rolePermissions, nextDeadlineSample: daysFromNow(5) };
 }
