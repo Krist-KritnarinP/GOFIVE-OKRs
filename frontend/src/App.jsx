@@ -39,7 +39,6 @@ export function App() {
     ) : (
       <LoginPage
         t={t}
-        lang={lang}
         onToggleLanguage={toggleLanguage}
         onLogin={store.handleLogin}
         onBypassDemo={store.handleBypassDemo}
