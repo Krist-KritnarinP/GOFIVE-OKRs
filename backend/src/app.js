@@ -5,6 +5,10 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import healthRoutes from './routes/healthRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import cycleRoutes from './routes/cycleRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import hrRoutes from './routes/hrRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -27,7 +31,7 @@ export function createApp() {
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 300,
+      max: 500,
       standardHeaders: true,
       legacyHeaders: false,
       message: {
@@ -47,6 +51,11 @@ export function createApp() {
   }
 
   app.use('/api/v1', healthRoutes);
+  app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/cycles', cycleRoutes);
+  app.use('/api/v1/reviews', reviewRoutes);
+  app.use('/api/v1/hr', hrRoutes);
+
   app.use(notFoundHandler);
   app.use(errorHandler);
 

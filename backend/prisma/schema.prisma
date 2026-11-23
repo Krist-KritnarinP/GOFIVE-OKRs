@@ -21,43 +21,53 @@ enum ReviewStatus {
   PUBLISHED
 }
 
-enum PerformanceQuadrant {
-  HIGH_PERFORMER
-  HIGH_POTENTIAL
-  SOLID_CONTRIBUTOR
-  AT_RISK
+enum NineBoxCell {
+  STAR_HIGH_PERFORMER
+  HIGH_IMPACT_GROWTH
+  HIGH_POTENTIAL_EMERGING
+  CONSISTENT_CONTRIBUTOR
+  CORE_PERFORMER
+  DEVELOPING_TALENT
+  EFFECTIVE_SPECIALIST
+  INCONSISTENT_PERFORMER
+  NEEDS_ACTION_LOW_PERFORMER
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  title        String
-  department   String
-  role         UserRole @default(EMPLOYEE)
-  managerId    String?
-  manager      User?    @relation("ManagerReports", fields: [managerId], references: [id])
-  directReports User[]  @relation("ManagerReports")
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  nameTh        String?
+  title         String
+  department    String
+  role          UserRole @default(EMPLOYEE)
+  managerId     String?
+  manager       User?    @relation("ManagerReports", fields: [managerId], references: [id])
+  directReports User[]   @relation("ManagerReports")
 
-  goals            Goal[]
-  employeeReviews  Review[]   @relation("EmployeeReviews")
-  managedReviews   Review[]   @relation("ManagerReviews")
-  auditLogs        AuditLog[] @relation("ActorAuditLogs")
+  goals           Goal[]
+  employeeReviews Review[]   @relation("EmployeeReviews")
+  managedReviews  Review[]   @relation("ManagerReviews")
+  auditLogs       AuditLog[] @relation("ActorAuditLogs")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ReviewCycle {
-  id              String   @id @default(cuid())
-  name            String
-  period          String
-  whatWeight      Int      @default(60)
-  howWeight       Int      @default(40)
-  selfDeadline    DateTime
-  managerDeadline DateTime
-  isActive        Boolean  @default(true)
+  id                  String   @id @default(cuid())
+  name                String
+  nameTh              String?
+  period              String
+  whatWeight          Int      @default(60)
+  howWeight           Int      @default(40)
+  selfDeadline        DateTime
+  managerDeadline     DateTime
+  isGracePeriodActive Boolean  @default(false)
+  isLocked            Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  rubricConfig        Json?
 
   goals     Goal[]
   reviews   Review[]
@@ -84,24 +94,25 @@ model Goal {
 }
 
 model Review {
-  id                   String               @id @default(cuid())
+  id                   String       @id @default(cuid())
   cycleId              String
-  cycle                ReviewCycle          @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  cycle                ReviewCycle  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   employeeId           String
-  employee             User                 @relation("EmployeeReviews", fields: [employeeId], references: [id], onDelete: Cascade)
+  employee             User         @relation("EmployeeReviews", fields: [employeeId], references: [id], onDelete: Cascade)
   managerId            String?
-  manager              User?                @relation("ManagerReviews", fields: [managerId], references: [id])
-  status               ReviewStatus         @default(DRAFT)
+  manager              User?        @relation("ManagerReviews", fields: [managerId], references: [id])
+  status               ReviewStatus @default(DRAFT)
   selfPayload          Json?
   managerPayload       Json?
+  whatPct              Float?
   whatScore            Float?
   howScore             Float?
   overallScore         Float?
-  quadrant             PerformanceQuadrant?
+  nineBoxCell          NineBoxCell?
   selfSubmittedAt      DateTime?
   managerSubmittedAt   DateTime?
   extendedDeadline     DateTime?
-  escalatedToSkipLevel Boolean              @default(false)
+  escalatedToSkipLevel Boolean      @default(false)
   lastNudgedAt         DateTime?
   publishedAt          DateTime?
 

@@ -56,9 +56,9 @@
 
 ### Review Cycle & Rubric
 - `GET /cycles/active` *(Authenticated)*
-  - Returns active cycle metadata (`id`, `name`, `period`, `whatWeight`, `howWeight`, `selfReviewDeadline`, `managerReviewDeadline`, `rubricLevels[1..5]`, `competencies[]`).
+  - Returns active cycle metadata (`id`, `name`, `nameTh`, `period`, `whatWeight`, `howWeight`, `selfDeadline`, `managerDeadline`, `isGracePeriodActive`, `isLocked`, `rubricLevels[1..5]`, `competencies[]`).
 - `PATCH /cycles/:cycleId` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ whatWeight, howWeight, selfReviewDeadline, managerReviewDeadline }` (`whatWeight + howWeight === 100`).
+  - Body (Zod): `{ whatWeight?, howWeight?, selfDeadline?, managerDeadline?, isGracePeriodActive?, isLocked? }` (`whatWeight + howWeight === 100` when provided). Writes `AuditLog` on lock/grace-period toggles.
 
 ### Reviews — Employee & Manager Flows
 - `GET /reviews/me` *(RBAC: `EMPLOYEE`, `MANAGER`, `HR_ADMIN`)*
@@ -76,7 +76,7 @@
   - Allowed when `status` is `SELF_REVIEW_SUBMITTED` or `MANAGER_REVIEW_SUBMITTED` (before publish), or `DRAFT` if HR escalated/unlocked.
   - Body (Zod): `{ goalRatings: [{ goalId, score (1..5), evidence }], competencyRatings: [{ competencyId, score (1..5), evidence }], managerSummary, developmentFocus, submit: boolean }`.
   - **Fairness Business Rule (Server-Enforced):** If `submit: true`, any rating with `score === 1 || score === 2 || score === 5` MUST include `evidence.trim().length >= 20`. Otherwise return `400 VALIDATION_ERROR`.
-  - Calculates `whatScore`, `howScore`, `overallScore`, and `quadrant` (`HIGH_PERFORMER`, `HIGH_POTENTIAL`, `SOLID_CONTRIBUTOR`, `AT_RISK`) on the server.
+  - Calculates `whatPct`, `whatScore`, `howScore`, `overallScore`, and `nineBoxCell` (3×3 Goal Achievement % × Competency 1–5) on the server.
   - If `submit: true`, transitions status to `READY_FOR_RELEASE`.
 
 ### HR Analytics, Bias Detection, Exceptions & Publish

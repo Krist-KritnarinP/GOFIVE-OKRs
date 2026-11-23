@@ -5,14 +5,24 @@
 ---
 
 ## Current Phase & Gate Status
-- **Active Phase:** Phase 0 (Complete) & Phase 1 (Complete — Awaiting Gate 1 Approval)
-- **Gate 1 (Before Dev):** READY FOR USER APPROVAL — `00-brief.md`, `01-api-contract.md`, `02-ui-spec.md`, `03-security-baseline.md` complete
-- **Gate 2 (Before QA):** PENDING
+- **Active Phase:** Phase 2 Complete → Ready for Phase 3 (QA, Browser Visual Check & Deploy)
+- **Gate 1 (Before Dev):** PASSED (Approved by user)
+- **Gate 2 (Before QA):** PASSED (`oxlint` 0 errors, `vite build` 91.82 kB gzip, `backend` 5/5 tests pass, `prisma validate` pass)
 - **Gate 3 (Before Release):** PENDING
 
 ---
 
 ## Activity Log
+
+### 2026-11-23 — Dev Back & Dev Front (Phase 2 Complete — Gate 2 Passed)
+- **Backend (`backend/`):**
+  - Updated `prisma/schema.prisma` (`NineBoxCell`, `whatPct`, `isGracePeriodActive`, `isLocked`, `rubricConfig`) and `01-api-contract.md`.
+  - Implemented Zod schemas (`reviewSchemas.js`), deterministic 9-Box & Bias scoring engine + server-side `sanitizeReviewForRole` (`scoringService.js`), realistic enterprise seed data (`seedData.js`), store service, controllers, and routes (`/auth`, `/cycles`, `/reviews`, `/hr`).
+  - Added automated API security/RBAC/fairness tests (`tests/api.test.js`) — 5/5 pass.
+- **Frontend (`frontend/`):**
+  - Implemented 3-role workspace (`HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`) with 1-click Role Switcher and EN/TH natural bilingual toggle in static `AppShell`.
+  - Built pure HTML/Tailwind `NineBoxGrid` (Goal % × Competency 1–5), `OrgDistributionBar` + Bias Alerts, `ExceptionQueue` (`Nudge` / `Extend +5d` / `Escalate` + `AuditLog`), opaque `EvaluationDrawer` with Behavioral Anchors & Evidence Guardrail, `ReasonModal`, and solid `#0F172A` `ToastBar`.
+  - Removed unused `HomePage.jsx` scaffold; verified `oxlint` (0 warnings/0 errors) and `vite build` (455ms).
 
 ### 2026-11-23 — Coordinator / PM-PO (Phase 0 & Phase 1 Complete)
 - **Completed:**
