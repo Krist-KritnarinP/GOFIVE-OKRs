@@ -1,58 +1,9 @@
-# Engineering Guidelines, Standing Rules & Multi-Agent Governance
+# Master Engineering Guidelines Index — empeo Performance Management (`GOFIVE TEST`)
 
-## 1. Mandatory 5-Step Workflow (กติกาการทำงาน 5 ขั้นตอนก่อนลงมือเสมอ)
-Before writing code, modifying files, or running state-changing commands, every agent MUST follow these 5 steps:
-1. **Clarify Direction (ถามคำถามจัดแนวทาง):** Ask concise questions whenever ambiguity affects design, architecture, or outcomes.
-2. **Recommend Approach, Skills & Tech Stack (แนะนำแนวทาง + Skill + Tech Stack):** Present options with **Capabilities, Pros, and Cons**. *(Exception: trivial 1-line edits may abbreviate this step, but must still restate the task and summarize.)*
-3. **Restate Task & Summarize Plan (ทวน Task และสรุปแผนงาน):** Clearly state scope, affected files, and expected outcomes.
-4. **Execute After Alignment (รอการยืนยันแล้วค่อยลงมือทำ):** Never make large or structural changes without user confirmation.
-5. **Summarize, Handover & Push (สรุปผล + อัปเดตเอกสาร + Git):** Summarize changes and verification results, update `docs/handover.md`, `docs/note.md`, and `docs/agent-hub/99-status-log.md`, and run `git commit` + `git push origin main` *(once the project's GitHub remote URL is confirmed by the user)*.
+> **All rules are strictly enforced and split by Role under `docs/rules/`:**
+> - **All Roles:** `docs/rules/00-core-workflow-and-governance.md` (Role & Philosophy, 5-Step Workflow, Pure JS, Dependencies, Verification, Multi-Agent Role Boundaries, Quality Gates 1–3, Git & Handover)
+> - **Dev Front & QA (UI):** `docs/rules/01-frontend-rules.md` (Clean Code, Component Decomposition, Continuous Refactoring, Full-Screen Responsive, **Nordic Slate & Electric Cobalt + Zero Glassmorphism + 0ms Instant UI + Zero Heavy Libraries**)
+> - **Dev Back & QA (Security):** `docs/rules/02-backend-and-security-rules.md` (Pure JS ESM Architecture, Security & Privacy Release Gate, Express/Prisma Dual-URL/Zod/JWT Stack)
+> - **All Roles (Skills):** `docs/rules/03-skills-and-tooling.md` (Installed Skills catalog & Role-to-Skill mapping)
 
----
-
-## 2. Hard Technical Mandates
-- **Pure JavaScript ONLY — NO TypeScript:** Both `frontend/` (`.js`, `.jsx`) and `backend/` (ES Modules `.js`) must strictly use Pure JavaScript. Do NOT create `.ts` or `.tsx` files.
-- **Clean Code & Component Decomposition:**
-  - Single Responsibility Principle — no monolithic giant files.
-  - Organize `frontend/src/` cleanly: `components/`, `pages/`, `constants/`, `services/`, `hooks/`, `i18n/`.
-  - Organize `backend/src/` cleanly: `routes/`, `controllers/`, `services/`, `middleware/`, `schemas/`, `data/`.
-  - Refactor dead code, remove unused imports, and leave no TODO/placeholder logic in required flows.
-- **UI Layout, Accessibility & Anti-Slop Mandate ("Nordic Slate & Electric Cobalt"):**
-  - **Full Screen 100% Edge-to-Edge:** Use full viewport width cleanly without wasted side margins; keep top shell static (`CLS = 0`).
-  - **Universal Responsiveness:** Mobile (all sizes), Tablet/iPad (portrait & landscape), and Desktop.
-  - **Strict WCAG 2.1 AA Contrast & Typography for All Ages:** Minimum `>= 4.5:1` for body/table/placeholder text (never lighter than `#64748B` on `#FFFFFF`), `>= 3.0:1` for large headings/borders/icons, `tabular-nums` on all numeric columns.
-  - **Opaque Floating Layers Only (Zero Glassmorphism):** Never use `backdrop-blur` or translucent backgrounds on headers, modals, drawers, dropdowns, tooltips, or toasts.
-  - **0ms Instant UI & Zero Heavy Libraries:** Never use `setTimeout`/fake spinners. Do NOT install `motion`/Framer Motion, `recharts`, `chart.js`, or `apexcharts` — build 9-Box Grid and Distribution Bars with pure HTML, Tailwind Grid, inline SVG, and `150ms` CSS-only transitions.
-  - **Brand CI Tokens:** Locked to **Nordic Slate & Electric Cobalt** (`#F6F7F9` canvas, `#FFFFFF` surface, `#0F172A` text, `#0052FF` Electric Cobalt primary CTA max 5% viewport) in `frontend/src/index.css`.
-  - **Bilingual Copy (EN Default + Natural TH):** English is the primary language with a 1-click toggle to natural, idiomatic Thai HR/business copy (never literal word-for-word machine translation).
-- **Dependencies:** Install only necessary, latest stable GA packages verified against npm registry. Never use alpha/beta/RC/canary releases.
-- **Security & Privacy Release Gate:**
-  - Validate all untrusted input server-side with **Zod**.
-  - Enforce **Authentication & RBAC** on the server for every protected route (hiding UI elements is NOT authorization).
-  - Never expose unpublished review results to employees via API.
-  - Never commit secrets or `.env` files to Git.
-
----
-
-## 3. Multi-Agent Role Boundaries (สิทธิ์การแก้ไฟล์)
-| Role | Primary Responsibility | File Edit Permissions |
-| :--- | :--- | :--- |
-| **PM / PO** | Break down requirements, User Stories, Acceptance Criteria, API/UI Specs | `docs/agent-hub/` ONLY (no source code) |
-| **Dev Front** | Build UI per `02-ui-spec.md` and integrate per `01-api-contract.md` | `frontend/` ONLY |
-| **Dev Back** | Build API, DB/Prisma, Security, Business Logic, Unit Tests per Contract | `backend/` ONLY |
-| **QA / QC & Tester** | Run real tests, verify AC, security checks, and UI/anti-slop review (`hallmark` / `anti-slop-craft`) | Read all + write tests & `docs/agent-hub/04-qa-report.md` (no silent logic edits) |
-| **Reporter** | Summarize status, release notes, pass/fail blockers in one readable view | Read-only + summary reports / `docs/handover.md` |
-
----
-
-## 4. Quality Gates (กติกาการส่งต่อ)
-- **Gate 1 (Before Dev starts):** `00-brief.md`, `01-api-contract.md`, `02-ui-spec.md`, and `03-security-baseline.md` must exist in `docs/agent-hub/` and be approved by the user.
-- **Gate 2 (Before QA starts):** Both Dev Front and Dev Back must pass `lint`, `build`, and `test`, and log changes in `docs/agent-hub/99-status-log.md`.
-- **Gate 3 (Before Release):** QA/Tester must verify all Functional AC, Edge/Overdue states, Security/RBAC checks, and Anti-Slop UI review with zero Critical/High defects remaining.
-
----
-
-## 5. Multi-Agent Collaboration Rules
-- **Context Sync:** Every agent MUST read `docs/agent-hub/99-status-log.md` and `docs/handover.md` before starting, and update `99-status-log.md` upon completion.
-- **Parallel Work:** When Dev Front and Dev Back work simultaneously, use `/teamwork` (isolated workspaces) to prevent merge/write conflicts.
-- **Right-Sized Delegation:** Use a single agent for small fixes; reserve the full multi-agent pipeline for new milestones and major features.
+Before starting any task, read `docs/rules/00-core-workflow-and-governance.md`, your role-specific rule file, `docs/handover.md`, and `docs/agent-hub/99-status-log.md`.

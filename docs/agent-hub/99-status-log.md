@@ -23,6 +23,7 @@
   - Verified `backend` (`npm test` 1/1 pass, `prisma validate` valid) and `frontend` (`oxlint` 0 errors/0 warnings, `vite build` pass).
 ### 2026-11-23 — Coordinator (Brand CI & Guardrails Locked)
 - **Completed:**
+  - Split full strict engineering rules into 4 role-scoped files under `docs/rules/` (`00-core-workflow-and-governance.md`, `01-frontend-rules.md`, `02-backend-and-security-rules.md`, `03-skills-and-tooling.md`) and mirrored base templates to Desktop red folder `Doc CODE Agent hub/rules/`.
   - Consolidated all non-code central documentation into `docs/` (`docs/guidelines.md`, `docs/handover.md`, `docs/note.md`, `docs/agent-hub/`), keeping `frontend/` and `backend/` strictly isolated for source code.
   - Locked **"Nordic Slate & Electric Cobalt"** color tokens, strict WCAG 2.1 AA opaque floating layers (zero glassmorphism), `0ms` instant UI, and Zero Heavy Libraries guardrails across `docs/guidelines.md`, `docs/agent-hub/00-brief.md`, `docs/agent-hub/02-ui-spec.md`, and `frontend/src/index.css`.
   - Uninstalled `motion` and `recharts` from `frontend/` (removed 49 packages; 0 vulnerabilities).

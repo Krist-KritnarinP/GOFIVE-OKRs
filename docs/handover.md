@@ -19,7 +19,7 @@ Build a working, clickable web prototype for **empeo Performance Management** (H
 ## 2. Architecture & Role Boundaries (Pure JS ONLY)
 - **Hard Rule:** Zero TypeScript (`.ts` / `.tsx`). Strict Pure JavaScript (`.js`, `.jsx`) across both apps.
 - **`docs/` (Central Non-Code Documentation):**
-  - `docs/guidelines.md` — Standing 5-step workflow, Pure JS Mandate, Nordic Slate & Electric Cobalt guardrails, Security Gate, Multi-Agent Role Boundaries
+  - `docs/guidelines.md` — Master guidelines index pointing to strict role-separated rules in `docs/rules/` (`00-core-workflow-and-governance.md`, `01-frontend-rules.md`, `02-backend-and-security-rules.md`, `03-skills-and-tooling.md`)
   - `docs/handover.md` — Canonical handover document
   - `docs/note.md` — Central project notes & Part 2 Q1–Q3 scratchpad
   - `docs/agent-hub/` (PM / PO): `00-brief.md`, `01-api-contract.md`, `02-ui-spec.md`, `03-security-baseline.md`, `04-qa-report.md`, `99-status-log.md`
