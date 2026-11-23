@@ -1,0 +1,89 @@
+import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
+import { Activity, CheckCircle2 } from 'lucide-react';
+import { fetchHealthStatus } from '../services/apiClient.js';
+
+export function HomePage({ t }) {
+  const [apiState, setApiState] = useState({ checked: false, online: false, storageMode: null });
+
+  useEffect(() => {
+    let active = true;
+    fetchHealthStatus()
+      .then((res) => {
+        if (active) {
+          setApiState({
+            checked: true,
+            online: Boolean(res?.ok),
+            storageMode: res?.data?.storageMode || null,
+          });
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setApiState({ checked: true, online: false, storageMode: null });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <div className="w-full space-y-8">
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+        className="w-full rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 sm:p-8"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-3 max-w-3xl">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full bg-[var(--surface-muted)] text-[var(--ink-secondary)]">
+              <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
+              {t.gateBadge}
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--ink-primary)]">
+              {t.heroTitle}
+            </h1>
+            <p className="text-base text-[var(--ink-secondary)]">{t.heroSubtitle}</p>
+          </div>
+
+          <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4 min-w-[260px]">
+            <div className="flex items-center gap-2 text-sm font-medium text-[var(--ink-muted)]">
+              <Activity className="w-4 h-4" aria-hidden="true" />
+              <span>{t.apiStatusLabel}</span>
+            </div>
+            <p
+              className="mt-2 text-base font-semibold"
+              style={{
+                color: apiState.online ? 'var(--status-success)' : 'var(--status-warning)',
+              }}
+            >
+              {apiState.online ? t.apiOnline : t.apiOffline}
+            </p>
+            {apiState.storageMode && (
+              <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                Mode: <code>{apiState.storageMode}</code>
+              </p>
+            )}
+          </div>
+        </div>
+      </motion.section>
+
+      <section className="w-full space-y-4">
+        <h2 className="text-xl font-bold text-[var(--ink-primary)]">{t.pillarsTitle}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {t.pillars.map((pillar) => (
+            <article
+              key={pillar.title}
+              className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-2"
+            >
+              <h3 className="text-base font-semibold text-[var(--ink-primary)]">{pillar.title}</h3>
+              <p className="text-sm sm:text-base text-[var(--ink-secondary)]">{pillar.desc}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

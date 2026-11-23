@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  HR_ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum ReviewStatus {
+  DRAFT
+  SELF_REVIEW_SUBMITTED
+  READY_FOR_RELEASE
+  PUBLISHED
+}
+
+enum PerformanceQuadrant {
+  HIGH_PERFORMER
+  HIGH_POTENTIAL
+  SOLID_CONTRIBUTOR
+  AT_RISK
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  title        String
+  department   String
+  role         UserRole @default(EMPLOYEE)
+  managerId    String?
+  manager      User?    @relation("ManagerReports", fields: [managerId], references: [id])
+  directReports User[]  @relation("ManagerReports")
+
+  goals            Goal[]
+  employeeReviews  Review[]   @relation("EmployeeReviews")
+  managedReviews   Review[]   @relation("ManagerReviews")
+  auditLogs        AuditLog[] @relation("ActorAuditLogs")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReviewCycle {
+  id              String   @id @default(cuid())
+  name            String
+  period          String
+  whatWeight      Int      @default(60)
+  howWeight       Int      @default(40)
+  selfDeadline    DateTime
+  managerDeadline DateTime
+  isActive        Boolean  @default(true)
+
+  goals     Goal[]
+  reviews   Review[]
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Goal {
+  id          String      @id @default(cuid())
+  cycleId     String
+  cycle       ReviewCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    User        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title       String
+  titleTh     String
+  metric      String
+  weight      Int
+  progressPct Int         @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id                   String               @id @default(cuid())
+  cycleId              String
+  cycle                ReviewCycle          @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  employeeId           String
+  employee             User                 @relation("EmployeeReviews", fields: [employeeId], references: [id], onDelete: Cascade)
+  managerId            String?
+  manager              User?                @relation("ManagerReviews", fields: [managerId], references: [id])
+  status               ReviewStatus         @default(DRAFT)
+  selfPayload          Json?
+  managerPayload       Json?
+  whatScore            Float?
+  howScore             Float?
+  overallScore         Float?
+  quadrant             PerformanceQuadrant?
+  selfSubmittedAt      DateTime?
+  managerSubmittedAt   DateTime?
+  extendedDeadline     DateTime?
+  escalatedToSkipLevel Boolean              @default(false)
+  lastNudgedAt         DateTime?
+  publishedAt          DateTime?
+
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cycleId, employeeId])
+}
+
+model AuditLog {
+  id        String       @id @default(cuid())
+  cycleId   String?
+  cycle     ReviewCycle? @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  reviewId  String?
+  review    Review?      @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  actorId   String
+  actor     User         @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
+  action    String
+  reason    String?
+  metadata  Json?
+  createdAt DateTime     @default(now())
+}

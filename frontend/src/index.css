@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/*
+ * Semantic Neutral Design Tokens (Brand CI Palette TBD in next session).
+ * Update these tokens in one place to apply the final Brand CI across all screens.
+ */
+:root {
+  --surface-page: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-muted: #f1f5f9;
+  --ink-primary: #0f172a;
+  --ink-secondary: #334155;
+  --ink-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --accent-primary: #1e293b;
+  --accent-primary-hover: #0f172a;
+  --accent-soft: #e2e8f0;
+  --status-success: #15803d;
+  --status-success-bg: #f0fdf4;
+  --status-warning: #b45309;
+  --status-warning-bg: #fffbeb;
+  --status-danger: #b91c1c;
+  --status-danger-bg: #fef2f2;
+}
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-primary);
+    background-color: var(--surface-page);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+}
