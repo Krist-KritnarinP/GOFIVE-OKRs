@@ -111,11 +111,21 @@ export function usePerformanceStore(t) {
   }, []);
 
   const handleBypassDemo = useCallback(() => {
-    const superAdmin = users.find((u) => u.id === 'usr-super') || users[0];
-    setCurrentUser(superAdmin);
-    setActiveRole(ROLES.SUPER_ADMIN);
-    showToast(t.toastDemoStarted, 'success');
-  }, [users, showToast, t.toastDemoStarted]);
+    setCurrentUser(null);
+    setAuthScreen('demo-picker');
+  }, []);
+
+  const handleEnterAsUser = useCallback(
+    (user) => {
+      if (!user) return;
+      setCurrentUser(user);
+      setActiveRole(user.role);
+      if (user.role === ROLES.MANAGER) setActiveManagerId(user.id);
+      if (user.role === ROLES.EMPLOYEE) setActiveEmployeeId(user.id);
+      showToast(`${user.employeeCode} · ${user.name}`, 'success');
+    },
+    [showToast]
+  );
 
   const handleSelectRole = useCallback(
     (role) => {
@@ -386,6 +396,7 @@ export function usePerformanceStore(t) {
     handleRegister,
     handleLogout,
     handleBypassDemo,
+    handleEnterAsUser,
     handleUpdateUser,
     handleTogglePermission,
     handleToggleGracePeriod,

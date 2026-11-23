@@ -1,4 +1,4 @@
-import { Languages, Lock, LogOut } from 'lucide-react';
+import { Languages, Lock, LogOut, Users } from 'lucide-react';
 import { DEMO_PERSONAS } from '../../constants/roles.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 
@@ -9,6 +9,7 @@ export function AppShell({
   currentUser,
   activeRole,
   onSelectRole,
+  onOpenDemoPicker,
   onToggleLanguage,
   onLogout,
   children,
@@ -65,6 +66,20 @@ export function AppShell({
                 );
               })}
             </nav>
+
+            <button
+              type="button"
+              onClick={onOpenDemoPicker}
+              className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md text-xs sm:text-sm font-bold transition-colors duration-150 cursor-pointer"
+              style={{
+                backgroundColor: '#FFFBEB',
+                color: '#92400E',
+                border: '1px solid #FDE68A',
+              }}
+            >
+              <Users className="w-4 h-4" aria-hidden="true" />
+              <span>{t.switchDemoUserBtn}</span>
+            </button>
 
             <button
               type="button"

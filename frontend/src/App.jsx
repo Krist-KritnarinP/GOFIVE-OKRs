@@ -3,6 +3,7 @@ import { AppShell } from './components/layout/AppShell.jsx';
 import { ToastBar } from './components/common/ToastBar.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
+import { DemoRolePickerPage } from './pages/DemoRolePickerPage.jsx';
 import { SuperAdminPage } from './pages/SuperAdminPage.jsx';
 import { HrDashboardPage } from './pages/HrDashboardPage.jsx';
 import { ManagerWorkspacePage } from './pages/ManagerWorkspacePage.jsx';
@@ -15,6 +16,19 @@ export function App() {
   const store = usePerformanceStore(t);
 
   if (!store.currentUser) {
+    if (store.authScreen === 'demo-picker') {
+      return (
+        <DemoRolePickerPage
+          users={store.users}
+          reviews={store.reviews}
+          t={t}
+          lang={lang}
+          onToggleLanguage={toggleLanguage}
+          onEnterAsUser={store.handleEnterAsUser}
+          onBackToLogin={() => store.setAuthScreen('login')}
+        />
+      );
+    }
     return store.authScreen === 'register' ? (
       <RegisterPage
         t={t}
@@ -42,6 +56,7 @@ export function App() {
       currentUser={store.currentUser}
       activeRole={store.activeRole}
       onSelectRole={store.setActiveRole}
+      onOpenDemoPicker={store.handleBypassDemo}
       onToggleLanguage={toggleLanguage}
       onLogout={store.handleLogout}
     >
