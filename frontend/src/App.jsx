@@ -28,6 +28,7 @@ export function App() {
         lang={lang}
         onToggleLanguage={toggleLanguage}
         onLogin={store.handleLogin}
+        onBypassDemo={store.handleBypassDemo}
         onGoRegister={() => store.setAuthScreen('register')}
       />
     );

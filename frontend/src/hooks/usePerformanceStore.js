@@ -110,6 +110,13 @@ export function usePerformanceStore(t) {
     setAuthScreen('login');
   }, []);
 
+  const handleBypassDemo = useCallback(() => {
+    const superAdmin = users.find((u) => u.id === 'usr-super') || users[0];
+    setCurrentUser(superAdmin);
+    setActiveRole(ROLES.SUPER_ADMIN);
+    showToast(t.toastDemoStarted, 'success');
+  }, [users, showToast, t.toastDemoStarted]);
+
   const handleSelectRole = useCallback(
     (role) => {
       setActiveRole(role);
@@ -124,10 +131,18 @@ export function usePerformanceStore(t) {
 
   const handleUpdateUser = useCallback(
     (userId, patch) => {
+      let approvedEmployee = null;
       setUsers((prev) =>
         prev.map((u) => {
           if (u.id !== userId) return u;
           const updated = { ...u, ...patch };
+          if (
+            u.accountStatus === 'PENDING_APPROVAL' &&
+            updated.accountStatus === 'ACTIVE' &&
+            updated.role === ROLES.EMPLOYEE
+          ) {
+            approvedEmployee = updated;
+          }
           appendLog(
             'ADMIN_UPDATE_USER',
             `Updated ${updated.employeeCode}: role=${updated.role}, status=${updated.accountStatus}`
@@ -135,6 +150,66 @@ export function usePerformanceStore(t) {
           return updated;
         })
       );
+
+      // Provision a starter DRAFT review when a new employee is approved as EMPLOYEE
+      if (approvedEmployee) {
+        setReviews((prev) => {
+          if (prev.some((r) => r.employeeId === approvedEmployee.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: `rev-${approvedEmployee.id}`,
+              employeeId: approvedEmployee.id,
+              managerId: 'usr-mgr-eng',
+              employee: {
+                id: approvedEmployee.id,
+                name: approvedEmployee.name,
+                nameTh: approvedEmployee.nameTh,
+                title: approvedEmployee.title,
+                department: approvedEmployee.department,
+              },
+              manager: {
+                id: 'usr-mgr-eng',
+                name: 'Sarah Chen',
+                nameTh: 'ซาร่า เฉิน',
+                department: 'Engineering',
+              },
+              status: 'DRAFT',
+              isOverdue: false,
+              daysOverdue: 0,
+              escalatedToSkipLevel: false,
+              lastNudgedAt: null,
+              extendedDeadline: null,
+              goals: [
+                {
+                  id: `g-${approvedEmployee.id}-1`,
+                  title: 'Complete 90-day onboarding & role KPI alignment',
+                  titleTh: 'ผ่านการปฐมนิเทศ 90 วันและกำหนดเป้าหมาย KPI ประจำตำแหน่ง',
+                  metric: '100% milestones',
+                  weight: 50,
+                  progressPct: 60,
+                },
+                {
+                  id: `g-${approvedEmployee.id}-2`,
+                  title: 'Deliver first quarter departmental objective',
+                  titleTh: 'ส่งมอบเป้าหมายหลักของแผนกในไตรมาสแรก',
+                  metric: 'On-time delivery',
+                  weight: 50,
+                  progressPct: 55,
+                },
+              ],
+              selfPayload: null,
+              managerPayload: null,
+              whatPct: null,
+              whatScore: null,
+              howScore: null,
+              overallScore: null,
+              nineBoxCell: null,
+            },
+          ];
+        });
+      }
+
       showToast(t.toastUserUpdated, 'success');
     },
     [appendLog, showToast, t.toastUserUpdated]
@@ -310,6 +385,7 @@ export function usePerformanceStore(t) {
     handleLogin,
     handleRegister,
     handleLogout,
+    handleBypassDemo,
     handleUpdateUser,
     handleTogglePermission,
     handleToggleGracePeriod,

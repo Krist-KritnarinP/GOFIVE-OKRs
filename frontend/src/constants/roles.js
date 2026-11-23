@@ -104,8 +104,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
 export const EMPLOYEE_DEMO_SWITCHES = [
   { userId: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', tag: 'Published Star', tagTh: 'ประกาศผลแล้ว' },
-  { userId: 'usr-emp-fah', employeeCode: 'EMP-3007', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Locked · Pending HR', tagTh: 'รอฝ่ายบุคคลประกาศ' },
-  { userId: 'usr-emp-bank', employeeCode: 'EMP-3003', name: 'Bank Jiraporn', nameTh: 'แบงค์ จิราพร', tag: 'Overdue Draft', tagTh: 'เลยกำหนดส่ง' },
+  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Locked · Pending HR', tagTh: 'รอฝ่ายบุคคลประกาศ' },
+  { userId: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', tag: 'Pending Manager · Overdue', tagTh: 'รอหัวหน้าประเมิน' },
 ];
 
 export const MANAGER_DEMO_SWITCHES = [

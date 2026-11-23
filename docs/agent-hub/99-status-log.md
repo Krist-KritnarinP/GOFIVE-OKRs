@@ -14,6 +14,12 @@
 
 ## Activity Log
 
+### 2026-11-24 — Gold Bypass Demo Button & 1-Office-Unit Seed (16 Users)
+- Added high-contrast gold bypass button **`คลิกเพื่อจำลองdemo`** (`#F59E0B` bg, `#0F172A` text, `#B45309` border) on `LoginPage.jsx` to enter the simulated 1-office-unit demo in 1 click (`0ms`) without requiring a live backend DB.
+- Synced exact 16-user 1-office-unit roster across `frontend/src/constants/initialData.js`, `backend/src/data/seedData.js`, and new `backend/prisma/seed.js`:
+  - 1 Super Admin (`EMP-0001`), 2 HR Admins (`EMP-1001`–`1002`), 3 Managers (`EMP-2001`–`2003`), 6 Active Employees (`EMP-3001`–`3006`), and 4 Pending New Employees (`EMP-3091`–`3094`) approvable as `HR_ADMIN`, `MANAGER`, or `EMPLOYEE`.
+- Verified `oxlint` (0 errors), `vite build` (98.83 kB gzip), `backend` 6/6 tests, and `prisma validate`.
+
 ### 2026-11-23 — Auth & Super Admin Dynamic RBAC Upgrade (Passed Gate 2)
 - **Backend (`backend/`):**
   - Added `SUPER_ADMIN` role, `AccountStatus` (`PENDING_APPROVAL | ACTIVE | SUSPENDED`), `employeeCode @unique`, and `RolePermission` table to `prisma/schema.prisma`.

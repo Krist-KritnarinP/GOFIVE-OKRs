@@ -1,8 +1,15 @@
 import { useState } from 'react';
-import { AlertCircle, KeyRound, Languages } from 'lucide-react';
+import { AlertCircle, KeyRound, Languages, Sparkles } from 'lucide-react';
 import { DEMO_PERSONAS } from '../constants/roles.js';
 
-export function LoginPage({ t, lang, onToggleLanguage, onLogin, onGoRegister }) {
+export function LoginPage({
+  t,
+  lang,
+  onToggleLanguage,
+  onLogin,
+  onBypassDemo,
+  onGoRegister,
+}) {
   const [employeeCode, setEmployeeCode] = useState('EMP-1001');
   const [password, setPassword] = useState('DemoPass123!');
   const [error, setError] = useState('');
@@ -122,41 +129,69 @@ export function LoginPage({ t, lang, onToggleLanguage, onLogin, onGoRegister }) 
             </div>
           </section>
 
-          {/* Right: 4 Quick-Fill Demo Accounts */}
-          <aside className="lg:col-span-5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
-              <h2 className="text-sm font-bold text-[var(--ink-primary)]">{t.quickFillTitle}</h2>
+          {/* Right: Gold Demo Bypass CTA + 4 Quick-Fill Demo Accounts */}
+          <aside className="lg:col-span-5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 space-y-5">
+            {/* Gold Bypass Demo Button (High-Contrast WCAG AAA Gold) */}
+            <div className="rounded-md border p-4 space-y-2.5" style={{ backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }}>
+              <button
+                type="button"
+                onClick={onBypassDemo}
+                className="w-full min-h-12 px-4 rounded-md inline-flex items-center justify-center gap-2 text-base font-extrabold tracking-tight transition-colors duration-150 cursor-pointer"
+                style={{
+                  backgroundColor: '#F59E0B',
+                  color: '#0F172A',
+                  border: '1px solid #B45309',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#D97706';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F59E0B';
+                }}
+              >
+                <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>{t.bypassDemoBtn}</span>
+              </button>
+              <p className="text-xs font-medium leading-relaxed" style={{ color: '#92400E' }}>
+                {t.bypassDemoSub}
+              </p>
             </div>
 
-            <div className="space-y-2.5">
-              {DEMO_PERSONAS.map((persona) => {
-                const selected = employeeCode.toUpperCase() === persona.employeeCode;
-                return (
-                  <button
-                    key={persona.userId}
-                    type="button"
-                    onClick={() => quickFill(persona.employeeCode)}
-                    className={`w-full text-left rounded-md border p-3.5 transition-colors duration-150 cursor-pointer ${
-                      selected
-                        ? 'border-[var(--brand-primary)] bg-[var(--status-track-bg)]'
-                        : 'border-[var(--border-subtle)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-hover)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-bold text-[var(--ink-primary)]">
-                        {lang === 'th' ? persona.labelTh : persona.label}
-                      </span>
-                      <code className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--ink-primary)] tabular-nums">
-                        {persona.employeeCode}
-                      </code>
-                    </div>
-                    <p className="mt-1 text-xs text-[var(--ink-secondary)]">
-                      {lang === 'th' ? persona.nameTh : persona.name} · {persona.department}
-                    </p>
-                  </button>
-                );
-              })}
+            <div className="space-y-3 pt-1 border-t border-[var(--border-subtle)]">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
+                <h2 className="text-sm font-bold text-[var(--ink-primary)]">{t.quickFillTitle}</h2>
+              </div>
+
+              <div className="space-y-2">
+                {DEMO_PERSONAS.map((persona) => {
+                  const selected = employeeCode.toUpperCase() === persona.employeeCode;
+                  return (
+                    <button
+                      key={persona.userId}
+                      type="button"
+                      onClick={() => quickFill(persona.employeeCode)}
+                      className={`w-full text-left rounded-md border p-3 transition-colors duration-150 cursor-pointer ${
+                        selected
+                          ? 'border-[var(--brand-primary)] bg-[var(--status-track-bg)]'
+                          : 'border-[var(--border-subtle)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-hover)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-bold text-[var(--ink-primary)]">
+                          {lang === 'th' ? persona.labelTh : persona.label}
+                        </span>
+                        <code className="text-xs font-bold px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--ink-primary)] tabular-nums">
+                          {persona.employeeCode}
+                        </code>
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">
+                        {lang === 'th' ? persona.nameTh : persona.name} · {persona.department}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </aside>
         </div>

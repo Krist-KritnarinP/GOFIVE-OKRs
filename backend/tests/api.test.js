@@ -135,7 +135,7 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
     assert.equal(overview.status, 200);
     assert.ok(overview.json.data.biasAlerts.length >= 1);
     assert.equal(overview.json.data.biasAlerts[0].flagType, 'LENIENCY_BIAS');
-    assert.ok(overview.json.data.exceptions.length >= 2);
+    assert.ok(overview.json.data.exceptions.length >= 1);
 
     // Nudge + Extend + Escalate + Lock Cycle
     const nudgeRes = await req('/hr/reviews/rev-ton/nudge', {
@@ -145,10 +145,10 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
     });
     assert.equal(nudgeRes.status, 200);
 
-    const extRes = await req('/hr/reviews/rev-bank/extend-deadline', {
+    const extRes = await req('/hr/reviews/rev-ton/extend-deadline', {
       method: 'POST',
       token: hrToken,
-      body: { extraDays: 5, reason: 'Employee on approved medical leave.' },
+      body: { extraDays: 5, reason: 'Manager on approved business travel.' },
     });
     assert.equal(extRes.status, 200);
 

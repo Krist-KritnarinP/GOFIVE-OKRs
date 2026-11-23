@@ -157,6 +157,9 @@ export const TRANSLATIONS = {
     kpiTeamCompletion: 'Team Completion',
     kpiTeamPending: 'Pending & Overdue',
     kpiTeamVsOrg: 'Team Avg vs. Org',
+    bypassDemoBtn: 'คลิกเพื่อจำลองdemo',
+    bypassDemoSub: 'Bypass Login · Simulated 1-Office Unit (1 Super Admin · 2 HR · 3 Managers · 6 Employees · 4 Pending)',
+    toastDemoStarted: 'Entered Simulated Office Demo (16 users ready).',
   },
   th: {
     appName: 'empeo',
@@ -310,5 +313,8 @@ export const TRANSLATIONS = {
     kpiTeamCompletion: 'ความคืบหน้าในทีม',
     kpiTeamPending: 'รอประเมิน / เลยกำหนด',
     kpiTeamVsOrg: 'ค่าเฉลี่ยทีมเทียบองค์กร',
+    bypassDemoBtn: 'คลิกเพื่อจำลองdemo',
+    bypassDemoSub: 'เข้าใช้งานทันทีไม่ต้องกรอกรหัส · ออฟฟิศจำลอง 1 หน่วย (1 Super Admin · 2 HR · 3 Manager · 6 Employee · 4 รออนุมัติ)',
+    toastDemoStarted: 'เข้าสู่โหมดออฟฟิศจำลอง 1 หน่วยแล้ว (พร้อมข้อมูล 16 บัญชี)',
   },
 };

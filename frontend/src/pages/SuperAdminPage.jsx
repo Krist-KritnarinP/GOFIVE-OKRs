@@ -84,7 +84,7 @@ export function SuperAdminPage({
                     onChange={(e) => onUpdateUser(user.id, { role: e.target.value })}
                     className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-xs sm:text-sm font-semibold text-[var(--ink-primary)]"
                   >
-                    {ROLE_COLUMNS.map((role) => (
+                    {[ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE].map((role) => (
                       <option key={role} value={role}>
                         {role}
                       </option>

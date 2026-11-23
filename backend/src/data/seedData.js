@@ -90,6 +90,14 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   },
 };
 
+/**
+ * 1-Office-Unit Demo Dataset (16 users total):
+ * - 1 Super Admin (EMP-0001)
+ * - 2 HR Admins (EMP-1001, EMP-1002)
+ * - 3 Managers (EMP-2001..2003)
+ * - 6 Active Employees (EMP-3001..3006)
+ * - 4 New Employees Pending Super Admin Approval (EMP-3091..3094)
+ */
 export function createInitialSeed() {
   const now = new Date();
   const daysAgo = (d) => new Date(now.getTime() - d * 86400000).toISOString();
@@ -112,6 +120,7 @@ export function createInitialSeed() {
   };
 
   const users = [
+    // 1 Super Admin
     {
       id: 'usr-super',
       employeeCode: 'EMP-0001',
@@ -125,6 +134,7 @@ export function createInitialSeed() {
       accountStatus: 'ACTIVE',
       managerId: null,
     },
+    // 2 HR Admins
     {
       id: 'usr-hr',
       employeeCode: 'EMP-1001',
@@ -138,6 +148,20 @@ export function createInitialSeed() {
       accountStatus: 'ACTIVE',
       managerId: 'usr-super',
     },
+    {
+      id: 'usr-hr-2',
+      employeeCode: 'EMP-1002',
+      email: 'siriporn.hr@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Siriporn Kamol',
+      nameTh: 'ศิริพร กมล',
+      title: 'HR Business Partner',
+      department: 'Human Resources',
+      role: 'HR_ADMIN',
+      accountStatus: 'ACTIVE',
+      managerId: 'usr-hr',
+    },
+    // 3 Managers
     {
       id: 'usr-mgr-eng',
       employeeCode: 'EMP-2001',
@@ -177,6 +201,7 @@ export function createInitialSeed() {
       accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
     },
+    // 6 Active Employees (2 per Manager)
     {
       id: 'usr-emp-nida',
       employeeCode: 'EMP-3001',
@@ -204,21 +229,8 @@ export function createInitialSeed() {
       managerId: 'usr-mgr-eng',
     },
     {
-      id: 'usr-emp-bank',
-      employeeCode: 'EMP-3003',
-      email: 'bank.qa@empeo.demo',
-      passwordHash: DEMO_PASSWORD_HASH,
-      name: 'Bank Jiraporn',
-      nameTh: 'แบงค์ จิราพร',
-      title: 'QA Automation Engineer',
-      department: 'Engineering',
-      role: 'EMPLOYEE',
-      accountStatus: 'ACTIVE',
-      managerId: 'usr-mgr-eng',
-    },
-    {
       id: 'usr-emp-may',
-      employeeCode: 'EMP-3004',
+      employeeCode: 'EMP-3003',
       email: 'may.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Mayuree Lim',
@@ -231,7 +243,7 @@ export function createInitialSeed() {
     },
     {
       id: 'usr-emp-art',
-      employeeCode: 'EMP-3005',
+      employeeCode: 'EMP-3004',
       email: 'art.sales@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Arthit Kongkiat',
@@ -243,21 +255,8 @@ export function createInitialSeed() {
       managerId: 'usr-mgr-sales',
     },
     {
-      id: 'usr-emp-beam',
-      employeeCode: 'EMP-3006',
-      email: 'beam.sales@empeo.demo',
-      passwordHash: DEMO_PASSWORD_HASH,
-      name: 'Beam Chotika',
-      nameTh: 'บีม โชติกา',
-      title: 'Sales Operations Specialist',
-      department: 'Sales',
-      role: 'EMPLOYEE',
-      accountStatus: 'ACTIVE',
-      managerId: 'usr-mgr-sales',
-    },
-    {
       id: 'usr-emp-fah',
-      employeeCode: 'EMP-3007',
+      employeeCode: 'EMP-3005',
       email: 'fah.prod@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Fah Prapaporn',
@@ -270,7 +269,7 @@ export function createInitialSeed() {
     },
     {
       id: 'usr-emp-nut',
-      employeeCode: 'EMP-3008',
+      employeeCode: 'EMP-3006',
       email: 'nut.ops@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
       name: 'Nattapong Meekul',
@@ -281,44 +280,72 @@ export function createInitialSeed() {
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-prod',
     },
+    // 4 New Employees Pending Super Admin Approval (can be approved as HR_ADMIN, MANAGER, or EMPLOYEE)
     {
-      id: 'usr-emp-pending',
-      employeeCode: 'EMP-3099',
+      id: 'usr-new-1',
+      employeeCode: 'EMP-3091',
       email: 'pim.new@empeo.demo',
       passwordHash: DEMO_PASSWORD_HASH,
-      name: 'Pimchanok D.',
-      nameTh: 'พิมพ์ชนก ด.',
+      name: 'Pimchanok Darunee',
+      nameTh: 'พิมพ์ชนก ดรุณี',
       title: 'Junior Data Analyst',
       department: 'Operations',
       role: 'EMPLOYEE',
       accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-mgr-prod',
     },
+    {
+      id: 'usr-new-2',
+      employeeCode: 'EMP-3092',
+      email: 'tanapol.new@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Tanapol Worawit',
+      nameTh: 'ธนพล วรวิทย์',
+      title: 'People & Culture Specialist',
+      department: 'Human Resources',
+      role: 'HR_ADMIN',
+      accountStatus: 'PENDING_APPROVAL',
+      managerId: 'usr-hr',
+    },
+    {
+      id: 'usr-new-3',
+      employeeCode: 'EMP-3093',
+      email: 'chanya.new@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Chanya Suthida',
+      nameTh: 'ชัญญา สุธิดา',
+      title: 'Engineering Squad Lead',
+      department: 'Engineering',
+      role: 'MANAGER',
+      accountStatus: 'PENDING_APPROVAL',
+      managerId: 'usr-hr',
+    },
+    {
+      id: 'usr-new-4',
+      employeeCode: 'EMP-3094',
+      email: 'warut.new@empeo.demo',
+      passwordHash: DEMO_PASSWORD_HASH,
+      name: 'Warut Kittipong',
+      nameTh: 'วรุตม์ กิตติพงศ์',
+      title: 'Sales Representative',
+      department: 'Sales',
+      role: 'EMPLOYEE',
+      accountStatus: 'PENDING_APPROVAL',
+      managerId: 'usr-mgr-sales',
+    },
   ];
 
   const goals = [
-    // Nida (Star / High Performer — Published)
     { id: 'g-nida-1', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Cut payroll API p95 latency by 40%', titleTh: 'ลดเวลาตอบสนอง Payroll API (p95) ลง 40%', metric: 'p95 < 180ms', weight: 60, progressPct: 98 },
     { id: 'g-nida-2', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Zero P1 incidents during year-end peak', titleTh: 'ไม่เกิดเหตุระบบล่มระดับ P1 ช่วงปิดงบปลายปี', metric: '0 P1 outages', weight: 40, progressPct: 100 },
-    // Ton (Overdue Manager Review — waiting on Sarah)
     { id: 'g-ton-1', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Ship responsive ESS mobile self-service', titleTh: 'ส่งมอบหน้าจอ ESS รองรับมือถือทุกขนาด', metric: 'Lighthouse >= 95', weight: 50, progressPct: 86 },
     { id: 'g-ton-2', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Reduce UI regression defects by 30%', titleTh: 'ลดบั๊กหน้าบ้านที่เกิดซ้ำลง 30%', metric: '-30% bugs', weight: 50, progressPct: 78 },
-    // Bank (Overdue Self-Review — DRAFT)
-    { id: 'g-bank-1', cycleId: cycle.id, employeeId: 'usr-emp-bank', title: 'Automate 80% of payroll smoke tests', titleTh: 'ทำ Automated Smoke Test ระบบเงินเดือนครบ 80%', metric: '80% coverage', weight: 60, progressPct: 62 },
-    { id: 'g-bank-2', cycleId: cycle.id, employeeId: 'usr-emp-bank', title: 'Cut release QA cycle from 3 days to 1 day', titleTh: 'ลดเวลาตรวจรับงานก่อนปล่อยจาก 3 วันเหลือ 1 วัน', metric: '<= 1 day', weight: 40, progressPct: 58 },
-    // May (Sales — Rated 5/5 by Somchai)
     { id: 'g-may-1', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Close 12M THB net-new enterprise ARR', titleTh: 'ปิดยอดขายลูกค้าองค์กรใหม่ 12 ล้านบาท', metric: '12M THB ARR', weight: 70, progressPct: 96 },
     { id: 'g-may-2', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Maintain renewal rate above 94%', titleTh: 'รักษาอัตราต่อสัญญาลูกค้าเดิมเกิน 94%', metric: '>= 94% GRR', weight: 30, progressPct: 95 },
-    // Art (Sales — Rated 5/5 by Somchai despite mid progress → Bias Signal!)
     { id: 'g-art-1', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Close 8M THB mid-market ARR', titleTh: 'ปิดยอดขายกลุ่ม Mid-Market 8 ล้านบาท', metric: '8M THB ARR', weight: 60, progressPct: 74 },
     { id: 'g-art-2', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Improve CRM pipeline hygiene to 95%', titleTh: 'อัปเดตข้อมูล Pipeline ใน CRM ครบ 95%', metric: '95% complete', weight: 40, progressPct: 70 },
-    // Beam (Sales — Rated 4.8/5 by Somchai)
-    { id: 'g-beam-1', cycleId: cycle.id, employeeId: 'usr-emp-beam', title: 'Cut quote turnaround time to < 4 hours', titleTh: 'ลดเวลาออกใบเสนอราคาเหลือไม่เกิน 4 ชั่วโมง', metric: '< 4 hrs', weight: 50, progressPct: 88 },
-    { id: 'g-beam-2', cycleId: cycle.id, employeeId: 'usr-emp-beam', title: 'Onboard 100% of new reps on playbook', titleTh: 'อบรมเซลส์ใหม่ตามคู่มือครบ 100%', metric: '100% trained', weight: 50, progressPct: 92 },
-    // Fah (Product — High Potential / Ready for Release)
     { id: 'g-fah-1', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Redesign Leave & Attendance mobile UX', titleTh: 'ออกแบบ UX ระบบลางานและลงเวลาบนมือถือใหม่', metric: 'SUS >= 85', weight: 50, progressPct: 82 },
     { id: 'g-fah-2', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Unify design tokens across 4 HR modules', titleTh: 'รวม Design Tokens ให้เป็นมาตรฐานเดียวกัน 4 โมดูล', metric: '4/4 modules', weight: 50, progressPct: 76 },
-    // Nut (Product Ops — Low Performer / Needs Action)
     { id: 'g-nut-1', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Deliver monthly HR analytics packs on time', titleTh: 'ส่งมอบรายงานวิเคราะห์ข้อมูล HR รายเดือนตรงเวลา', metric: '12/12 on time', weight: 60, progressPct: 45 },
     { id: 'g-nut-2', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Resolve customer data import tickets < 24h', titleTh: 'แก้ปัญหาไฟล์นำเข้าข้อมูลลูกค้าภายใน 24 ชม.', metric: 'SLA >= 90%', weight: 40, progressPct: 50 },
   ];
@@ -363,7 +390,7 @@ export function createInitialSeed() {
   };
 
   const reviews = [
-    // 1. Nida — High Performer (PUBLISHED so Employee view shows full transparent breakdown!)
+    // 1. Nida — High Performer (PUBLISHED)
     makeScoredReview({
       id: 'rev-nida',
       employeeId: 'usr-emp-nida',
@@ -399,7 +426,7 @@ export function createInitialSeed() {
       publishedAt: daysAgo(1),
     }),
 
-    // 2. Ton — SELF_REVIEW_SUBMITTED (Overdue Manager Review! Ready for Manager to evaluate in Drawer)
+    // 2. Ton — SELF_REVIEW_SUBMITTED (Overdue Manager Review!)
     makeScoredReview({
       id: 'rev-ton',
       employeeId: 'usr-emp-ton',
@@ -422,19 +449,7 @@ export function createInitialSeed() {
       managerSubmittedAt: null,
     }),
 
-    // 3. Bank — DRAFT (Overdue Employee Self-Review!)
-    makeScoredReview({
-      id: 'rev-bank',
-      employeeId: 'usr-emp-bank',
-      managerId: 'usr-mgr-eng',
-      status: 'DRAFT',
-      selfPayload: null,
-      managerPayload: null,
-      selfSubmittedAt: null,
-      managerSubmittedAt: null,
-    }),
-
-    // 4–6. Sales team under Somchai (Lenient 5/5 ratings → triggers HR Leniency Bias Alert!)
+    // 3 & 4. Sales team under Somchai (Lenient 5/5 ratings → triggers Leniency Bias Alert!)
     makeScoredReview({
       id: 'rev-may',
       employeeId: 'usr-emp-may',
@@ -448,7 +463,7 @@ export function createInitialSeed() {
         competencyAssessments: [
           { competencyId: 'comp-ownership', selfScore: 5, selfNote: 'Drove complex procurement cycles end-to-end.' },
           { competencyId: 'comp-collab', selfScore: 4, selfNote: 'Aligned implementation handoffs with CS.' },
-          { competencyId: 'comp-problem', selfScore: 4, selfNote: 'Structured multi-year rollout plans for large clients.' },
+          { competencyId: 'comp-problem', selfScore: 4, selfNote: 'Structured multi-year rollout plans.' },
         ],
         reflection: 'Exceeded annual enterprise quota and improved handoff quality.',
       },
@@ -503,41 +518,7 @@ export function createInitialSeed() {
       managerSubmittedAt: daysAgo(3),
     }),
 
-    makeScoredReview({
-      id: 'rev-beam',
-      employeeId: 'usr-emp-beam',
-      managerId: 'usr-mgr-sales',
-      status: 'READY_FOR_RELEASE',
-      selfPayload: {
-        goalAssessments: [
-          { goalId: 'g-beam-1', selfScore: 4, selfEvidence: 'Average quote SLA improved to 3.4 hours.' },
-          { goalId: 'g-beam-2', selfScore: 4, selfEvidence: 'Trained all 6 new hires on updated sales playbook.' },
-        ],
-        competencyAssessments: [
-          { competencyId: 'comp-ownership', selfScore: 4, selfNote: 'Reliable quote operations.' },
-          { competencyId: 'comp-collab', selfScore: 4, selfNote: 'Partnered smoothly with Finance.' },
-          { competencyId: 'comp-problem', selfScore: 4, selfNote: 'Automated approval routing.' },
-        ],
-        reflection: 'Strong operational improvements across quoting and onboarding.',
-      },
-      managerPayload: {
-        goalRatings: [
-          { goalId: 'g-beam-1', score: 5, evidence: 'Cut quote turnaround to 3.4 hours and eliminated manual pricing spreadsheet errors.' },
-          { goalId: 'g-beam-2', score: 5, evidence: 'Onboarded 100% of new sales reps with positive ramp feedback.' },
-        ],
-        competencyRatings: [
-          { competencyId: 'comp-ownership', score: 5, evidence: 'Owned end-to-end pricing desk reliability during Q4 peak volume.' },
-          { competencyId: 'comp-collab', score: 4, evidence: 'Great coordination between Sales and Finance teams.' },
-          { competencyId: 'comp-problem', score: 5, evidence: 'Streamlined discount approval templates saving 6 hours per week.' },
-        ],
-        managerSummary: 'Backbone of sales operations.',
-        developmentFocus: 'Expand into revenue analytics and forecasting automation.',
-      },
-      selfSubmittedAt: daysAgo(6),
-      managerSubmittedAt: daysAgo(3),
-    }),
-
-    // 7. Fah (Product — High Impact Growth / Ready for Release)
+    // 5. Fah (Product — High Impact / Locked Pending HR Release)
     makeScoredReview({
       id: 'rev-fah',
       employeeId: 'usr-emp-fah',
@@ -572,7 +553,7 @@ export function createInitialSeed() {
       managerSubmittedAt: daysAgo(2),
     }),
 
-    // 8. Nut (Product Ops — Low Performer / Needs Action — Ready for Release)
+    // 6. Nut (Product Ops — Low Performer / Needs Action)
     makeScoredReview({
       id: 'rev-nut',
       employeeId: 'usr-emp-nut',

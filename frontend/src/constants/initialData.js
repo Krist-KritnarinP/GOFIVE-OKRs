@@ -106,6 +106,10 @@ export function computeAnalytics(reviews) {
   return { distribution: buckets, orgAverageScore, totalScored, biasAlerts };
 }
 
+/**
+ * 1-Office-Unit Demo Dataset (16 Users):
+ * 1 Super Admin | 2 HR Admins | 3 Managers | 6 Active Employees | 4 Pending New Employees
+ */
 export function createInitialClientState() {
   const now = new Date();
   const daysAgo = (d) => new Date(now.getTime() - d * 86400000).toISOString();
@@ -200,26 +204,6 @@ export function createInitialClientState() {
       managerPayload: null,
     },
     {
-      id: 'rev-bank',
-      employeeId: 'usr-emp-bank',
-      managerId: 'usr-mgr-eng',
-      employee: { id: 'usr-emp-bank', name: 'Bank Jiraporn', nameTh: 'แบงค์ จิราพร', title: 'QA Automation Engineer', department: 'Engineering' },
-      manager: { id: 'usr-mgr-eng', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', department: 'Engineering' },
-      status: 'DRAFT',
-      isOverdue: true,
-      daysOverdue: 4,
-      missingActor: 'EMPLOYEE',
-      escalatedToSkipLevel: false,
-      lastNudgedAt: null,
-      extendedDeadline: null,
-      goals: [
-        { id: 'g-bank-1', title: 'Automate 80% of payroll smoke tests', titleTh: 'ทำ Automated Smoke Test ระบบเงินเดือนครบ 80%', metric: '80% coverage', weight: 60, progressPct: 62 },
-        { id: 'g-bank-2', title: 'Cut release QA cycle from 3 days to 1 day', titleTh: 'ลดเวลาตรวจรับงานก่อนปล่อยจาก 3 วันเหลือ 1 วัน', metric: '<= 1 day', weight: 40, progressPct: 58 },
-      ],
-      selfPayload: null,
-      managerPayload: null,
-    },
-    {
       id: 'rev-may',
       employeeId: 'usr-emp-may',
       managerId: 'usr-mgr-sales',
@@ -301,48 +285,6 @@ export function createInitialClientState() {
         ],
         managerSummary: 'Great attitude and high potential for next year.',
         developmentFocus: 'Accelerate closing cadence on late-stage pipeline.',
-      },
-    },
-    {
-      id: 'rev-beam',
-      employeeId: 'usr-emp-beam',
-      managerId: 'usr-mgr-sales',
-      employee: { id: 'usr-emp-beam', name: 'Beam Chotika', nameTh: 'บีม โชติกา', title: 'Sales Operations Specialist', department: 'Sales' },
-      manager: { id: 'usr-mgr-sales', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', department: 'Sales' },
-      status: 'READY_FOR_RELEASE',
-      isOverdue: false,
-      daysOverdue: 0,
-      escalatedToSkipLevel: false,
-      lastNudgedAt: null,
-      extendedDeadline: null,
-      goals: [
-        { id: 'g-beam-1', title: 'Cut quote turnaround time to < 4 hours', titleTh: 'ลดเวลาออกใบเสนอราคาเหลือไม่เกิน 4 ชั่วโมง', metric: '< 4 hrs', weight: 50, progressPct: 88 },
-        { id: 'g-beam-2', title: 'Onboard 100% of new reps on playbook', titleTh: 'อบรมเซลส์ใหม่ตามคู่มือครบ 100%', metric: '100% trained', weight: 50, progressPct: 92 },
-      ],
-      selfPayload: {
-        goalAssessments: [
-          { goalId: 'g-beam-1', selfScore: 4, selfEvidence: 'Average quote SLA improved to 3.4 hours.' },
-          { goalId: 'g-beam-2', selfScore: 4, selfEvidence: 'Trained all 6 new hires on updated sales playbook.' },
-        ],
-        competencyAssessments: [
-          { competencyId: 'comp-ownership', selfScore: 4, selfNote: 'Reliable quote operations.' },
-          { competencyId: 'comp-collab', selfScore: 4, selfNote: 'Partnered smoothly with Finance.' },
-          { competencyId: 'comp-problem', selfScore: 4, selfNote: 'Automated approval routing.' },
-        ],
-        reflection: 'Strong operational improvements across quoting and onboarding.',
-      },
-      managerPayload: {
-        goalRatings: [
-          { goalId: 'g-beam-1', score: 5, evidence: 'Cut quote turnaround to 3.4 hours and eliminated manual pricing spreadsheet errors.' },
-          { goalId: 'g-beam-2', score: 5, evidence: 'Onboarded 100% of new sales reps with positive ramp feedback.' },
-        ],
-        competencyRatings: [
-          { competencyId: 'comp-ownership', score: 5, evidence: 'Owned end-to-end pricing desk reliability during Q4 peak volume.' },
-          { competencyId: 'comp-collab', score: 4, evidence: 'Great coordination between Sales and Finance teams.' },
-          { competencyId: 'comp-problem', score: 5, evidence: 'Streamlined discount approval templates saving 6 hours per week.' },
-        ],
-        managerSummary: 'Backbone of sales operations.',
-        developmentFocus: 'Expand into revenue analytics and forecasting automation.',
       },
     },
     {
@@ -452,17 +394,30 @@ export function createInitialClientState() {
     },
   ];
 
+  // Exact 16-User 1-Office-Unit Roster:
+  // 1 Super Admin + 2 HR Admins + 3 Managers + 6 Active Employees + 4 Pending New Employees
   const users = [
+    // 1 Super Admin
     { id: 'usr-super', employeeCode: 'EMP-0001', name: 'Kritnarin P.', nameTh: 'กฤตนรินทร์ พ.', title: 'System Super Administrator', department: 'IT & Governance', role: 'SUPER_ADMIN', accountStatus: 'ACTIVE' },
+    // 2 HR Admins
     { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-hr-2', employeeCode: 'EMP-1002', name: 'Siriporn Kamol', nameTh: 'ศิริพร กมล', title: 'HR Business Partner', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    // 3 Managers
     { id: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', title: 'Engineering Manager', department: 'Engineering', role: 'MANAGER', accountStatus: 'ACTIVE' },
     { id: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', title: 'Enterprise Sales Director', department: 'Sales', role: 'MANAGER', accountStatus: 'ACTIVE' },
     { id: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', title: 'Head of Product', department: 'Product', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    // 6 Active Employees
     { id: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
     { id: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-bank', employeeCode: 'EMP-3003', name: 'Bank Jiraporn', nameTh: 'แบงค์ จิราพร', title: 'QA Automation Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-fah', employeeCode: 'EMP-3007', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-pending', employeeCode: 'EMP-3099', name: 'Pimchanok D.', nameTh: 'พิมพ์ชนก ด.', title: 'Junior Data Analyst', department: 'Operations', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-emp-may', employeeCode: 'EMP-3003', name: 'Mayuree Lim', nameTh: 'มยุรี ลิ้ม', title: 'Enterprise Account Executive', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-art', employeeCode: 'EMP-3004', name: 'Arthit Kongkiat', nameTh: 'อาทิตย์ ก้องเกียรติ', title: 'Account Executive', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', title: 'Product Operations Analyst', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    // 4 New Employees Pending Super Admin Approval (can be approved as HR_ADMIN, MANAGER, or EMPLOYEE)
+    { id: 'usr-new-1', employeeCode: 'EMP-3091', name: 'Pimchanok Darunee', nameTh: 'พิมพ์ชนก ดรุณี', title: 'Junior Data Analyst', department: 'Operations', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-2', employeeCode: 'EMP-3092', name: 'Tanapol Worawit', nameTh: 'ธนพล วรวิทย์', title: 'People & Culture Specialist', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-3', employeeCode: 'EMP-3093', name: 'Chanya Suthida', nameTh: 'ชัญญา สุธิดา', title: 'Engineering Squad Lead', department: 'Engineering', role: 'MANAGER', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-4', employeeCode: 'EMP-3094', name: 'Warut Kittipong', nameTh: 'วรุตม์ กิตติพงศ์', title: 'Sales Representative', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
   ];
 
   const rolePermissions = structuredClone(DEFAULT_ROLE_PERMISSIONS);
