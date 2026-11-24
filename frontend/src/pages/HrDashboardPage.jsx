@@ -106,33 +106,33 @@ export function HrDashboardPage({
         lang={lang}
       />
 
-      {/* 4 KPI Summary Cards */}
+      {/* 4 KPI Summary Cards — Decided Hierarchy */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiCompletion}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
-            {completionPct}% <span className="text-sm font-normal text-[var(--ink-muted)]">({completed}/{reviews.length})</span>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiCompletion}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
+            {completionPct}% <span className="text-sm font-medium text-[var(--ink-muted)]">({completed}/{reviews.length})</span>
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiOverdue}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiOverdue}</p>
           <p
-            className="mt-1.5 text-2xl font-bold tabular-nums"
+            className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: alertCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
           >
             {alertCount}
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiOrgAvg}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
-            {analytics.orgAverageScore.toFixed(2)} <span className="text-sm font-normal text-[var(--ink-muted)]">/ 5.0</span>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiOrgAvg}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
+            {analytics.orgAverageScore.toFixed(2)} <span className="text-sm font-medium text-[var(--ink-muted)]">/ 5.0</span>
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiBiasAlerts}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiBiasAlerts}</p>
           <p
-            className="mt-1.5 text-2xl font-bold tabular-nums"
+            className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: analytics.biasAlerts.length > 0 ? 'var(--status-low-text)' : 'var(--status-high-text)' }}
           >
             {analytics.biasAlerts.length}
@@ -229,7 +229,7 @@ export function HrDashboardPage({
                         <button
                           type="button"
                           onClick={() => setModalAction({ type: 'HR_RETURN', review: rev })}
-                          className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold cursor-pointer"
+                          className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
                           style={{
                             backgroundColor: 'var(--status-warn-bg)',
                             color: 'var(--status-warn-text)',
@@ -243,7 +243,7 @@ export function HrDashboardPage({
                       <button
                         type="button"
                         onClick={() => setSelectedReview(rev)}
-                        className="min-h-9 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                        className="min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
                       >
                         {t.inspectBtn}
                       </button>
@@ -278,6 +278,15 @@ export function HrDashboardPage({
               : modalAction?.type === 'ADVISOR'
                 ? `${t.hrbpAdviseModalTitle} — ${modalAction.review.employee.name}`
                 : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
+        }
+        confirmLabel={
+          modalAction?.type === 'EXTEND'
+            ? t.confirmExtendBtn
+            : modalAction?.type === 'HR_RETURN'
+              ? t.confirmReturnMgrBtn
+              : modalAction?.type === 'ADVISOR'
+                ? t.confirmAdvisorBtn
+                : t.confirmEscalateBtn
         }
         quickTemplateLabel={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateLabel : ''}
         quickTemplateText={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateText : ''}

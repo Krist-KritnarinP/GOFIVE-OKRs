@@ -82,31 +82,31 @@ export function ManagerWorkspacePage({
       {/* 3-Stage Cycle SLA Status Bar */}
       <StageStatusBar mode="cycle" cycle={cycle} reviews={teamReviews} editable={false} t={t} lang={lang} />
 
-      {/* 3 Team KPI Summary Cards */}
+      {/* 3 Team KPI Summary Cards — Decided Hierarchy */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamCompletion}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamCompletion}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
             {teamCompletionPct}%{' '}
-            <span className="text-sm font-normal text-[var(--ink-muted)]">
+            <span className="text-sm font-medium text-[var(--ink-muted)]">
               ({completedTeam}/{teamReviews.length})
             </span>
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamPending}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamPending}</p>
           <p
-            className="mt-1.5 text-2xl font-bold tabular-nums"
+            className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: pendingTeamCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
           >
             {pendingTeamCount}
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiTeamVsOrg}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamVsOrg}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
             {teamAvg !== null ? teamAvg.toFixed(2) : '—'}{' '}
-            <span className="text-sm font-normal text-[var(--ink-muted)]">
+            <span className="text-sm font-medium text-[var(--ink-muted)]">
               vs {analytics.orgAverageScore.toFixed(2)}
             </span>
           </p>

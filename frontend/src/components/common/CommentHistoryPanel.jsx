@@ -57,10 +57,12 @@ export function CommentHistoryPanel({ history = [], t }) {
                       <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--status-indigo-text)' }} aria-hidden="true" />
                     )}
                     <span className="font-bold text-[var(--ink-primary)]">{item.actorName}</span>
-                    <span className="text-xs text-[var(--ink-muted)]">({item.actorRole})</span>
+                    <span className="text-xs text-[var(--ink-muted)]">
+                      ({t.roleLabels?.[item.actorRole] || item.actorRole})
+                    </span>
                   </div>
                   <StatusBadge tone={ACTION_TONE[item.action] || 'neutral'}>
-                    {isAdvisor ? 'HRBP ADVISOR' : item.action}
+                    {t.actionLabels?.[item.action] || item.action}
                   </StatusBadge>
                 </div>
                 <p className="text-sm text-[var(--ink-secondary)]">{item.comment}</p>

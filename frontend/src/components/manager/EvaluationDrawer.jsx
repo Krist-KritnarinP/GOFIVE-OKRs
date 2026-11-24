@@ -160,7 +160,7 @@ export function EvaluationDrawer({
                         {lang === 'th' ? goal.titleTh : goal.title}
                       </p>
                       <p className="text-xs text-[var(--ink-muted)] tabular-nums">
-                        {goal.metricType || 'QUANTITATIVE'} · Target: {goal.targetValue || goal.metric} {goal.unit || ''} · Weight {goal.weight}% · Multiplier {mult}x · Hit: {goal.dueDate || '—'}
+                        {t.metricTypes?.[goal.metricType] || goal.metricType || 'QUANTITATIVE'} · {t.targetLabel}: {goal.targetValue || goal.metric} {goal.unit || ''} · {t.weightLabel} {goal.weight}% · {t.multiplierLabel} {mult}x · {t.hitDateLabel}: {goal.dueDate || '—'}
                       </p>
                       {goal.actualValue && (
                         <p className="text-xs font-semibold text-[var(--ink-primary)] mt-0.5 tabular-nums">
@@ -169,8 +169,8 @@ export function EvaluationDrawer({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5">
-                      {selfGoal && <StatusBadge tone="neutral">Self: {selfGoal.selfScore}/5</StatusBadge>}
-                      <StatusBadge tone="track">Eff: {effectiveScore}</StatusBadge>
+                      {selfGoal && <StatusBadge tone="neutral">{t.selfShortLabel}: {selfGoal.selfScore}/5</StatusBadge>}
+                      <StatusBadge tone="track">{t.effShortLabel}: {effectiveScore}</StatusBadge>
                     </div>
                   </div>
 
@@ -220,7 +220,7 @@ export function EvaluationDrawer({
                         )}
                       </label>
                       <span className="text-[var(--ink-muted)] tabular-nums">
-                        {rating?.evidence.trim().length || 0} chars
+                        {rating?.evidence.trim().length || 0} {t.charsUnit}
                       </span>
                     </div>
                     <textarea

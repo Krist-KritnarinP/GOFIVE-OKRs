@@ -239,8 +239,24 @@ export function EmployeeWorkspacePage({
               </div>
             )}
 
-            {/* OKR Cards */}
+            {/* OKR Cards or Welcoming 0-OKR Empty State */}
             <form onSubmit={handleSubmitSelf} className="space-y-4">
+              {displayedGoals.length === 0 ? (
+                <div className="rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-6 text-center space-y-3">
+                  <p className="text-base font-bold text-[var(--ink-primary)]">{t.emptyOkrsTitle}</p>
+                  <p className="text-sm text-[var(--ink-secondary)] max-w-md mx-auto">{t.emptyOkrsDesc}</p>
+                  {canEditGoals && (
+                    <button
+                      type="button"
+                      onClick={() => setGoalModal({ open: true, goal: null })}
+                      className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" aria-hidden="true" />
+                      <span>{t.addGoalBtn}</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
               <div className="space-y-3">
                 {displayedGoals.map((goal) => {
                   const input = goalInputs[goal.id] || {
@@ -249,6 +265,7 @@ export function EmployeeWorkspacePage({
                     selfScore: 3,
                     selfEvidence: '',
                   };
+                  const metricLabel = t.metricTypes?.[goal.metricType] || goal.metricType || 'QUANTITATIVE';
 
                   return (
                     <div
@@ -262,12 +279,12 @@ export function EmployeeWorkspacePage({
                           </p>
                           <div className="flex flex-wrap gap-2 text-xs text-[var(--ink-secondary)] tabular-nums">
                             <span className="px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] font-semibold">
-                              {goal.metricType || 'QUANTITATIVE'}
+                              {metricLabel}
                             </span>
-                            <span>Target: <strong>{goal.targetValue || goal.metric} {goal.unit || ''}</strong></span>
-                            <span>Weight: <strong>{goal.weight}%</strong></span>
-                            <span>Multiplier: <strong>{goal.multiplier || 1.0}x</strong></span>
-                            <span>Hit Date: <strong>{goal.dueDate || '—'}</strong></span>
+                            <span>{t.targetLabel}: <strong>{goal.targetValue || goal.metric} {goal.unit || ''}</strong></span>
+                            <span>{t.weightLabel}: <strong>{goal.weight}%</strong></span>
+                            <span>{t.multiplierLabel}: <strong>{goal.multiplier || 1.0}x</strong></span>
+                            <span>{t.hitDateLabel}: <strong>{goal.dueDate || '—'}</strong></span>
                           </div>
                         </div>
 
@@ -276,7 +293,7 @@ export function EmployeeWorkspacePage({
                             <button
                               type="button"
                               onClick={() => setGoalModal({ open: true, goal })}
-                              className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                              className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
                             >
                               <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                               {t.editGoalBtn}
@@ -284,7 +301,7 @@ export function EmployeeWorkspacePage({
                             <button
                               type="button"
                               onClick={() => handleDeleteGoal(goal.id)}
-                              className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold cursor-pointer"
+                              className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
                               style={{
                                 backgroundColor: 'var(--status-low-bg)',
                                 color: 'var(--status-low-text)',
@@ -391,7 +408,7 @@ export function EmployeeWorkspacePage({
                       ) : (
                         input.selfEvidence && (
                           <p className="text-xs text-[var(--ink-secondary)]">
-                            {goal.actualValue && <strong>Actual: {goal.actualValue} · </strong>}
+                            {goal.actualValue && <strong>{t.actualLabel}: {goal.actualValue} · </strong>}
                             &ldquo;{input.selfEvidence}&rdquo;
                           </p>
                         )
@@ -400,6 +417,7 @@ export function EmployeeWorkspacePage({
                   );
                 })}
               </div>
+              )}
 
               {canEditGoals && (
                 <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">

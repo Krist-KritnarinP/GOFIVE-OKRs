@@ -50,8 +50,8 @@ const GROUP_CONFIG = [
     tone: 'neutral',
     labelEn: 'Employee',
     labelTh: 'พนักงาน (Employee)',
-    descEn: 'Track assigned KPIs, submit self-review, and inspect locked or published outcomes.',
-    descTh: 'ติดตามเป้าหมาย KPI ของตัวเอง ส่งแบบประเมินตนเอง และดูผลเมื่อฝ่ายบุคคลประกาศ',
+    descEn: 'Draft annual OKRs, submit self-review, and inspect locked or published outcomes.',
+    descTh: 'ตั้งเป้าหมาย OKR ประจำปี ส่งแบบประเมินตนเอง และดูผลเมื่อฝ่ายบุคคลประกาศ',
     filter: (u) => u.accountStatus === 'ACTIVE' && u.role === ROLES.EMPLOYEE,
   },
   {
@@ -164,7 +164,7 @@ export function DemoRolePickerPage({
                             <Icon className="w-5 h-5" aria-hidden="true" />
                           </span>
                           <StatusBadge tone={group.tone}>
-                            {count} {count === 1 ? 'user' : 'users'}
+                            {count} {count === 1 ? t.userCountSingle : t.userCountPlural}
                           </StatusBadge>
                         </div>
                         <div>
@@ -238,8 +238,8 @@ export function DemoRolePickerPage({
                   const isPending = person.accountStatus === 'PENDING_APPROVAL';
                   const slotLabel =
                     selectedGroup.id === 'PENDING_NEW'
-                      ? `New Employee ${index + 1}`
-                      : `${selectedGroup.labelEn} ${index + 1}`;
+                      ? `${t.newEmployeeSlot} ${index + 1}`
+                      : `${lang === 'th' ? selectedGroup.labelTh : selectedGroup.labelEn} ${index + 1}`;
 
                   return (
                     <div
@@ -252,7 +252,9 @@ export function DemoRolePickerPage({
                             {slotLabel} · {person.employeeCode}
                           </span>
                           {isPending ? (
-                            <StatusBadge tone="warn">PENDING_APPROVAL</StatusBadge>
+                            <StatusBadge tone="warn">
+                              {t.accountStatusLabels?.PENDING_APPROVAL || 'Pending Approval'}
+                            </StatusBadge>
                           ) : review ? (
                             <StatusBadge
                               tone={
@@ -268,7 +270,9 @@ export function DemoRolePickerPage({
                                 : t.status[review.status]}
                             </StatusBadge>
                           ) : (
-                            <StatusBadge tone="high">ACTIVE</StatusBadge>
+                            <StatusBadge tone="high">
+                              {t.accountStatusLabels?.ACTIVE || 'Active'}
+                            </StatusBadge>
                           )}
                         </div>
 
@@ -283,7 +287,7 @@ export function DemoRolePickerPage({
 
                         {isPending && (
                           <p className="text-xs text-[var(--ink-muted)]">
-                            {t.demoSuggestedRole}: <strong>{person.role}</strong>
+                            {t.demoSuggestedRole}: <strong>{t.roleLabels?.[person.role] || person.role}</strong>
                           </p>
                         )}
                       </div>

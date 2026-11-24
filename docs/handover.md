@@ -33,7 +33,7 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
 ## 3. Verification Results (Latest)
 | Check | Command | Result |
 | :--- | :--- | :--- |
-| Backend unit, RBAC & Activity Log privacy tests | `npm test` | **PASS** (`8/8` passed — including 4-role Activity Log zero-leak test, OKR co-edit diff, HRBP Advisor Comment, Approach A Publish Gate) |
+| Backend unit, RBAC & Activity Log privacy tests | `npm test` | **PASS** (`9/9` passed — including 4-role Activity Log zero-leak test, OKR co-edit diff, HRBP Advisor Comment, Approach A Publish Gate, `409` Published State Guards, Dept Manager Mapping) |
 | Prisma schema validation & DB push | `npm --prefix backend run prisma:validate && prisma:push && prisma:seed` | **PASS** (All 6 tables synced to Supabase `ap-southeast-1` and seeded with 16 users, 12 goals, 6 reviews, 7 audit logs) |
 | Supabase live persistence across restart | `initStore()` → `updateCycle()` → `flushStore()` → `resetStore()` → `initStore()` | **PASS** (Changes persist to Supabase and reload accurately after simulated restart; `NODE_ENV=test` stays isolated in `memory-fallback`) |
 | Frontend linter | `npm run lint` | **PASS** (`oxlint`: 0 warnings, 0 errors across 30 files) |
@@ -51,11 +51,11 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
   - `backend/src/config/env.js` & `backend/package.json` force `memory-fallback` when `NODE_ENV=test` so `npm test` never touches the live Supabase DB.
   - Supabase DB (`fnhbpwvirnjxulfeoljf`, `aws-1-ap-southeast-1.pooler.supabase.com`) has all 6 tables pushed and seeded. Local `backend/.env` and `frontend/.env` are configured and gitignored (never committed).
 
-## 5. Open Items & Active Phased Hardening (2026-11-24)
-1. **4-Phase Skill-Audited Quality Hardening (`GOFIVE-OKRs.git`):**
-   - **Phase A (Docs & Rules Sync):** DONE (`docs/rules/00`, `03`, `docs/note.md`, `docs/plan.md`, `docs/agent-hub/01-api-contract.md`, `docs/handover.md`)
-   - **Phase B (Backend State Guards & Dept Manager Mapping):** DONE (`9/9` backend tests pass)
-   - **Phase C (Native `<dialog>`, Dynamic Overdue, Local Date Parsing, Table/Form A11y):** DONE (`oxlint` 0 errors, `vite build` pass)
-   - **Phase D (Zero Raw Enum Badges, 100% EN/TH Copy, Segmented Status Track, UI Craft Polish):** IN PROGRESS NEXT
+## 5. Open Items & Completed 4-Phase Quality Hardening (2026-11-24)
+1. **4-Phase Skill-Audited Quality Hardening (`GOFIVE-OKRs.git`) — ALL COMPLETE:**
+   - **Phase A (Docs & Rules Sync):** DONE (`bec0766`)
+   - **Phase B (Backend `409` State Guards & Dept Manager Mapping):** DONE (`37a4f94`, `9/9` tests pass)
+   - **Phase C (Native `<dialog>`, Dynamic Overdue, Local Date Parsing, Segmented Stage Bar, Table/Form A11y):** DONE (`0257f97`)
+   - **Phase D (Zero Raw Enum Badges, 100% EN/TH Copy, 0-OKR Empty State, KPI Hierarchy, `>= 40px` Touch Targets):** DONE
 2. **Public Deployment:** Deploy frontend & backend preview link (set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` [32+ chars], `CORS_ORIGINS`, `NODE_ENV=production` on backend host, and `VITE_API_BASE_URL` on frontend host).
 3. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Updated with all 3 real AI collaboration examples for Q3.

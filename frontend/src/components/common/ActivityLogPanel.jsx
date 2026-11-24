@@ -62,7 +62,7 @@ export function ActivityLogPanel({ logs = [], role = 'HR_ADMIN', t }) {
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatusBadge tone={ACTION_TONE[log.action] || 'neutral'}>
-                    {log.action}
+                    {t.actionLabels?.[log.action] || log.action}
                   </StatusBadge>
                   <span className="font-bold text-[var(--ink-primary)]">{log.actorName}</span>
                 </div>

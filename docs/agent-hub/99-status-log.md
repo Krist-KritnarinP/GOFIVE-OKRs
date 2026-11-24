@@ -14,6 +14,13 @@
 
 ## Activity Log
 
+### 2026-11-24 — 4-Phase Full-Site Skill Audit & Hardening Complete (Phases A–D Pushed to `GOFIVE-OKRs.git`)
+- **Skills Loaded & Applied:** `modern-web-guidance` (`dialog`, `responsive-table`, `forms`, `accessibility`), `interface-design`, `ux-writing`, `ponytail-review`, `anti-slop-craft`, `ponytail`.
+- **Phase A (`bec0766`):** Synced `docs/rules/00` & `03` (mandatory real skill loading + `Skills Used` footer + Devil's Advocate check), `docs/note.md` (3 real Part 2 Q3 cases), `docs/agent-hub/01-api-contract.md`, `docs/plan.md`, and `docs/handover.md`.
+- **Phase B (`37a4f94`):** Added `409 CONFLICT` state guards preventing mutation of `PUBLISHED` reviews (`decideEmployeeGoals`, `returnSelfReviewToEmployee`, `returnReviewToManager`), mapped registration manager by department, and verified **9/9 backend tests PASS**.
+- **Phase C (`0257f97`):** Migrated all 4 overlays to native `<dialog>` (`ModalDialog.jsx` + `showModal()` + `overscroll-behavior: contain`), fixed `StageStatusBar` cycle pending counts & UTC+7 local-noon date parsing, derived `isOverdue`/`daysOverdue` dynamically from `cycle`, synced `<html lang>` + SPA `<title>`, added `TableRegion` (`tabIndex={0} role="region"` + `<caption>` + `<th scope="col">`), Skip link, and Login/Register `autocomplete` + password toggle (`aria-pressed`).
+- **Phase D:** Replaced all raw `SCREAMING_SNAKE_CASE` enum badges with natural EN/TH labels across Activity Log, Comment History, Super Admin, and Demo Picker; achieved 100% EN/TH coverage; added Employee 0-OKR Empty State; upgraded KPI hierarchy (`text-xs uppercase tracking-wider` + `text-3xl`) and `>= 40px` touch targets.
+
 ### 2026-11-24 — Job Leveling, 3-Stage Due Dates (+ Timing Chips), Manager OKR Co-Edit, HRBP Advisor, Approach A & 4-Role Activity Log
 - **Backend (`backend/`):**
   - Added `JobLevel` (`L1_JUNIOR`, `L2_MID`, `L3_SENIOR`, `L4_LEAD`), 3-Stage Due Dates (`stage1DraftDeadline`, `stage2ApprovalDeadline`, `stage3HrAuditDeadline`), stage completion timestamps (`goalsSubmittedAt`, `goalsApprovedAt`), and `AuditLog.visibilityScope` / `targetEmployeeId` / `targetManagerId` to `prisma/schema.prisma`, `seedData.js`, and `seed.js`.

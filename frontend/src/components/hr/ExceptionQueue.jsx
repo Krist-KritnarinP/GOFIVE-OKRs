@@ -82,7 +82,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenAdvisor(rev)}
-                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-[0.98] text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
                             style={{
                               backgroundColor: 'var(--status-indigo-bg)',
                               color: 'var(--status-indigo-text)',
@@ -95,7 +95,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onNudge(rev.id)}
-                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-xs font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             <Bell className="w-3.5 h-3.5" aria-hidden="true" />
                             {t.nudgeBtn}
@@ -103,7 +103,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenExtend(rev)}
-                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-xs font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
                             {t.extendBtn}
@@ -111,7 +111,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenEscalate(rev)}
-                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-[0.98] text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
                             style={{
                               backgroundColor: 'var(--status-low-bg)',
                               color: 'var(--status-low-text)',

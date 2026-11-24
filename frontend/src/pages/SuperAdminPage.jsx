@@ -34,28 +34,28 @@ export function SuperAdminPage({
         <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.superSubtitle}</p>
       </div>
 
-      {/* 4 Governance KPI Summary Cards */}
+      {/* 4 Governance KPI Summary Cards — Decided Hierarchy */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiActiveAccounts}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{activeCount}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiActiveAccounts}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{activeCount}</p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiPendingApprovals}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiPendingApprovals}</p>
           <p
-            className="mt-1.5 text-2xl font-bold tabular-nums"
+            className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: pendingUsers.length > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
           >
             {pendingUsers.length}
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiSuspendedAccounts}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{suspendedCount}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiSuspendedAccounts}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{suspendedCount}</p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiAuditEvents}</p>
-          <p className="mt-1.5 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">{superLogs.length}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiAuditEvents}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{superLogs.length}</p>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export function SuperAdminPage({
                     >
                       {[ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE].map((role) => (
                         <option key={role} value={role}>
-                          {role}
+                          {t.roleLabels?.[role] || role}
                         </option>
                       ))}
                     </select>
@@ -170,7 +170,7 @@ export function SuperAdminPage({
                           disabled={isLockedRule}
                           aria-label={`${role} ${perm.key}`}
                           onClick={() => onTogglePermission(role, perm.key)}
-                          className={`inline-flex items-center justify-center min-w-11 min-h-9 px-3 rounded-md border text-xs font-bold transition-colors duration-150 ${
+                          className={`inline-flex items-center justify-center min-w-11 min-h-10 px-3 rounded-md border text-xs font-bold transition-colors duration-150 ${
                             isLockedRule ? 'cursor-not-allowed' : 'cursor-pointer'
                           }`}
                           style={
@@ -192,7 +192,7 @@ export function SuperAdminPage({
                           ) : allowed ? (
                             <Check className="w-4 h-4" aria-hidden="true" />
                           ) : (
-                            'OFF'
+                            t.permOffLabel || 'Off'
                           )}
                         </button>
                       </td>
@@ -238,25 +238,26 @@ export function SuperAdminPage({
                       aria-label={`Job level for ${user.employeeCode}`}
                       value={user.jobLevel || 'L2_MID'}
                       onChange={(e) => onUpdateUser(user.id, { jobLevel: e.target.value })}
-                      className="min-h-9 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)]"
+                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)]"
                     >
                       {JOB_LEVELS.map((lvl) => (
                         <option key={lvl.id} value={lvl.id}>
-                          {lvl.label}
+                          {lang === 'th' ? lvl.labelTh : lvl.label}
                         </option>
                       ))}
                     </select>
                   </td>
                   <td className="py-3 px-3">
                     <select
+                      aria-label={`Role for ${user.employeeCode}`}
                       value={user.role}
                       disabled={user.employeeCode === 'EMP-0001'}
                       onChange={(e) => onUpdateUser(user.id, { role: e.target.value })}
-                      className="min-h-9 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)]"
+                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)]"
                     >
                       {ROLE_COLUMNS.map((role) => (
                         <option key={role} value={role}>
-                          {role}
+                          {t.roleLabels?.[role] || role}
                         </option>
                       ))}
                     </select>
@@ -271,7 +272,7 @@ export function SuperAdminPage({
                             : 'low'
                       }
                     >
-                      {user.accountStatus}
+                      {t.accountStatusLabels?.[user.accountStatus] || user.accountStatus}
                     </StatusBadge>
                   </td>
                   <td className="py-3 px-3 text-right">
@@ -283,7 +284,7 @@ export function SuperAdminPage({
                             accountStatus: user.accountStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE',
                           })
                         }
-                        className="min-h-9 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                        className="min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
                       >
                         {user.accountStatus === 'ACTIVE' ? t.suspendBtn : t.activateBtn}
                       </button>
