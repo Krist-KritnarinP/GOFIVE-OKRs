@@ -51,3 +51,10 @@
    - Is every error explicit about *what failed*, *why*, and *the exact next step to fix it*?
    - Can users act and resolve it effortlessly?
 4. **Post-Phase D Browser QA:** Run a quick Desktop (`1440px`) + Mobile (`375px`) visual verification after completing items 1–3 above.
+5. **Zero-Learning-Curve & Close Gen-Gap Vision (Full Analysis in `docs/fairness-transparency-and-zero-learning-curve.md`):**
+   - Goal: Ready-to-use for **every department, every job type, and every generation** (fresh grads to non-IT senior staff) in ~5 minutes, with **zero training representatives needed** and **no multi-layer mental math**.
+   - Key planned UX upgrades:
+     - **Department Starter OKR Templates** (1-click pick by dept: Sales, Ops/Admin/Accounting, CS/Support, Engineering/Product, HR — edit numbers only).
+     - **Auto-Balanced Weight & Plain Priority Picker** (`High / Standard / Supporting` + 1-click `Auto-Balance to 100%` so users never do manual `%` math back-and-forth).
+     - **3 Natural Measurement Modes:** Numeric target, Milestone/Checklist (for Ops/Admin/Support work that doesn't fit rigid formulas), and Service Quality standard.
+     - **Single "Your Turn / Next Action" Banner** at the top of Employee & Manager views + **3-Question Evidence Prompts** + **Auto-Save indicator** + 100% plain Thai everyday phrasing (zero HR/IT jargon).

@@ -59,7 +59,8 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
    - **Phase D (Zero Raw Enum Badges, 100% EN/TH Copy, 0-OKR Empty State, KPI Hierarchy, `>= 40px` Touch Targets):** DONE
 2. **Public Deployment:** Deploy frontend & backend preview link (set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` [32+ chars], `CORS_ORIGINS`, `NODE_ENV=production` on backend host, and `VITE_API_BASE_URL` on frontend host).
 3. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Updated with all 3 real AI collaboration examples for Q3.
-4. **Next Session Pinned UI/UX Backlog (saved in `docs/note.md` §3 — wait for user go-ahead):**
+4. **Next Session Pinned UI/UX Backlog (saved in `docs/note.md` §3 & `docs/fairness-transparency-and-zero-learning-curve.md` — wait for user go-ahead):**
    - Move `ActivityLogPanel` to the bottom of all 4 role pages.
    - Add clear category/tier color coding & hierarchy cues on key dropdowns (Role, Job Level, Multiplier, etc.).
    - Audit all Return/Ping-Pong cards, Toasts, and Error messages (EN/TH) for clarity and immediate actionability + run post-Phase D Browser QA.
+   - **Zero-Learning-Curve & Close Gen-Gap Pass:** Department Starter OKR Templates, 1-click Auto-Balance 100% weight / plain priority selector, 3 measurement modes (Numeric / Milestone Checklist / Quality), "Your Turn" Next-Action Banner, 3-question evidence prompts, and Auto-Save indicator for fresh grads & non-IT senior staff.
