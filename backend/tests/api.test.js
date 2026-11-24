@@ -50,17 +50,18 @@ test('RBAC: Employee cannot access HR overview and Manager cannot read another t
   });
 });
 
-test('Security Gate: Employee cannot see manager scores even in CALIBRATION_LOCKED until PUBLISHED', async () => {
+test('Security Gate (Approach A): Employee cannot see manager scores in MANAGER_APPROVED until HR Approve & Publish', async () => {
   await withServer(async ({ req, tokenFor }) => {
-    // Nut is CALIBRATION_LOCKED (not published yet)
+    // Nut is MANAGER_APPROVED (hidden from employee until HR Approve & Publish)
     const nutToken = await tokenFor('usr-emp-nut');
     const beforeRes = await req('/reviews/me', { token: nutToken });
     assert.equal(beforeRes.status, 200);
     assert.equal(beforeRes.json.data.review.resultsLocked, true);
     assert.equal(beforeRes.json.data.review.overallScore, null);
     assert.equal(beforeRes.json.data.review.managerPayload, null);
+    assert.equal(beforeRes.json.data.review.employee.jobLevel, 'L1_JUNIOR');
 
-    // HR publishes Nut's calibrated review
+    // HR Approve & Publish directly releases Nut's review
     const hrToken = await tokenFor('usr-hr');
     const pubRes = await req('/hr/cycles/cycle-fy2026/publish', {
       method: 'POST',
@@ -79,59 +80,113 @@ test('Security Gate: Employee cannot see manager scores even in CALIBRATION_LOCK
   });
 });
 
-test('Full Goal Setting Ping-Pong (Weight=100% + Revision History) & Calibration Lock Flow', async () => {
+test('OKR Co-Edit Weight/Multiplier + HRBP Advisor Comment on Ping-Pong >= 2 + 3-Stage Deadlines', async () => {
   await withServer(async ({ req, tokenFor }) => {
     const fahToken = await tokenFor('usr-emp-fah');
     const mgrToken = await tokenFor('usr-mgr-prod');
     const hrToken = await tokenFor('usr-hr');
 
-    // 1. Submitting goals with total weight !== 100 returns 400
-    const badWeight = await req('/reviews/rev-fah/goals', {
-      method: 'PUT',
-      token: fahToken,
-      body: {
-        goals: [
-          { title: 'Goal A', metricType: 'QUANTITATIVE', targetValue: '88', unit: 'SUS', weight: 60, multiplier: 1.1, dueDate: '2026-10-31' },
-        ],
-        submit: true,
-      },
-    });
-    assert.equal(badWeight.status, 400);
+    // 1. HRBP sees rev-fah flagged for PING_PONG_LIMIT (>= 2 rounds) and posts Advisor Comment
+    const overview = await req('/hr/overview', { token: hrToken });
+    const fahCard = overview.json.data.reviews.find((r) => r.id === 'rev-fah');
+    assert.equal(fahCard.hrbpInterventionNeeded, true);
+    assert.ok(fahCard.hrbpReasons.includes('PING_PONG_LIMIT'));
 
-    // 2. Employee submits valid 100% goals (Ping-Pong Round 2)
+    const advRes = await req('/hr/reviews/rev-fah/advisor-comment', {
+      method: 'POST',
+      token: hrToken,
+      body: { comment: 'Recommend a 15-min 1-on-1 alignment check-in to agree on measurable module criteria.' },
+    });
+    assert.equal(advRes.status, 200);
+    assert.ok(advRes.json.data.review.commentHistory.some((c) => c.action === 'HRBP_ADVISOR_COMMENT'));
+
+    // 2. Employee submits valid 100% OKRs
     const okGoals = await req('/reviews/rev-fah/goals', {
       method: 'PUT',
       token: fahToken,
       body: {
         goals: [
-          { title: 'Redesign Leave UX', metricType: 'QUALITATIVE', targetValue: '88', unit: 'SUS Score', weight: 50, multiplier: 1.1, dueDate: '2026-10-31' },
-          { title: 'Unify Tokens + WCAG Audit', metricType: 'QUANTITATIVE', targetValue: '100', unit: '% pass', weight: 50, multiplier: 1.0, dueDate: '2026-11-30' },
+          { id: 'g-fah-1', title: 'Redesign Leave UX', metricType: 'QUALITATIVE', targetValue: '88', unit: 'SUS Score', weight: 50, multiplier: 1.1, dueDate: '2026-10-31' },
+          { id: 'g-fah-2', title: 'Unify Tokens + WCAG Audit', metricType: 'QUANTITATIVE', targetValue: '4', unit: 'HR modules', weight: 50, multiplier: 1.0, dueDate: '2026-11-30' },
         ],
-        comment: 'Updated targets per Round 1 feedback.',
+        comment: 'Aligned criteria after HRBP check-in.',
         submit: true,
       },
     });
     assert.equal(okGoals.status, 200);
     assert.equal(okGoals.json.data.review.status, 'GOAL_PENDING_APPROVAL');
-    assert.ok(okGoals.json.data.review.commentHistory.length >= 3);
 
-    // 3. Manager approves goals
+    // 3. Manager co-edits Weight (60/40) & Multiplier (1.2x/1.0x) on Approve -> logs transparent diff!
     const approveGoals = await req('/reviews/rev-fah/goals/decision', {
       method: 'POST',
       token: mgrToken,
-      body: { decision: 'APPROVE', comment: 'Aligned and ambitious. Approved!' },
+      body: {
+        decision: 'APPROVE',
+        comment: 'Approved with rebalanced L2 Mid OKR weighting.',
+        adjustedGoals: [
+          { id: 'g-fah-1', weight: 60, multiplier: 1.2 },
+          { id: 'g-fah-2', weight: 40, multiplier: 1.0 },
+        ],
+      },
     });
     assert.equal(approveGoals.status, 200);
     assert.equal(approveGoals.json.data.review.status, 'GOAL_APPROVED');
+    const updatedG1 = approveGoals.json.data.review.goals.find((g) => g.id === 'g-fah-1');
+    assert.equal(updatedG1.weight, 60);
+    assert.equal(updatedG1.multiplier, 1.2);
+    const lastCmt = approveGoals.json.data.review.commentHistory.at(-1);
+    assert.ok(lastCmt.comment.includes('Weight 50% -> 60%'));
 
-    // 4. HR locks calibration for MANAGER_APPROVED reviews (rev-may, rev-art)
-    const calRes = await req('/hr/cycles/cycle-fy2026/calibrate', {
-      method: 'POST',
+    // 4. HR updates 3-Stage Due Dates
+    const stageRes = await req('/cycles/cycle-fy2026', {
+      method: 'PATCH',
       token: hrToken,
-      body: { reviewIds: ['rev-may'], note: 'Verified enterprise revenue numbers.' },
+      body: {
+        stage3HrAuditDeadline: new Date(Date.now() + 7 * 86400000).toISOString(),
+        reason: 'Extended Stage 3 HRBP Audit & Publish window by 3 days.',
+      },
     });
-    assert.equal(calRes.status, 200);
-    assert.equal(calRes.json.data.calibratedCount, 1);
+    assert.equal(stageRes.status, 200);
+    assert.ok(stageRes.json.data.cycle.stage3HrAuditDeadline);
+  });
+});
+
+test('Activity Log Strict RBAC Privacy Isolation across ALL 4 Roles', async () => {
+  await withServer(async ({ req, tokenFor }) => {
+    const superToken = await tokenFor('usr-super');
+    const hrToken = await tokenFor('usr-hr');
+    const engMgrToken = await tokenFor('usr-mgr-eng');
+    const nidaToken = await tokenFor('usr-emp-nida');
+    const nutToken = await tokenFor('usr-emp-nut');
+
+    const superLogs = (await req('/activity-logs', { token: superToken })).json.data.activityLogs;
+    const hrLogs = (await req('/activity-logs', { token: hrToken })).json.data.activityLogs;
+    const engMgrLogs = (await req('/activity-logs', { token: engMgrToken })).json.data.activityLogs;
+    const nidaLogs = (await req('/activity-logs', { token: nidaToken })).json.data.activityLogs;
+    const nutLogs = (await req('/activity-logs', { token: nutToken })).json.data.activityLogs;
+
+    // 1. Super Admin sees ADMIN_SECURITY & CYCLE_GOVERNANCE only
+    assert.ok(superLogs.some((l) => l.visibilityScope === 'ADMIN_SECURITY'));
+    assert.ok(superLogs.every((l) => ['ADMIN_SECURITY', 'CYCLE_GOVERNANCE'].includes(l.visibilityScope)));
+
+    // 2. HR Admin sees org operational logs including HR_INTERNAL bias alerts, NEVER ADMIN_SECURITY
+    assert.ok(hrLogs.some((l) => l.visibilityScope === 'HR_INTERNAL'));
+    assert.ok(hrLogs.every((l) => l.visibilityScope !== 'ADMIN_SECURITY'));
+
+    // 3. Engineering Manager (Sarah) sees ONLY own team's TEAM_MANAGER / PUBLIC_SELF logs
+    assert.ok(engMgrLogs.length >= 2);
+    assert.ok(engMgrLogs.every((l) => ['TEAM_MANAGER', 'PUBLIC_SELF'].includes(l.visibilityScope)));
+    assert.ok(engMgrLogs.every((l) => l.targetManagerId === 'usr-mgr-eng' || l.actorId === 'usr-mgr-eng'));
+    assert.ok(engMgrLogs.every((l) => l.action !== 'BIAS_ALERT_FLAGGED'));
+
+    // 4. Employee (Nida) sees ONLY own PUBLIC_SELF events
+    assert.ok(nidaLogs.length >= 1);
+    assert.ok(nidaLogs.every((l) => l.visibilityScope === 'PUBLIC_SELF' && l.targetEmployeeId === 'usr-emp-nida'));
+
+    // 5. Unpublished Employee (Nut) MUST NOT see Kanya's TEAM_MANAGER score log or HR bias alerts!
+    assert.ok(nutLogs.every((l) => l.visibilityScope === 'PUBLIC_SELF' && l.targetEmployeeId === 'usr-emp-nut'));
+    assert.ok(!nutLogs.some((l) => l.action === 'MANAGER_APPROVED'));
+    assert.ok(!nutLogs.some((l) => l.visibilityScope === 'HR_INTERNAL'));
   });
 });
 
@@ -159,7 +214,6 @@ test('Fairness Guardrail: Manager rating of 5 or 1 without >= 20 char evidence r
     assert.equal(badRes.status, 400);
     assert.equal(badRes.json.error.code, 'VALIDATION_ERROR');
 
-    // Now submit with proper >= 20 char evidence
     const okRes = await req('/reviews/rev-ton/manager-review', {
       method: 'PUT',
       token: mgrToken,
@@ -193,7 +247,6 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
     assert.equal(overview.json.data.biasAlerts[0].flagType, 'LENIENCY_BIAS');
     assert.ok(overview.json.data.exceptions.length >= 1);
 
-    // Nudge + Extend + Escalate + Lock Cycle
     const nudgeRes = await req('/hr/reviews/rev-ton/nudge', {
       method: 'POST',
       token: hrToken,
@@ -218,7 +271,7 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
     const lockRes = await req('/cycles/cycle-fy2026', {
       method: 'PATCH',
       token: hrToken,
-      body: { isLocked: true, reason: 'Closing cycle for calibration review.' },
+      body: { isLocked: true, reason: 'Closing cycle for final HR review.' },
     });
     assert.equal(lockRes.status, 200);
     assert.equal(lockRes.json.data.cycle.isLocked, true);
@@ -229,9 +282,8 @@ test('HR Oversight: Bias Alert detects lenient Sales manager and Exception actio
   });
 });
 
-test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login + Live Permission Toggle', async () => {
+test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve with JobLevel -> Login + Live Permission Toggle', async () => {
   await withServer(async ({ req }) => {
-    // 1. Register new employee with Employee Code
     const regRes = await req('/auth/register', {
       method: 'POST',
       body: {
@@ -246,7 +298,6 @@ test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login +
     assert.equal(regRes.json.data.user.accountStatus, 'PENDING_APPROVAL');
     const newUserId = regRes.json.data.user.id;
 
-    // 2. Pending account cannot log in yet
     const blockedLogin = await req('/auth/login', {
       method: 'POST',
       body: { employeeCode: 'EMP-4001', password: 'NewUserPass123!' },
@@ -254,7 +305,6 @@ test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login +
     assert.equal(blockedLogin.status, 403);
     assert.equal(blockedLogin.json.error.code, 'ACCOUNT_PENDING');
 
-    // 3. Super Admin logs in with Employee Code + Password and approves account
     const superLogin = await req('/auth/login', {
       method: 'POST',
       body: { employeeCode: 'EMP-0001', password: 'DemoPass123!' },
@@ -265,12 +315,12 @@ test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login +
     const approveRes = await req(`/admin/users/${newUserId}`, {
       method: 'PATCH',
       token: superToken,
-      body: { accountStatus: 'ACTIVE', role: 'EMPLOYEE' },
+      body: { accountStatus: 'ACTIVE', role: 'EMPLOYEE', jobLevel: 'L3_SENIOR' },
     });
     assert.equal(approveRes.status, 200);
     assert.equal(approveRes.json.data.user.accountStatus, 'ACTIVE');
+    assert.equal(approveRes.json.data.user.jobLevel, 'L3_SENIOR');
 
-    // 4. Now EMP-4001 can log in
     const okLogin = await req('/auth/login', {
       method: 'POST',
       body: { employeeCode: 'EMP-4001', password: 'NewUserPass123!' },
@@ -278,7 +328,6 @@ test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve -> Login +
     assert.equal(okLogin.status, 200);
     assert.equal(okLogin.json.data.user.employeeCode, 'EMP-4001');
 
-    // 5. Super Admin revokes review:publish from HR_ADMIN -> HR gets 403 immediately
     const hrLogin = await req('/auth/login', {
       method: 'POST',
       body: { employeeCode: 'EMP-1001', password: 'DemoPass123!' },

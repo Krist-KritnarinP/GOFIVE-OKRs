@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AlertCircle, RotateCcw, X } from 'lucide-react';
 import { COMPETENCIES, RUBRIC_LEVELS } from '../../constants/rubric.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
+import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { CommentHistoryPanel } from '../common/CommentHistoryPanel.jsx';
 
 function buildInitialForm(review) {
@@ -108,6 +109,7 @@ export function EvaluationDrawer({
               <h2 className="text-lg font-bold text-[var(--ink-primary)]">
                 {lang === 'th' ? review.employee.nameTh : review.employee.name}
               </h2>
+              <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
               <StatusBadge tone={review.status === 'PUBLISHED' ? 'high' : review.isOverdue ? 'warn' : 'track'}>
                 {t.status[review.status]}
               </StatusBadge>

@@ -27,6 +27,7 @@ export function patchCycle(req, res) {
       cycleId: updated.id,
       actor: req.user,
       action: patch.isLocked ? 'LOCK_CYCLE' : 'UNLOCK_CYCLE',
+      visibilityScope: 'CYCLE_GOVERNANCE',
       reason: reason || (patch.isLocked ? 'HR locked the review cycle.' : 'HR reopened the review cycle.'),
       metadata: { isLocked: patch.isLocked },
     });
@@ -35,8 +36,26 @@ export function patchCycle(req, res) {
       cycleId: updated.id,
       actor: req.user,
       action: patch.isGracePeriodActive ? 'ENABLE_GRACE_PERIOD' : 'DISABLE_GRACE_PERIOD',
+      visibilityScope: 'CYCLE_GOVERNANCE',
       reason: reason || 'HR updated cycle grace period setting.',
       metadata: { isGracePeriodActive: patch.isGracePeriodActive },
+    });
+  } else if (
+    patch.stage1DraftDeadline ||
+    patch.stage2ApprovalDeadline ||
+    patch.stage3HrAuditDeadline
+  ) {
+    appendAuditLog({
+      cycleId: updated.id,
+      actor: req.user,
+      action: 'UPDATE_STAGE_DEADLINES',
+      visibilityScope: 'CYCLE_GOVERNANCE',
+      reason: reason || 'HR updated stage-based cycle deadlines.',
+      metadata: {
+        stage1DraftDeadline: updated.stage1DraftDeadline,
+        stage2ApprovalDeadline: updated.stage2ApprovalDeadline,
+        stage3HrAuditDeadline: updated.stage3HrAuditDeadline,
+      },
     });
   }
 

@@ -10,6 +10,7 @@ import cycleRoutes from './routes/cycleRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import hrRoutes from './routes/hrRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import activityRoutes from './routes/activityRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -57,6 +58,7 @@ export function createApp() {
   app.use('/api/v1/reviews', reviewRoutes);
   app.use('/api/v1/hr', hrRoutes);
   app.use('/api/v1/admin', adminRoutes);
+  app.use('/api/v1/activity-logs', activityRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

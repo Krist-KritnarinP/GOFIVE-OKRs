@@ -5,14 +5,28 @@
 ---
 
 ## Current Phase & Gate Status
-- **Active Phase:** Phase 3 Complete — Ready for GitHub Remote Push & Public Deployment
+- **Active Phase:** Phase 3.5 Complete — Ready for GitHub Remote Push & Public Deployment
 - **Gate 1 (Before Dev):** PASSED
 - **Gate 2 (Before QA):** PASSED
-- **Gate 3 (Before Release):** PASSED (`docs/agent-hub/04-qa-report.md` — 0 console errors, Desktop 1440px & Mobile 375px zero overflow, 6/6 backend tests, `oxlint` 0 errors, `vite build` pass)
+- **Gate 3 (Before Release):** PASSED (`docs/agent-hub/04-qa-report.md` — 0 console errors, 8/8 backend tests including 4-role Activity Log privacy isolation, `oxlint` 0 errors across 30 files, `vite build` pass)
 
 ---
 
 ## Activity Log
+
+### 2026-11-24 — Job Leveling, 3-Stage Due Dates (+ Timing Chips), Manager OKR Co-Edit, HRBP Advisor, Approach A & 4-Role Activity Log
+- **Backend (`backend/`):**
+  - Added `JobLevel` (`L1_JUNIOR`, `L2_MID`, `L3_SENIOR`, `L4_LEAD`), 3-Stage Due Dates (`stage1DraftDeadline`, `stage2ApprovalDeadline`, `stage3HrAuditDeadline`), stage completion timestamps (`goalsSubmittedAt`, `goalsApprovedAt`), and `AuditLog.visibilityScope` / `targetEmployeeId` / `targetManagerId` to `prisma/schema.prisma`, `seedData.js`, and `seed.js`.
+  - Upgraded `POST /reviews/:id/goals/decision` to support Manager co-editing `weight` (total 100%) and `multiplier` with transparent before→after diff logging.
+  - Added `POST /hr/reviews/:id/advisor-comment` for HRBP facilitator intervention on SLA breach or Ping-Pong ≥ 2 rounds.
+  - Implemented Approach A: removed `CALIBRATION_LOCKED` / calibration endpoint from v1 so `POST /hr/cycles/:id/publish` performs clean `HR Approve & Publish` (`MANAGER_APPROVED` → `PUBLISHED`).
+  - Added `GET /api/v1/activity-logs` with strict server-side `filterActivityLogsForUser` RBAC isolation across all 4 roles.
+  - Verified **8/8 backend tests PASS** and `npx prisma validate` PASS.
+- **Frontend (`frontend/`):**
+  - Built `StageStatusBar.jsx` (subtle colorful status strip with dates + `Done Xd early` / `Done on time` / `Xd left` / `Overdue Xd` chips + inline HR stage date editor), `JobLevelBadge.jsx`, and `ActivityLogPanel.jsx` across all 4 role pages.
+  - Upgraded `GoalApprovalDrawer.jsx` (direct Weight/Multiplier co-edit + Round 2 1-on-1 banner), `ExceptionQueue.jsx` (HRBP Advisor Note + Quick Facilitator Suggestion), `HrDashboardPage.jsx` (`HR Approve & Publish`), `ManagerWorkspacePage.jsx`, `EmployeeWorkspacePage.jsx`, `SuperAdminPage.jsx`, and `translations.js` (EN + TH).
+  - Fixed StrictMode duplicate-log side effect and Mobile `375px` table container overflow caught during Browser QA.
+  - Verified `oxlint` (0 warnings/0 errors across 30 files), `vite build` (573ms), and live Browser QA.
 
 ### 2026-11-24 — Full OKR/KPI Builder, 2-Phase Ping-Pong & Calibration Gate Complete
 - **Schema & Backend (`backend/`):**

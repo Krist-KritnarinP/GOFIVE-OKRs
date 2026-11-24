@@ -6,9 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   const seed = createInitialSeed();
 
-  console.log('[prisma:seed] Seeding 1-office-unit dataset (16 users, 1 cycle, goals, reviews, permissions)...');
+  console.log('[prisma:seed] Seeding 1-office-unit dataset (16 users, job levels, 3-stage cycle, OKRs, reviews, logs)...');
 
-  // 1. Upsert Active Cycle
   await prisma.reviewCycle.upsert({
     where: { id: seed.cycle.id },
     update: {},
@@ -19,6 +18,9 @@ async function main() {
       period: seed.cycle.period,
       whatWeight: seed.cycle.whatWeight,
       howWeight: seed.cycle.howWeight,
+      stage1DraftDeadline: new Date(seed.cycle.stage1DraftDeadline),
+      stage2ApprovalDeadline: new Date(seed.cycle.stage2ApprovalDeadline),
+      stage3HrAuditDeadline: new Date(seed.cycle.stage3HrAuditDeadline),
       selfDeadline: new Date(seed.cycle.selfDeadline),
       managerDeadline: new Date(seed.cycle.managerDeadline),
       isGracePeriodActive: seed.cycle.isGracePeriodActive,
@@ -31,7 +33,6 @@ async function main() {
     },
   });
 
-  // 2. Upsert 16 Users (first pass without managerId, second pass links managerId cleanly)
   for (const user of seed.users) {
     await prisma.user.upsert({
       where: { employeeCode: user.employeeCode },
@@ -45,6 +46,7 @@ async function main() {
         nameTh: user.nameTh,
         title: user.title,
         department: user.department,
+        jobLevel: user.jobLevel || 'L2_MID',
         role: user.role,
         accountStatus: user.accountStatus,
       },
@@ -60,7 +62,6 @@ async function main() {
     }
   }
 
-  // 3. Upsert Role Permission Matrix
   for (const [role, perms] of Object.entries(seed.rolePermissions)) {
     for (const [permissionKey, allowed] of Object.entries(perms)) {
       await prisma.rolePermission.upsert({
@@ -71,7 +72,6 @@ async function main() {
     }
   }
 
-  // 4. Upsert Goals & Reviews
   for (const goal of seed.goals) {
     await prisma.goal.upsert({
       where: { id: goal.id },
@@ -102,15 +102,36 @@ async function main() {
         howScore: rev.howScore,
         overallScore: rev.overallScore,
         nineBoxCell: rev.nineBoxCell,
+        goalsSubmittedAt: rev.goalsSubmittedAt ? new Date(rev.goalsSubmittedAt) : null,
+        goalsApprovedAt: rev.goalsApprovedAt ? new Date(rev.goalsApprovedAt) : null,
         selfSubmittedAt: rev.selfSubmittedAt ? new Date(rev.selfSubmittedAt) : null,
         managerSubmittedAt: rev.managerSubmittedAt ? new Date(rev.managerSubmittedAt) : null,
-        calibratedAt: rev.calibratedAt ? new Date(rev.calibratedAt) : null,
         publishedAt: rev.publishedAt ? new Date(rev.publishedAt) : null,
       },
     });
   }
 
-  console.log('[prisma:seed] Done! Seeded 1 Super Admin, 2 HR Admins, 3 Managers, 6 Employees, 4 Pending New Employees.');
+  for (const log of seed.auditLogs) {
+    await prisma.auditLog.upsert({
+      where: { id: log.id },
+      update: {},
+      create: {
+        id: log.id,
+        cycleId: log.cycleId,
+        reviewId: log.reviewId,
+        actorId: log.actorId,
+        action: log.action,
+        visibilityScope: log.visibilityScope,
+        targetEmployeeId: log.targetEmployeeId,
+        targetManagerId: log.targetManagerId,
+        reason: log.reason,
+        metadata: log.metadata ?? {},
+        createdAt: new Date(log.createdAt),
+      },
+    });
+  }
+
+  console.log('[prisma:seed] Done! Seeded 16 users with Job Levels, 3-stage deadlines, OKRs, reviews, and role-scoped activity logs.');
 }
 
 main()

@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
+import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
+import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
+import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
+import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 import { EvaluationDrawer } from '../components/manager/EvaluationDrawer.jsx';
 import { GoalApprovalDrawer } from '../components/manager/GoalApprovalDrawer.jsx';
 
 export function ManagerWorkspacePage({
+  cycle,
   reviews,
+  auditLogs,
   analytics,
   activeManagerId,
   onSelectManager,
@@ -20,8 +26,13 @@ export function ManagerWorkspacePage({
   const [goalReview, setGoalReview] = useState(null);
 
   const teamReviews = reviews.filter((r) => r.managerId === activeManagerId);
+  const managerLogs = filterActivityLogsForRole(auditLogs, {
+    role: 'MANAGER',
+    userId: activeManagerId,
+  });
+
   const completedTeam = teamReviews.filter((r) =>
-    ['MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(r.status)
+    ['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status)
   ).length;
   const teamCompletionPct =
     teamReviews.length > 0 ? Math.round((completedTeam / teamReviews.length) * 100) : 0;
@@ -66,6 +77,9 @@ export function ManagerWorkspacePage({
           })}
         </div>
       </div>
+
+      {/* 3-Stage Cycle SLA Status Bar */}
+      <StageStatusBar mode="cycle" cycle={cycle} editable={false} t={t} lang={lang} />
 
       {/* 3 Team KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -143,88 +157,99 @@ export function ManagerWorkspacePage({
         </div>
       </section>
 
-      {/* Scannable Team Table */}
-      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
-                <th className="py-2.5 px-3">{t.colEmployee}</th>
-                <th className="py-2.5 px-3">{t.colStatus}</th>
-                <th className="py-2.5 px-3">{t.colScore}</th>
-                <th className="py-2.5 px-3 text-right">{t.colAction}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
-              {teamReviews.map((rev) => {
-                const isGoalStage = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(rev.status);
-                return (
-                  <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
-                    <td className="py-3.5 px-3">
-                      <p className="font-semibold text-[var(--ink-primary)]">
-                        {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
-                      </p>
-                      <p className="text-xs text-[var(--ink-muted)]">{rev.employee.title}</p>
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <StatusBadge
-                          tone={
-                            rev.status === 'PUBLISHED'
-                              ? 'high'
-                              : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED', 'GOAL_PENDING_APPROVAL'].includes(rev.status) || rev.isOverdue
-                                ? 'warn'
-                                : 'track'
-                          }
-                        >
-                          {t.status[rev.status]}
-                        </StatusBadge>
-                        {rev.isOverdue && (
-                          <StatusBadge tone="warn">
-                            {rev.daysOverdue} {t.daysOverdue}
+      {/* Scannable Team Table + Team-Only Activity Log */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-w-0">
+        <section className="min-w-0 xl:col-span-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
+                  <th className="py-2.5 px-3">{t.colEmployee}</th>
+                  <th className="py-2.5 px-3">{t.colStatus}</th>
+                  <th className="py-2.5 px-3">{t.colScore}</th>
+                  <th className="py-2.5 px-3 text-right">{t.colAction}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+                {teamReviews.map((rev) => {
+                  const isGoalStage = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(rev.status);
+                  return (
+                    <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-[var(--ink-primary)]">
+                            {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                          </span>
+                          <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
+                        </div>
+                        <p className="text-xs text-[var(--ink-muted)] mt-0.5">{rev.employee.title}</p>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <StatusBadge
+                            tone={
+                              rev.status === 'PUBLISHED'
+                                ? 'high'
+                                : rev.status === 'MANAGER_APPROVED'
+                                  ? 'indigo'
+                                  : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED', 'GOAL_PENDING_APPROVAL'].includes(rev.status) || rev.isOverdue
+                                    ? 'warn'
+                                    : 'track'
+                            }
+                          >
+                            {t.status[rev.status]}
                           </StatusBadge>
+                          {rev.isOverdue && (
+                            <StatusBadge tone="low">
+                              {rev.daysOverdue} {t.daysOverdue}
+                            </StatusBadge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-3 font-semibold text-[var(--ink-primary)] tabular-nums">
+                        {rev.overallScore != null
+                          ? `${rev.overallScore.toFixed(2)} (${rev.whatPct?.toFixed(0)}% / ${rev.howScore?.toFixed(1)})`
+                          : '—'}
+                      </td>
+                      <td className="py-3.5 px-3 text-right">
+                        {isGoalStage ? (
+                          <button
+                            type="button"
+                            onClick={() => setGoalReview(rev)}
+                            className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+                              rev.status === 'GOAL_PENDING_APPROVAL'
+                                ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
+                                : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                            }`}
+                          >
+                            {t.reviewGoalsBtn}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setEvalReview(rev)}
+                            className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+                              rev.status === 'SELF_REVIEW_SUBMITTED'
+                                ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
+                                : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                            }`}
+                          >
+                            {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
+                          </button>
                         )}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold text-[var(--ink-primary)] tabular-nums">
-                      {rev.overallScore != null
-                        ? `${rev.overallScore.toFixed(2)} (${rev.whatPct?.toFixed(0)}% / ${rev.howScore?.toFixed(1)})`
-                        : '—'}
-                    </td>
-                    <td className="py-3.5 px-3 text-right">
-                      {isGoalStage ? (
-                        <button
-                          type="button"
-                          onClick={() => setGoalReview(rev)}
-                          className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
-                            rev.status === 'GOAL_PENDING_APPROVAL'
-                              ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
-                              : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
-                          }`}
-                        >
-                          {t.reviewGoalsBtn}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setEvalReview(rev)}
-                          className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
-                            rev.status === 'SELF_REVIEW_SUBMITTED'
-                              ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
-                              : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
-                          }`}
-                        >
-                          {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div className="xl:col-span-4">
+          <ActivityLogPanel logs={managerLogs} role="MANAGER" t={t} />
         </div>
-      </section>
+      </div>
 
       {goalReview && (
         <GoalApprovalDrawer

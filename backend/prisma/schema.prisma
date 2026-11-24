@@ -15,6 +15,13 @@ enum UserRole {
   EMPLOYEE
 }
 
+enum JobLevel {
+  L1_JUNIOR
+  L2_MID
+  L3_SENIOR
+  L4_LEAD
+}
+
 enum AccountStatus {
   PENDING_APPROVAL
   ACTIVE
@@ -34,7 +41,6 @@ enum ReviewStatus {
   SELF_REVIEW_SUBMITTED
   REVIEW_REVISION_REQUIRED
   MANAGER_APPROVED
-  CALIBRATION_LOCKED
   PUBLISHED
 }
 
@@ -59,6 +65,7 @@ model User {
   nameTh        String?
   title         String
   department    String
+  jobLevel      JobLevel      @default(L2_MID)
   role          UserRole      @default(EMPLOYEE)
   accountStatus AccountStatus @default(PENDING_APPROVAL)
   managerId     String?
@@ -85,18 +92,21 @@ model RolePermission {
 }
 
 model ReviewCycle {
-  id                  String   @id @default(cuid())
-  name                String
-  nameTh              String?
-  period              String
-  whatWeight          Int      @default(60)
-  howWeight           Int      @default(40)
-  selfDeadline        DateTime
-  managerDeadline     DateTime
-  isGracePeriodActive Boolean  @default(false)
-  isLocked            Boolean  @default(false)
-  isActive            Boolean  @default(true)
-  rubricConfig        Json?
+  id                     String   @id @default(cuid())
+  name                   String
+  nameTh                 String?
+  period                 String
+  whatWeight             Int      @default(60)
+  howWeight              Int      @default(40)
+  stage1DraftDeadline    DateTime
+  stage2ApprovalDeadline DateTime
+  stage3HrAuditDeadline  DateTime
+  selfDeadline           DateTime
+  managerDeadline        DateTime
+  isGracePeriodActive    Boolean  @default(false)
+  isLocked               Boolean  @default(false)
+  isActive               Boolean  @default(true)
+  rubricConfig           Json?
 
   goals     Goal[]
   reviews   Review[]
@@ -146,9 +156,10 @@ model Review {
   howScore             Float?
   overallScore         Float?
   nineBoxCell          NineBoxCell?
+  goalsSubmittedAt     DateTime?
+  goalsApprovedAt      DateTime?
   selfSubmittedAt      DateTime?
   managerSubmittedAt   DateTime?
-  calibratedAt         DateTime?
   extendedDeadline     DateTime?
   escalatedToSkipLevel Boolean      @default(false)
   lastNudgedAt         DateTime?
@@ -163,15 +174,18 @@ model Review {
 }
 
 model AuditLog {
-  id        String       @id @default(cuid())
-  cycleId   String?
-  cycle     ReviewCycle? @relation(fields: [cycleId], references: [id], onDelete: SetNull)
-  reviewId  String?
-  review    Review?      @relation(fields: [reviewId], references: [id], onDelete: SetNull)
-  actorId   String
-  actor     User         @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
-  action    String
-  reason    String?
-  metadata  Json?
-  createdAt DateTime     @default(now())
+  id               String       @id @default(cuid())
+  cycleId          String?
+  cycle            ReviewCycle? @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  reviewId         String?
+  review           Review?      @relation(fields: [reviewId], references: [id], onDelete: SetNull)
+  actorId          String
+  actor            User         @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
+  action           String
+  visibilityScope  String       @default("HR_INTERNAL")
+  targetEmployeeId String?
+  targetManagerId  String?
+  reason           String?
+  metadata         Json?
+  createdAt        DateTime     @default(now())
 }

@@ -1,4 +1,5 @@
 const ROUND2 = (n) => Math.round(n * 100) / 100;
+const DAY_MS = 86400000;
 
 export function computeNineBoxCell(whatPct, howScore) {
   if (whatPct == null || howScore == null) return null;
@@ -32,7 +33,6 @@ export function computeReviewScores({ goals, goalRatings, competencyRatings, cyc
     const goal = goalMap.get(rating.goalId);
     const weight = goal ? goal.weight : 1;
     const multiplier = goal?.multiplier ?? 1.0;
-    // Apply difficulty multiplier (1.0x / 1.1x / 1.2x) capped at 5.0 max for fairness
     const adjustedScore = Math.min(5, rating.score * multiplier);
     totalWeight += weight;
     weightedGoalScore += adjustedScore * weight;
@@ -132,12 +132,32 @@ export function computeBiasAlerts(reviews, usersMap) {
   return alerts;
 }
 
+/**
+ * Computes stage deadline status:
+ * - If completedAt is present: EARLY (done Xd early), ON_TIME, or LATE_DONE (done Xd late)
+ * - If not completed yet: COUNTDOWN (Xd left) or OVERDUE (Xd overdue)
+ */
+export function computeStageTiming({ deadline, completedAt = null, now = new Date() }) {
+  if (!deadline) return null;
+  const dueMs = new Date(deadline).getTime();
+
+  if (completedAt) {
+    const doneMs = new Date(completedAt).getTime();
+    const diffDays = Math.round((dueMs - doneMs) / DAY_MS);
+    if (diffDays > 0) return { state: 'EARLY', days: diffDays };
+    if (diffDays === 0) return { state: 'ON_TIME', days: 0 };
+    return { state: 'LATE_DONE', days: Math.abs(diffDays) };
+  }
+
+  const remainingMs = dueMs - now.getTime();
+  if (remainingMs >= 0) {
+    return { state: 'COUNTDOWN', days: Math.max(0, Math.ceil(remainingMs / DAY_MS)) };
+  }
+  return { state: 'OVERDUE', days: Math.max(1, Math.ceil(Math.abs(remainingMs) / DAY_MS)) };
+}
+
 export function getOverdueInfo(review, cycle, now = new Date()) {
-  if (
-    review.status === 'MANAGER_APPROVED' ||
-    review.status === 'CALIBRATION_LOCKED' ||
-    review.status === 'PUBLISHED'
-  ) {
+  if (review.status === 'MANAGER_APPROVED' || review.status === 'PUBLISHED') {
     return { isOverdue: false, daysOverdue: 0, missingActor: null };
   }
 
@@ -148,30 +168,64 @@ export function getOverdueInfo(review, cycle, now = new Date()) {
     'REVIEW_REVISION_REQUIRED',
   ].includes(review.status);
 
+  const stageDeadline = ['GOAL_DRAFT', 'GOAL_REVISION_REQUIRED'].includes(review.status)
+    ? cycle.stage1DraftDeadline || cycle.selfDeadline
+    : ['GOAL_PENDING_APPROVAL', 'SELF_REVIEW_SUBMITTED'].includes(review.status)
+      ? cycle.stage2ApprovalDeadline || cycle.managerDeadline
+      : cycle.selfDeadline;
+
   const effectiveDeadline = review.extendedDeadline
     ? new Date(review.extendedDeadline)
-    : isEmployeeStage
-      ? new Date(cycle.selfDeadline)
-      : new Date(cycle.managerDeadline);
+    : new Date(stageDeadline);
 
   const diffMs = now.getTime() - effectiveDeadline.getTime();
   if (diffMs <= 0) {
     return { isOverdue: false, daysOverdue: 0, missingActor: null };
   }
 
-  const daysOverdue = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  const daysOverdue = Math.max(1, Math.ceil(diffMs / DAY_MS));
   const missingActor = isEmployeeStage ? 'EMPLOYEE' : 'MANAGER';
   return { isOverdue: true, daysOverdue, missingActor };
 }
 
+export function getHrbpInterventionInfo(review, cycle, now = new Date()) {
+  if (review.status === 'PUBLISHED') {
+    return { hrbpInterventionNeeded: false, hrbpReasons: [] };
+  }
+  const overdue = getOverdueInfo(review, cycle, now);
+  const reasons = [];
+  if ((review.revisionRound || 1) >= 2 && ['GOAL_REVISION_REQUIRED', 'GOAL_PENDING_APPROVAL', 'REVIEW_REVISION_REQUIRED'].includes(review.status)) {
+    reasons.push('PING_PONG_LIMIT');
+  }
+  if (overdue.isOverdue) {
+    reasons.push('SLA_BREACH');
+  }
+  return { hrbpInterventionNeeded: reasons.length > 0, hrbpReasons: reasons };
+}
+
+const EMPLOYEE_SAFE_COMMENT_ACTIONS = new Set([
+  'GOAL_SUBMITTED',
+  'GOAL_APPROVED',
+  'GOAL_REVISION_REQUESTED',
+  'SELF_REVIEW_SUBMITTED',
+  'REVIEW_REVISION_REQUESTED',
+  'HRBP_ADVISOR_COMMENT',
+  'PUBLISHED',
+]);
+
 /**
  * Security Gate Serializer:
- * Employees MUST NEVER receive manager ratings, comments, or 9-box placement before PUBLISHED.
+ * Employees MUST NEVER receive manager ratings, unpublished comments, or 9-box placement before PUBLISHED.
  */
 export function sanitizeReviewForRole(review, user) {
   if (user.role === 'EMPLOYEE' && review.status !== 'PUBLISHED') {
+    const safeHistory = Array.isArray(review.commentHistory)
+      ? review.commentHistory.filter((item) => EMPLOYEE_SAFE_COMMENT_ACTIONS.has(item.action))
+      : [];
+
     return {
       ...review,
+      commentHistory: safeHistory,
       managerPayload: null,
       whatPct: null,
       whatScore: null,
@@ -185,4 +239,43 @@ export function sanitizeReviewForRole(review, user) {
     ...review,
     resultsLocked: false,
   };
+}
+
+/**
+ * Strict Server-Side Role-Scoped Activity Log Filter:
+ * - SUPER_ADMIN: System & Governance (ADMIN_SECURITY + CYCLE_GOVERNANCE)
+ * - HR_ADMIN: Org-Wide Cycle & Operational (CYCLE_GOVERNANCE + HR_INTERNAL + TEAM_MANAGER + PUBLIC_SELF)
+ * - MANAGER: Own-Team Only (TEAM_MANAGER + PUBLIC_SELF where targetManagerId === user.id or actorId === user.id)
+ * - EMPLOYEE: Own-Review Safe Only (PUBLIC_SELF where targetEmployeeId === user.id)
+ */
+export function filterActivityLogsForUser(logs, user) {
+  if (!user) return [];
+  const list = Array.isArray(logs) ? logs : [];
+
+  if (user.role === 'SUPER_ADMIN') {
+    return list.filter((log) =>
+      ['ADMIN_SECURITY', 'CYCLE_GOVERNANCE'].includes(log.visibilityScope)
+    );
+  }
+
+  if (user.role === 'HR_ADMIN') {
+    return list.filter((log) =>
+      ['CYCLE_GOVERNANCE', 'HR_INTERNAL', 'TEAM_MANAGER', 'PUBLIC_SELF'].includes(log.visibilityScope)
+    );
+  }
+
+  if (user.role === 'MANAGER') {
+    return list.filter((log) => {
+      if (!['TEAM_MANAGER', 'PUBLIC_SELF'].includes(log.visibilityScope)) return false;
+      return log.targetManagerId === user.id || log.actorId === user.id;
+    });
+  }
+
+  if (user.role === 'EMPLOYEE') {
+    return list.filter(
+      (log) => log.visibilityScope === 'PUBLIC_SELF' && log.targetEmployeeId === user.id
+    );
+  }
+
+  return [];
 }

@@ -9,6 +9,11 @@ const TONE_MAP = {
     color: 'var(--status-track-text)',
     borderColor: 'var(--status-track-border)',
   },
+  indigo: {
+    backgroundColor: 'var(--status-indigo-bg)',
+    color: 'var(--status-indigo-text)',
+    borderColor: 'var(--status-indigo-border)',
+  },
   warn: {
     backgroundColor: 'var(--status-warn-bg)',
     color: 'var(--status-warn-text)',
@@ -30,7 +35,7 @@ export function StatusBadge({ tone = 'neutral', children }) {
   const style = TONE_MAP[tone] || TONE_MAP.neutral;
   return (
     <span
-      className="inline-flex items-center px-2.5 py-0.5 rounded-md border text-xs sm:text-sm font-semibold whitespace-nowrap tabular-nums"
+      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md border text-xs font-semibold whitespace-nowrap tabular-nums"
       style={style}
     >
       {children}

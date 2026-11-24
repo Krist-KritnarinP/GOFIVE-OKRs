@@ -63,7 +63,7 @@ export function App() {
         <SuperAdminPage
           users={store.users}
           rolePermissions={store.rolePermissions}
-          auditLogCount={store.auditLogs.length}
+          auditLogs={store.auditLogs}
           t={t}
           lang={lang}
           onUpdateUser={store.handleUpdateUser}
@@ -77,16 +77,18 @@ export function App() {
           reviews={store.reviews}
           auditLogs={store.auditLogs}
           analytics={store.analytics}
+          currentUser={store.currentUser}
           can={store.can}
           t={t}
           lang={lang}
+          onUpdateStageDeadlines={store.handleUpdateStageDeadlines}
           onToggleGracePeriod={store.handleToggleGracePeriod}
           onToggleLockCycle={store.handleToggleLockCycle}
           onNudge={store.handleNudge}
           onExtendDeadline={store.handleExtendDeadline}
           onEscalate={store.handleEscalate}
+          onPostHrbpAdvisorComment={store.handlePostHrbpAdvisorComment}
           onHrReturnToManager={store.handleHrReturnToManager}
-          onLockCalibration={store.handleLockCalibration}
           onPublishReady={store.handlePublishReady}
           onSaveEvaluation={store.handleSaveManagerEvaluation}
         />
@@ -94,7 +96,9 @@ export function App() {
 
       {store.activeRole === ROLES.MANAGER && (
         <ManagerWorkspacePage
+          cycle={store.cycle}
           reviews={store.reviews}
+          auditLogs={store.auditLogs}
           analytics={store.analytics}
           activeManagerId={store.activeManagerId}
           onSelectManager={store.setActiveManagerId}
@@ -109,7 +113,9 @@ export function App() {
       {store.activeRole === ROLES.EMPLOYEE && (
         <EmployeeWorkspacePage
           key={store.activeEmployeeId}
+          cycle={store.cycle}
           reviews={store.reviews}
+          auditLogs={store.auditLogs}
           activeEmployeeId={store.activeEmployeeId}
           onSelectEmployee={store.setActiveEmployeeId}
           t={t}

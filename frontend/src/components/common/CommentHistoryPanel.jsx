@@ -1,4 +1,4 @@
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Sparkles } from 'lucide-react';
 import { StatusBadge } from './StatusBadge.jsx';
 
 const ACTION_TONE = {
@@ -7,9 +7,9 @@ const ACTION_TONE = {
   GOAL_REVISION_REQUESTED: 'warn',
   SELF_REVIEW_SUBMITTED: 'track',
   REVIEW_REVISION_REQUESTED: 'warn',
-  MANAGER_APPROVED: 'high',
+  MANAGER_APPROVED: 'indigo',
   HR_RETURNED_TO_MANAGER: 'low',
-  CALIBRATION_LOCKED: 'track',
+  HRBP_ADVISOR_COMMENT: 'indigo',
   PUBLISHED: 'high',
 };
 
@@ -30,29 +30,46 @@ export function CommentHistoryPanel({ history = [], t }) {
         <p className="text-sm text-[var(--ink-muted)]">{t.noCommentHistory}</p>
       ) : (
         <ol className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-          {[...history].reverse().map((item) => (
-            <li
-              key={item.id}
-              className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3 space-y-1.5 text-sm"
-            >
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--ink-primary)] tabular-nums">
-                    R{item.round || 1}
-                  </span>
-                  <span className="font-bold text-[var(--ink-primary)]">{item.actorName}</span>
-                  <span className="text-xs text-[var(--ink-muted)]">({item.actorRole})</span>
+          {[...history].reverse().map((item) => {
+            const isAdvisor = item.action === 'HRBP_ADVISOR_COMMENT';
+            return (
+              <li
+                key={item.id}
+                className="rounded-md border p-3 space-y-1.5 text-sm"
+                style={
+                  isAdvisor
+                    ? {
+                        backgroundColor: 'var(--status-indigo-bg)',
+                        borderColor: 'var(--status-indigo-border)',
+                      }
+                    : {
+                        backgroundColor: 'var(--surface-subtle)',
+                        borderColor: 'var(--border-subtle)',
+                      }
+                }
+              >
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--ink-primary)] tabular-nums">
+                      R{item.round || 1}
+                    </span>
+                    {isAdvisor && (
+                      <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--status-indigo-text)' }} aria-hidden="true" />
+                    )}
+                    <span className="font-bold text-[var(--ink-primary)]">{item.actorName}</span>
+                    <span className="text-xs text-[var(--ink-muted)]">({item.actorRole})</span>
+                  </div>
+                  <StatusBadge tone={ACTION_TONE[item.action] || 'neutral'}>
+                    {isAdvisor ? 'HRBP ADVISOR' : item.action}
+                  </StatusBadge>
                 </div>
-                <StatusBadge tone={ACTION_TONE[item.action] || 'neutral'}>
-                  {item.action}
-                </StatusBadge>
-              </div>
-              <p className="text-sm text-[var(--ink-secondary)]">{item.comment}</p>
-              <p className="text-xs text-[var(--ink-muted)] tabular-nums">
-                {new Date(item.createdAt).toLocaleString()}
-              </p>
-            </li>
-          ))}
+                <p className="text-sm text-[var(--ink-secondary)]">{item.comment}</p>
+                <p className="text-xs text-[var(--ink-muted)] tabular-nums">
+                  {new Date(item.createdAt).toLocaleString()}
+                </p>
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>

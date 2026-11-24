@@ -1,13 +1,29 @@
 import { useState } from 'react';
-import { AlertCircle, CheckCircle2, Lock, Pencil, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, Lock, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { EMPLOYEE_DEMO_SWITCHES } from '../constants/roles.js';
 import { COMPETENCIES, NINE_BOX_CELLS } from '../constants/rubric.js';
+import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
+import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
+import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { CommentHistoryPanel } from '../components/common/CommentHistoryPanel.jsx';
+import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 import { GoalEditorModal } from '../components/employee/GoalEditorModal.jsx';
 
+const EMPLOYEE_SAFE_ACTIONS = new Set([
+  'GOAL_SUBMITTED',
+  'GOAL_APPROVED',
+  'GOAL_REVISION_REQUESTED',
+  'SELF_REVIEW_SUBMITTED',
+  'REVIEW_REVISION_REQUESTED',
+  'HRBP_ADVISOR_COMMENT',
+  'PUBLISHED',
+]);
+
 export function EmployeeWorkspacePage({
+  cycle,
   reviews,
+  auditLogs,
   activeEmployeeId,
   onSelectEmployee,
   t,
@@ -19,12 +35,10 @@ export function EmployeeWorkspacePage({
   const canEditGoals = ['GOAL_DRAFT', 'GOAL_REVISION_REQUIRED'].includes(review.status);
   const canFillSelfReview = ['GOAL_APPROVED', 'REVIEW_REVISION_REQUIRED'].includes(review.status);
 
-  // Local editable OKR list during Phase A (Goal Setting / Ping-Pong)
   const [draftGoals, setDraftGoals] = useState(() => review.goals || []);
   const [goalNote, setGoalNote] = useState('');
   const [goalModal, setGoalModal] = useState({ open: false, goal: null });
 
-  // Local self-assessment inputs during Phase B (Actual + Description + Self Score)
   const [reflection, setReflection] = useState(review.selfPayload?.reflection || '');
   const [goalInputs, setGoalInputs] = useState(() =>
     Object.fromEntries(
@@ -45,27 +59,18 @@ export function EmployeeWorkspacePage({
 
   const displayedGoals = canEditGoals ? draftGoals : review.goals || [];
   const totalWeight = displayedGoals.reduce((acc, g) => acc + Number(g.weight || 0), 0);
-
-  const steps = [
-    {
-      label: t.empStepGoals,
-      done: !['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(review.status),
-    },
-    {
-      label: t.empStepSelf,
-      done: ['SELF_REVIEW_SUBMITTED', 'MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(review.status),
-    },
-    {
-      label: t.empStepMgr,
-      done: ['CALIBRATION_LOCKED', 'PUBLISHED'].includes(review.status),
-    },
-    {
-      label: t.empStepPub,
-      done: review.status === 'PUBLISHED',
-    },
-  ];
-
   const cellInfo = NINE_BOX_CELLS.find((c) => c.id === review.nineBoxCell);
+
+  // Strict privacy filter: unpublished internal manager/HR comments never shown to employee
+  const safeCommentHistory =
+    review.status === 'PUBLISHED'
+      ? review.commentHistory || []
+      : (review.commentHistory || []).filter((c) => EMPLOYEE_SAFE_ACTIONS.has(c.action));
+
+  const employeeLogs = filterActivityLogsForRole(auditLogs, {
+    role: 'EMPLOYEE',
+    userId: review.employeeId,
+  });
 
   const handleSaveModalGoal = (goalObj) => {
     setDraftGoals((prev) => {
@@ -116,9 +121,12 @@ export function EmployeeWorkspacePage({
     <div className="w-full space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
-            {t.empTitle}
-          </h1>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+              {t.empTitle}
+            </h1>
+            <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
+          </div>
           <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.empSubtitle}</p>
         </div>
 
@@ -147,38 +155,11 @@ export function EmployeeWorkspacePage({
         </div>
       </div>
 
-      {/* 4-Step Lifecycle Stepper */}
-      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-        <ol className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {steps.map((step, idx) => (
-            <li
-              key={step.label}
-              className="flex items-center gap-2.5 rounded-md border px-3 py-2.5 text-sm font-semibold"
-              style={
-                step.done
-                  ? {
-                      backgroundColor: 'var(--status-high-bg)',
-                      color: 'var(--status-high-text)',
-                      borderColor: 'var(--status-high-border)',
-                    }
-                  : {
-                      backgroundColor: 'var(--surface-subtle)',
-                      color: 'var(--ink-secondary)',
-                      borderColor: 'var(--border-subtle)',
-                    }
-              }
-            >
-              <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
-              <span className="tabular-nums">
-                {idx + 1}. {step.label}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
+      {/* Tasteful Colorful 4-Stage Status Bar with Dates + Countdown / Overdue / Done Early Chips */}
+      <StageStatusBar mode="review" cycle={cycle} review={review} t={t} lang={lang} />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Left (7 cols): OKR Builder (Phase A) OR Self-Assessment (Phase B) */}
+        {/* Left (7 cols): OKR Builder (Phase A) OR Self-Assessment (Phase B) + Ping-Pong History */}
         <div className="xl:col-span-7 space-y-5">
           <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -188,9 +169,11 @@ export function EmployeeWorkspacePage({
                   tone={
                     review.status === 'PUBLISHED'
                       ? 'high'
-                      : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED'].includes(review.status) || review.isOverdue
-                        ? 'warn'
-                        : 'track'
+                      : review.status === 'MANAGER_APPROVED'
+                        ? 'indigo'
+                        : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED'].includes(review.status) || review.isOverdue
+                          ? 'warn'
+                          : 'track'
                   }
                 >
                   {t.status[review.status]}
@@ -208,6 +191,23 @@ export function EmployeeWorkspacePage({
                 </button>
               )}
             </div>
+
+            {/* Ping-Pong >= 2 Calm 1-on-1 Alignment Recommendation */}
+            {canEditGoals && (review.revisionRound || 1) >= 2 && (
+              <div
+                className="rounded-md border p-3.5 flex items-start gap-2.5 text-xs sm:text-sm"
+                style={{
+                  backgroundColor: 'var(--status-indigo-bg)',
+                  borderColor: 'var(--status-indigo-border)',
+                  color: 'var(--status-indigo-text)',
+                }}
+              >
+                <Users className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                <p className="font-medium">
+                  {t.pingPongBannerText.replace('{r}', review.revisionRound)}
+                </p>
+              </div>
+            )}
 
             {/* Live Weight Counter Bar during OKR Setting */}
             {canEditGoals && (
@@ -239,7 +239,7 @@ export function EmployeeWorkspacePage({
               </div>
             )}
 
-            {/* Goal Cards */}
+            {/* OKR Cards */}
             <form onSubmit={handleSubmitSelf} className="space-y-4">
               <div className="space-y-3">
                 {displayedGoals.map((goal) => {
@@ -311,7 +311,6 @@ export function EmployeeWorkspacePage({
                         </div>
                       )}
 
-                      {/* Phase B: Employee enters Actual + Progress + Description + Self Score (1-5) */}
                       {canFillSelfReview ? (
                         <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -402,7 +401,6 @@ export function EmployeeWorkspacePage({
                 })}
               </div>
 
-              {/* Phase A Submit Goals Bar */}
               {canEditGoals && (
                 <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">
                   <textarea
@@ -425,7 +423,6 @@ export function EmployeeWorkspacePage({
                 </div>
               )}
 
-              {/* Phase B Overall Reflection & Submit Self-Review */}
               {canFillSelfReview && (
                 <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">
                   <div className="space-y-1.5">
@@ -453,78 +450,81 @@ export function EmployeeWorkspacePage({
             </form>
           </section>
 
-          {/* Ping-Pong Comment & Revision History */}
-          <CommentHistoryPanel history={review.commentHistory || []} t={t} />
+          <CommentHistoryPanel history={safeCommentHistory} t={t} />
         </div>
 
-        {/* Right (5 cols): Locked vs Published Result Panel */}
-        <section className="xl:col-span-5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4 self-start">
-          {review.status !== 'PUBLISHED' ? (
-            <div className="flex flex-col items-start justify-center space-y-3 py-6">
-              <span className="inline-flex items-center justify-center w-11 h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-subtle)] text-[var(--ink-primary)]">
-                <Lock className="w-5 h-5" aria-hidden="true" />
-              </span>
-              <h2 className="text-lg font-bold text-[var(--ink-primary)]">
-                {t.empResultsLockedTitle}
-              </h2>
-              <p className="text-sm text-[var(--ink-secondary)]">{t.empResultsLockedDesc}</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-[var(--ink-primary)]">
-                {t.empResultsPublishedTitle}
-              </h2>
+        {/* Right (5 cols): Locked vs Published Result + Own-Review Private Activity Log */}
+        <div className="xl:col-span-5 space-y-5">
+          <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+            {review.status !== 'PUBLISHED' ? (
+              <div className="flex flex-col items-start justify-center space-y-3 py-4">
+                <span className="inline-flex items-center justify-center w-11 h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-subtle)] text-[var(--ink-primary)]">
+                  <Lock className="w-5 h-5" aria-hidden="true" />
+                </span>
+                <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+                  {t.empResultsLockedTitle}
+                </h2>
+                <p className="text-sm text-[var(--ink-secondary)]">{t.empResultsLockedDesc}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+                  {t.empResultsPublishedTitle}
+                </h2>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3.5">
-                  <p className="text-xs font-semibold text-[var(--ink-secondary)]">{t.empOverallScore}</p>
-                  <p className="mt-1 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
-                    {review.overallScore?.toFixed(2)} / 5.0
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3.5">
+                    <p className="text-xs font-semibold text-[var(--ink-secondary)]">{t.empOverallScore}</p>
+                    <p className="mt-1 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+                      {review.overallScore?.toFixed(2)} / 5.0
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-md border p-3.5"
+                    style={{
+                      backgroundColor: 'var(--status-high-bg)',
+                      borderColor: 'var(--status-high-border)',
+                      color: 'var(--status-high-text)',
+                    }}
+                  >
+                    <p className="text-xs font-semibold">{t.empNineBoxTier}</p>
+                    <p className="mt-1 text-sm font-bold">
+                      {cellInfo ? (lang === 'th' ? cellInfo.labelTh : cellInfo.label) : '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-[var(--border-subtle)] p-3">
+                    <p className="text-xs text-[var(--ink-secondary)]">{t.empWhatScore}</p>
+                    <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
+                      {review.whatPct?.toFixed(0)}% ({review.whatScore?.toFixed(1)}/5)
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-[var(--border-subtle)] p-3">
+                    <p className="text-xs text-[var(--ink-secondary)]">{t.empHowScore}</p>
+                    <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
+                      {review.howScore?.toFixed(2)} / 5.0
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
+                  <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empManagerFeedback}</h3>
+                  <p className="text-sm text-[var(--ink-secondary)]">
+                    {review.managerPayload?.managerSummary}
                   </p>
                 </div>
-                <div
-                  className="rounded-md border p-3.5"
-                  style={{
-                    backgroundColor: 'var(--status-high-bg)',
-                    borderColor: 'var(--status-high-border)',
-                    color: 'var(--status-high-text)',
-                  }}
-                >
-                  <p className="text-xs font-semibold">{t.empNineBoxTier}</p>
-                  <p className="mt-1 text-sm font-bold">
-                    {cellInfo ? (lang === 'th' ? cellInfo.labelTh : cellInfo.label) : '—'}
-                  </p>
-                </div>
-                <div className="rounded-md border border-[var(--border-subtle)] p-3">
-                  <p className="text-xs text-[var(--ink-secondary)]">{t.empWhatScore}</p>
-                  <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
-                    {review.whatPct?.toFixed(0)}% ({review.whatScore?.toFixed(1)}/5)
-                  </p>
-                </div>
-                <div className="rounded-md border border-[var(--border-subtle)] p-3">
-                  <p className="text-xs text-[var(--ink-secondary)]">{t.empHowScore}</p>
-                  <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
-                    {review.howScore?.toFixed(2)} / 5.0
+
+                <div className="space-y-1.5">
+                  <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empDevFocus}</h3>
+                  <p className="text-sm text-[var(--ink-secondary)]">
+                    {review.managerPayload?.developmentFocus}
                   </p>
                 </div>
               </div>
+            )}
+          </section>
 
-              <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
-                <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empManagerFeedback}</h3>
-                <p className="text-sm text-[var(--ink-secondary)]">
-                  {review.managerPayload?.managerSummary}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empDevFocus}</h3>
-                <p className="text-sm text-[var(--ink-secondary)]">
-                  {review.managerPayload?.developmentFocus}
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
+          <ActivityLogPanel logs={employeeLogs} role="EMPLOYEE" t={t} />
+        </div>
       </div>
 
       {goalModal.open && (

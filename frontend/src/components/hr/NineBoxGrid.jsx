@@ -1,4 +1,5 @@
 import { NINE_BOX_CELLS } from '../../constants/rubric.js';
+import { JOB_LEVELS } from '../../constants/roles.js';
 
 const CELL_STYLES = {
   high: {
@@ -74,17 +75,23 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
               </div>
 
               <div className="flex flex-wrap gap-1.5">
-                {items.map((rev) => (
-                  <button
-                    key={rev.id}
-                    type="button"
-                    onClick={() => onSelectReview(rev)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 ease-out cursor-pointer tabular-nums"
-                  >
-                    <span>{lang === 'th' ? rev.employee.nameTh : rev.employee.name}</span>
-                    <span className="text-[var(--ink-muted)]">({rev.overallScore?.toFixed(1)})</span>
-                  </button>
-                ))}
+                {items.map((rev) => {
+                  const lvl = JOB_LEVELS.find((l) => l.id === rev.employee.jobLevel)?.short || 'L2';
+                  return (
+                    <button
+                      key={rev.id}
+                      type="button"
+                      onClick={() => onSelectReview(rev)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 ease-out cursor-pointer tabular-nums"
+                    >
+                      <span className="text-[10px] font-bold px-1 rounded bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+                        {lvl}
+                      </span>
+                      <span>{lang === 'th' ? rev.employee.nameTh : rev.employee.name}</span>
+                      <span className="text-[var(--ink-muted)]">({rev.overallScore?.toFixed(1)})</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           );

@@ -1,10 +1,12 @@
 import {
   computeOrgDistribution,
   computeReviewScores,
+  getHrbpInterventionInfo,
   getOverdueInfo,
   sanitizeReviewForRole,
 } from '../services/scoringService.js';
 import {
+  appendAuditLog,
   appendReviewComment,
   getAllReviews,
   getCycle,
@@ -22,6 +24,7 @@ function enrichReview(review, user, usersMap, cycle) {
   const manager = review.managerId ? usersMap.get(review.managerId) : null;
   const goals = getGoalsByEmployee(review.employeeId);
   const overdue = getOverdueInfo(review, cycle);
+  const intervention = getHrbpInterventionInfo(review, cycle);
 
   const sanitized = sanitizeReviewForRole(review, user);
 
@@ -34,6 +37,7 @@ function enrichReview(review, user, usersMap, cycle) {
           nameTh: employee.nameTh,
           title: employee.title,
           department: employee.department,
+          jobLevel: employee.jobLevel || 'L2_MID',
         }
       : null,
     manager: manager
@@ -42,10 +46,12 @@ function enrichReview(review, user, usersMap, cycle) {
           name: manager.name,
           nameTh: manager.nameTh,
           department: manager.department,
+          jobLevel: manager.jobLevel || 'L4_LEAD',
         }
       : null,
     goals,
     ...overdue,
+    ...intervention,
   };
 }
 
@@ -132,19 +138,20 @@ export function submitEmployeeGoals(req, res) {
     return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
   }
   if (review.employeeId !== req.user.id) {
-    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the employee can edit their own goals.' } });
+    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the employee can edit their own OKRs.' } });
   }
   if (!['GOAL_DRAFT', 'GOAL_REVISION_REQUIRED'].includes(review.status)) {
-    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'Goals are locked in the current stage.' } });
+    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'OKRs are locked in the current stage.' } });
   }
 
   const { goals, comment, submit } = req.validatedBody;
   replaceGoalsForEmployee(review.employeeId, cycle.id, goals);
 
+  const nowIso = new Date().toISOString();
   const nextRound = review.status === 'GOAL_REVISION_REQUIRED' ? (review.revisionRound || 1) + 1 : review.revisionRound || 1;
   let updated = updateReview(reviewId, {
     revisionRound: nextRound,
-    ...(submit ? { status: 'GOAL_PENDING_APPROVAL' } : {}),
+    ...(submit ? { status: 'GOAL_PENDING_APPROVAL', goalsSubmittedAt: nowIso } : {}),
   });
 
   if (submit) {
@@ -153,14 +160,26 @@ export function submitEmployeeGoals(req, res) {
       actorName: req.user.name,
       actorRole: req.user.role,
       action: 'GOAL_SUBMITTED',
-      comment: comment || `Submitted ${goals.length} OKR/KPI goal(s) totaling 100% weight for approval.`,
+      comment: comment || `Submitted ${goals.length} OKR(s) totaling 100% weight for manager approval.`,
+    });
+
+    appendAuditLog({
+      cycleId: cycle.id,
+      reviewId,
+      actor: req.user,
+      action: 'GOAL_SUBMITTED',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: review.employeeId,
+      targetManagerId: review.managerId,
+      reason: `${req.user.name} submitted ${goals.length} OKR(s) (Round ${nextRound}) totaling 100% weight.`,
+      metadata: { round: nextRound, goalCount: goals.length },
     });
   }
 
   return res.json({
     ok: true,
     data: { review: enrichReview(updated, req.user, getUsersMap(), cycle) },
-    meta: { timestamp: new Date().toISOString() },
+    meta: { timestamp: nowIso },
   });
 }
 
@@ -175,25 +194,65 @@ export function decideEmployeeGoals(req, res) {
   const isAssignedManager = review.managerId === req.user.id;
   const isAdmin = req.user.role === 'HR_ADMIN' || req.user.role === 'SUPER_ADMIN';
   if (!isAssignedManager && !isAdmin) {
-    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the assigned manager can review these goals.' } });
+    return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the assigned manager can review these OKRs.' } });
   }
 
-  const { decision, comment } = req.validatedBody;
-  const nextStatus = decision === 'APPROVE' ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUIRED';
+  const { decision, comment, adjustedGoals } = req.validatedBody;
+  const isApprove = decision === 'APPROVE';
+  const nextStatus = isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUIRED';
+  const nowIso = new Date().toISOString();
 
-  updateReview(reviewId, { status: nextStatus });
+  // Manager co-edit Weight % & Multiplier on Approve with transparent before->after audit diff
+  const adjustments = [];
+  if (isApprove && Array.isArray(adjustedGoals) && adjustedGoals.length > 0) {
+    const currentGoals = getGoalsByEmployee(review.employeeId);
+    const adjMap = new Map(adjustedGoals.map((g) => [g.id, g]));
+    const nextGoals = currentGoals.map((g) => {
+      const adj = adjMap.get(g.id);
+      if (!adj) return g;
+      if (adj.weight !== g.weight || adj.multiplier !== g.multiplier) {
+        adjustments.push(
+          `"${g.title}": Weight ${g.weight}% -> ${adj.weight}%, Multiplier ${g.multiplier}x -> ${adj.multiplier}x`
+        );
+      }
+      return { ...g, weight: adj.weight, multiplier: adj.multiplier };
+    });
+    replaceGoalsForEmployee(review.employeeId, cycle.id, nextGoals);
+  }
+
+  const diffNote = adjustments.length > 0 ? ` [Manager adjusted: ${adjustments.join(' | ')}]` : '';
+  const finalComment =
+    (comment || (isApprove ? 'OKRs approved and locked for execution.' : '')) + diffNote;
+
+  updateReview(reviewId, {
+    status: nextStatus,
+    ...(isApprove ? { goalsApprovedAt: nowIso } : {}),
+  });
+
   const updated = appendReviewComment(reviewId, {
     phase: 'GOAL',
     actorName: req.user.name,
     actorRole: req.user.role,
-    action: decision === 'APPROVE' ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
-    comment: comment || (decision === 'APPROVE' ? 'Goals approved and locked for execution.' : ''),
+    action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
+    comment: finalComment,
+  });
+
+  appendAuditLog({
+    cycleId: cycle.id,
+    reviewId,
+    actor: req.user,
+    action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
+    visibilityScope: 'PUBLIC_SELF',
+    targetEmployeeId: review.employeeId,
+    targetManagerId: review.managerId,
+    reason: finalComment,
+    metadata: { adjustmentsCount: adjustments.length },
   });
 
   return res.json({
     ok: true,
     data: { review: enrichReview(updated, req.user, getUsersMap(), cycle) },
-    meta: { timestamp: new Date().toISOString() },
+    meta: { timestamp: nowIso },
   });
 }
 
@@ -212,7 +271,7 @@ export function saveSelfReview(req, res) {
     return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'The review cycle is locked.' } });
   }
   if (!['GOAL_APPROVED', 'REVIEW_REVISION_REQUIRED'].includes(review.status)) {
-    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'Goals must be approved before submitting self-review.' } });
+    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'OKRs must be approved before submitting self-review.' } });
   }
 
   const { submit, ...payload } = req.validatedBody;
@@ -228,9 +287,10 @@ export function saveSelfReview(req, res) {
   });
   replaceGoalsForEmployee(review.employeeId, cycle.id, updatedGoals);
 
+  const nowIso = new Date().toISOString();
   let updated = updateReview(reviewId, {
     selfPayload: payload,
-    ...(submit ? { status: 'SELF_REVIEW_SUBMITTED', selfSubmittedAt: new Date().toISOString() } : {}),
+    ...(submit ? { status: 'SELF_REVIEW_SUBMITTED', selfSubmittedAt: nowIso } : {}),
   });
 
   if (submit) {
@@ -241,12 +301,23 @@ export function saveSelfReview(req, res) {
       action: 'SELF_REVIEW_SUBMITTED',
       comment: payload.reflection || 'Submitted self-review achievements and self scores.',
     });
+
+    appendAuditLog({
+      cycleId: cycle.id,
+      reviewId,
+      actor: req.user,
+      action: 'SELF_REVIEW_SUBMITTED',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: review.employeeId,
+      targetManagerId: review.managerId,
+      reason: `${req.user.name} submitted OKR achievements and self-review.`,
+    });
   }
 
   return res.json({
     ok: true,
     data: { review: enrichReview(updated, req.user, getUsersMap(), cycle) },
-    meta: { timestamp: new Date().toISOString() },
+    meta: { timestamp: nowIso },
   });
 }
 
@@ -264,9 +335,10 @@ export function returnSelfReviewToEmployee(req, res) {
     return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the assigned manager can return this self-review.' } });
   }
 
+  const nextRound = (review.revisionRound || 1) + 1;
   updateReview(reviewId, {
     status: 'REVIEW_REVISION_REQUIRED',
-    revisionRound: (review.revisionRound || 1) + 1,
+    revisionRound: nextRound,
   });
 
   const updated = appendReviewComment(reviewId, {
@@ -275,6 +347,18 @@ export function returnSelfReviewToEmployee(req, res) {
     actorRole: req.user.role,
     action: 'REVIEW_REVISION_REQUESTED',
     comment: req.validatedBody.comment,
+  });
+
+  appendAuditLog({
+    cycleId: cycle.id,
+    reviewId,
+    actor: req.user,
+    action: 'REVIEW_REVISION_REQUESTED',
+    visibilityScope: 'PUBLIC_SELF',
+    targetEmployeeId: review.employeeId,
+    targetManagerId: review.managerId,
+    reason: `Returned self-review (Round ${nextRound}): ${req.validatedBody.comment}`,
+    metadata: { round: nextRound },
   });
 
   return res.json({
@@ -315,12 +399,11 @@ export function saveManagerReview(req, res) {
     cycle,
   });
 
+  const nowIso = new Date().toISOString();
   let updated = updateReview(reviewId, {
     managerPayload: payload,
     ...scores,
-    ...(submit
-      ? { status: 'MANAGER_APPROVED', managerSubmittedAt: new Date().toISOString() }
-      : {}),
+    ...(submit ? { status: 'MANAGER_APPROVED', managerSubmittedAt: nowIso } : {}),
   });
 
   if (submit) {
@@ -329,13 +412,26 @@ export function saveManagerReview(req, res) {
       actorName: req.user.name,
       actorRole: req.user.role,
       action: 'MANAGER_APPROVED',
-      comment: payload.managerSummary || 'Manager evaluation approved and forwarded to HR Calibration.',
+      comment: payload.managerSummary || 'Manager evaluation approved and forwarded to HR review.',
+    });
+
+    // Strict Privacy: Manager score submission is TEAM_MANAGER scoped (NEVER shown to employee before PUBLISHED)
+    appendAuditLog({
+      cycleId: cycle.id,
+      reviewId,
+      actor: req.user,
+      action: 'MANAGER_APPROVED',
+      visibilityScope: 'TEAM_MANAGER',
+      targetEmployeeId: review.employeeId,
+      targetManagerId: review.managerId,
+      reason: `Manager submitted evaluation (Score: ${scores.overallScore}) to HR Approve & Publish queue.`,
+      metadata: { overallScore: scores.overallScore },
     });
   }
 
   return res.json({
     ok: true,
     data: { review: enrichReview(updated, req.user, getUsersMap(), cycle) },
-    meta: { timestamp: new Date().toISOString() },
+    meta: { timestamp: nowIso },
   });
 }

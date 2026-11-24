@@ -19,6 +19,7 @@ export function toPublicUser(user) {
     nameTh: user.nameTh,
     title: user.title,
     department: user.department,
+    jobLevel: user.jobLevel || 'L2_MID',
     role: user.role,
     accountStatus: user.accountStatus,
     managerId: user.managerId,
@@ -52,7 +53,7 @@ export function listDemoAccounts(_req, res) {
 }
 
 export async function register(req, res) {
-  const { employeeCode, name, department, title, password } = req.validatedBody;
+  const { employeeCode, name, department, title, jobLevel, password } = req.validatedBody;
   const existing = getUserByEmployeeCode(employeeCode);
 
   if (existing) {
@@ -74,14 +75,17 @@ export async function register(req, res) {
     nameTh: name,
     title,
     department,
+    jobLevel: jobLevel || 'L2_MID',
     role: 'EMPLOYEE',
     accountStatus: 'PENDING_APPROVAL',
     managerId: 'usr-mgr-eng',
   });
 
   appendAuditLog({
-    actor: { id: created.id, name: created.name },
+    actor: { id: created.id, name: created.name, role: 'EMPLOYEE' },
     action: 'USER_REGISTERED',
+    visibilityScope: 'ADMIN_SECURITY',
+    targetEmployeeId: created.id,
     reason: `New employee registration (${employeeCode}) awaiting Super Admin approval.`,
   });
 

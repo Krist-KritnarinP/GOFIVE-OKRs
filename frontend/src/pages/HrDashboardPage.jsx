@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { Clock, Lock, RotateCcw, Send, ShieldCheck } from 'lucide-react';
+import { Clock, Lock, RotateCcw, Send } from 'lucide-react';
+import { filterActivityLogsForRole, getHrbpInterventionClient } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
+import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
+import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { NineBoxGrid } from '../components/hr/NineBoxGrid.jsx';
 import { OrgDistributionBar } from '../components/hr/OrgDistributionBar.jsx';
@@ -12,16 +15,18 @@ export function HrDashboardPage({
   reviews,
   auditLogs,
   analytics,
+  currentUser,
   can,
   t,
   lang,
+  onUpdateStageDeadlines,
   onToggleGracePeriod,
   onToggleLockCycle,
   onNudge,
   onExtendDeadline,
   onEscalate,
+  onPostHrbpAdvisorComment,
   onHrReturnToManager,
-  onLockCalibration,
   onPublishReady,
   onSaveEvaluation,
 }) {
@@ -31,17 +36,21 @@ export function HrDashboardPage({
   const canConfigure = can ? can('cycle:configure') : true;
   const canPublish = can ? can('review:publish') : true;
 
+  const hrLogs = filterActivityLogsForRole(auditLogs, {
+    role: 'HR_ADMIN',
+    userId: currentUser?.id,
+  });
+
   const completed = reviews.filter((r) =>
-    ['MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(r.status)
+    ['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status)
   ).length;
   const completionPct = reviews.length > 0 ? Math.round((completed / reviews.length) * 100) : 0;
-  const overdueCount = reviews.filter((r) => r.isOverdue).length;
-  const pendingCalibrationCount = reviews.filter((r) => r.status === 'MANAGER_APPROVED').length;
-  const readyToPublishCount = reviews.filter((r) => r.status === 'CALIBRATION_LOCKED').length;
+  const alertCount = reviews.filter((r) => r.isOverdue || getHrbpInterventionClient(r).needed).length;
+  const readyToPublishCount = reviews.filter((r) => r.status === 'MANAGER_APPROVED').length;
 
   return (
     <div className="w-full space-y-6">
-      {/* Header & Operational Controls */}
+      {/* Header & Operational Controls (Approach A: Single clean HR Approve & Publish CTA) */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
@@ -71,18 +80,7 @@ export function HrDashboardPage({
             <span>{t.lockToggleLabel}: {cycle.isLocked ? 'ON' : 'OFF'}</span>
           </button>
 
-          {/* Calibration Lock Gate */}
-          <button
-            type="button"
-            disabled={pendingCalibrationCount === 0 || !canPublish}
-            onClick={onLockCalibration}
-            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed tabular-nums"
-          >
-            <ShieldCheck className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
-            <span>{t.lockCalibrationCta} ({pendingCalibrationCount})</span>
-          </button>
-
-          {/* Primary CTA: Publish ONLY Calibration-Locked Results */}
+          {/* Approach A Primary CTA: HR Approve & Publish (MANAGER_APPROVED -> PUBLISHED) */}
           <button
             type="button"
             disabled={readyToPublishCount === 0 || !canPublish}
@@ -96,6 +94,16 @@ export function HrDashboardPage({
         </div>
       </div>
 
+      {/* 3-Stage Due Date Timeline Bar (Editable by HR with Countdown / Overdue / Early chips) */}
+      <StageStatusBar
+        mode="cycle"
+        cycle={cycle}
+        editable={canConfigure}
+        onSaveDeadlines={onUpdateStageDeadlines}
+        t={t}
+        lang={lang}
+      />
+
       {/* 4 KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
@@ -108,9 +116,9 @@ export function HrDashboardPage({
           <p className="text-sm font-medium text-[var(--ink-secondary)]">{t.kpiOverdue}</p>
           <p
             className="mt-1.5 text-2xl font-bold tabular-nums"
-            style={{ color: overdueCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
+            style={{ color: alertCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
           >
-            {overdueCount}
+            {alertCount}
           </p>
         </div>
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
@@ -145,19 +153,20 @@ export function HrDashboardPage({
         </div>
       </div>
 
-      {/* Exception Queue + Audit Log */}
+      {/* SLA Breach & HRBP Intervention Queue + Org-Scoped Activity Log */}
       <ExceptionQueue
         reviews={reviews}
-        auditLogs={auditLogs}
+        auditLogs={hrLogs}
         t={t}
         lang={lang}
         onNudge={onNudge}
         onOpenExtend={(rev) => setModalAction({ type: 'EXTEND', review: rev })}
         onOpenEscalate={(rev) => setModalAction({ type: 'ESCALATE', review: rev })}
+        onOpenAdvisor={(rev) => setModalAction({ type: 'ADVISOR', review: rev })}
       />
 
-      {/* Scannable 6-Column Org Roster (with HR Calibration Return action) */}
-      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+      {/* Scannable 6-Column Org Roster with Job Level Badges */}
+      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.allEmployeesTitle}</h2>
           <span className="text-xs font-semibold text-[var(--ink-muted)] tabular-nums">
@@ -179,8 +188,13 @@ export function HrDashboardPage({
             <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
               {reviews.map((rev) => (
                 <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
-                  <td className="py-3 px-3 font-semibold text-[var(--ink-primary)]">
-                    {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                  <td className="py-3 px-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-[var(--ink-primary)]">
+                        {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                      </span>
+                      <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
+                    </div>
                   </td>
                   <td className="py-3 px-3 text-[var(--ink-secondary)]">{rev.employee.department}</td>
                   <td className="py-3 px-3 text-[var(--ink-secondary)]">
@@ -191,9 +205,11 @@ export function HrDashboardPage({
                       tone={
                         rev.status === 'PUBLISHED'
                           ? 'high'
-                          : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED'].includes(rev.status) || rev.isOverdue
-                            ? 'warn'
-                            : 'track'
+                          : rev.status === 'MANAGER_APPROVED'
+                            ? 'indigo'
+                            : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED'].includes(rev.status) || rev.isOverdue
+                              ? 'warn'
+                              : 'track'
                       }
                     >
                       {t.status[rev.status]}
@@ -256,8 +272,12 @@ export function HrDashboardPage({
             ? `${t.extendBtn} — ${modalAction.review.employee.name}`
             : modalAction?.type === 'HR_RETURN'
               ? `${t.hrReturnMgrBtn} — ${modalAction.review.employee.name}`
-              : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
+              : modalAction?.type === 'ADVISOR'
+                ? `${t.hrbpAdviseModalTitle} — ${modalAction.review.employee.name}`
+                : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
         }
+        quickTemplateLabel={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateLabel : ''}
+        quickTemplateText={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateText : ''}
         t={t}
         onClose={() => setModalAction(null)}
         onConfirm={(reason) => {
@@ -265,6 +285,8 @@ export function HrDashboardPage({
             onExtendDeadline(modalAction.review.id, reason);
           } else if (modalAction.type === 'HR_RETURN') {
             onHrReturnToManager(modalAction.review.id, reason);
+          } else if (modalAction.type === 'ADVISOR') {
+            onPostHrbpAdvisorComment(modalAction.review.id, reason);
           } else {
             onEscalate(modalAction.review.id, reason);
           }

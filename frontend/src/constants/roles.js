@@ -5,6 +5,13 @@ export const ROLES = {
   EMPLOYEE: 'EMPLOYEE',
 };
 
+export const JOB_LEVELS = [
+  { id: 'L1_JUNIOR', short: 'L1', label: 'L1 Junior', labelTh: 'L1 ระดับต้น (Junior)', tone: 'neutral' },
+  { id: 'L2_MID', short: 'L2', label: 'L2 Mid', labelTh: 'L2 ระดับกลาง (Mid)', tone: 'track' },
+  { id: 'L3_SENIOR', short: 'L3', label: 'L3 Senior', labelTh: 'L3 อาวุโส (Senior)', tone: 'indigo' },
+  { id: 'L4_LEAD', short: 'L4', label: 'L4 Lead', labelTh: 'L4 หัวหน้า/ผู้นำ (Lead)', tone: 'high' },
+];
+
 export const DEMO_PERSONAS = [
   {
     role: ROLES.SUPER_ADMIN,
@@ -50,13 +57,13 @@ export const DEMO_PERSONAS = [
 
 export const PERMISSION_CATALOG = [
   { key: 'rbac:manage', label: 'Manage Roles & Approvals', labelTh: 'กำหนดสิทธิ์แต่ละตำแหน่งและอนุมัติบัญชี' },
-  { key: 'cycle:configure', label: 'Configure Cycle / Grace / Lock', labelTh: 'ตั้งค่ารอบประเมิน / ผ่อนผัน / ปิดรอบ' },
+  { key: 'cycle:configure', label: 'Configure Cycle / Stage Dates / Lock', labelTh: 'ตั้งค่ารอบประเมิน / เส้นตายแต่ละช่วง / ปิดรอบ' },
   { key: 'analytics:view_org', label: 'View Org 9-Box & Bias Alerts', labelTh: 'ดู 9-Box และแจ้งเตือนอคติทั้งองค์กร' },
-  { key: 'exception:manage', label: 'Manage Overdue Exceptions', labelTh: 'ติดตาม/ขยายเวลา/ส่งต่อเคสเลยกำหนด' },
-  { key: 'review:publish', label: 'Publish Results to Employees', labelTh: 'ประกาศผลประเมินให้พนักงานเห็น' },
-  { key: 'team:evaluate', label: 'Evaluate Direct Reports', labelTh: 'ประเมินผลงานลูกทีมในสายบังคับบัญชา' },
-  { key: 'self:submit', label: 'View Own Goals & Self-Review', labelTh: 'ดู KPI ของตัวเองและส่งประเมินตนเอง' },
-  { key: 'audit:view', label: 'View Governance Audit Log', labelTh: 'ดูประวัติการดำเนินการ (Audit Log)' },
+  { key: 'exception:manage', label: 'Manage SLA & HRBP Interventions', labelTh: 'จัดการเคสเลย SLA และคอมเมนต์ช่วยไกล่เกลี่ย' },
+  { key: 'review:publish', label: 'HR Approve & Publish Results', labelTh: 'อนุมัติและประกาศผลประเมินให้พนักงานเห็น' },
+  { key: 'team:evaluate', label: 'Review OKRs & Evaluate Direct Reports', labelTh: 'อนุมัติ OKR และประเมินผลงานลูกทีม' },
+  { key: 'self:submit', label: 'Manage Own OKRs & Self-Review', labelTh: 'ตั้ง OKR ของตัวเองและส่งประเมินตนเอง' },
+  { key: 'audit:view', label: 'View Governance Activity Log', labelTh: 'ดูประวัติกิจกรรม (Activity Log)' },
 ];
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -103,14 +110,14 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 };
 
 export const EMPLOYEE_DEMO_SWITCHES = [
-  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Goal Ping-Pong · Edit OKRs', tagTh: 'ปิงปองแก้ OKR' },
-  { userId: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', tag: 'Published Star', tagTh: 'ประกาศผลแล้ว' },
-  { userId: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', tag: 'Calibration Locked', tagTh: 'รอฝ่ายบุคคลประกาศ' },
+  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Round 2 Ping-Pong', tagTh: 'ปิงปองรอบ 2' },
+  { userId: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', tag: 'Published Early', tagTh: 'ประกาศผลแล้ว' },
+  { userId: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', tag: 'Pending HR Publish', tagTh: 'รอ HR อนุมัติประกาศ' },
   { userId: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', tag: 'Pending Manager', tagTh: 'รอหัวหน้าประเมิน' },
 ];
 
 export const MANAGER_DEMO_SWITCHES = [
-  { userId: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', dept: 'Engineering', tag: '1 Overdue', tagTh: 'ค้างประเมิน 1 คน' },
+  { userId: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', dept: 'Engineering', tag: '1 SLA Overdue', tagTh: 'เลย SLA 1 คน' },
   { userId: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', dept: 'Sales', tag: 'Bias Alert', tagTh: 'แจ้งเตือนคะแนนสูง' },
-  { userId: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', dept: 'Product', tag: 'Balanced', tagTh: 'สมดุล' },
+  { userId: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', dept: 'Product', tag: 'OKR Ping-Pong', tagTh: 'ปิงปอง OKR' },
 ];

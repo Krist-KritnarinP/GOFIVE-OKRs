@@ -32,6 +32,7 @@ export function getUserByEmployeeCode(employeeCode) {
 export function createUser(userInput) {
   const newUser = {
     id: `usr-${crypto.randomUUID().slice(0, 8)}`,
+    jobLevel: 'L2_MID',
     ...userInput,
   };
   state.users.push(newUser);
@@ -65,7 +66,6 @@ export function setRolePermission(role, permissionKey, allowed) {
   if (!state.rolePermissions[role]) {
     state.rolePermissions[role] = {};
   }
-  // Safety lock: SUPER_ADMIN must never lose rbac:manage
   if (role === 'SUPER_ADMIN' && permissionKey === 'rbac:manage') {
     state.rolePermissions[role][permissionKey] = true;
     return state.rolePermissions;
@@ -136,14 +136,28 @@ export function updateReview(reviewId, patch) {
   return state.reviews[index];
 }
 
-export function appendAuditLog({ cycleId = null, reviewId = null, actor, action, reason = null, metadata = null }) {
+export function appendAuditLog({
+  cycleId = null,
+  reviewId = null,
+  actor,
+  action,
+  visibilityScope = 'HR_INTERNAL',
+  targetEmployeeId = null,
+  targetManagerId = null,
+  reason = null,
+  metadata = null,
+}) {
   const entry = {
     id: `aud-${crypto.randomUUID().slice(0, 8)}`,
     cycleId,
     reviewId,
     actorId: actor.id,
     actorName: actor.name,
+    actorRole: actor.role || 'SYSTEM',
     action,
+    visibilityScope,
+    targetEmployeeId,
+    targetManagerId,
     reason,
     metadata,
     createdAt: new Date().toISOString(),

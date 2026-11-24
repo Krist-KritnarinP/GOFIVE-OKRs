@@ -47,13 +47,24 @@ export function usePerformanceStore(t) {
   const analytics = useMemo(() => computeAnalytics(reviews), [reviews]);
 
   const appendLog = useCallback(
-    (action, reason, actorName) => {
-      const actor = actorName || currentUser?.name || 'System';
+    ({
+      action,
+      reason,
+      visibilityScope = 'HR_INTERNAL',
+      targetEmployeeId = null,
+      targetManagerId = null,
+      actorId = null,
+      actorName = null,
+    }) => {
       setAuditLogs((prev) => [
         {
-          id: `aud-${Date.now()}`,
+          id: `aud-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           action,
-          actorName: actor,
+          actorId: actorId || currentUser?.id || 'system',
+          actorName: actorName || currentUser?.name || 'System',
+          visibilityScope,
+          targetEmployeeId,
+          targetManagerId,
           reason,
           createdAt: new Date().toISOString(),
         },
@@ -106,12 +117,20 @@ export function usePerformanceStore(t) {
         nameTh: name.trim(),
         title: title.trim(),
         department: department.trim(),
+        jobLevel: 'L1_JUNIOR',
         role: ROLES.EMPLOYEE,
         accountStatus: 'PENDING_APPROVAL',
       };
       setUsers((prev) => [newUser, ...prev]);
       setPasswords((prev) => ({ ...prev, [code]: password }));
-      appendLog('USER_REGISTERED', `New registration ${code} (${newUser.name}) pending approval.`, newUser.name);
+      appendLog({
+        action: 'USER_REGISTERED',
+        visibilityScope: 'ADMIN_SECURITY',
+        targetEmployeeId: newUser.id,
+        actorId: newUser.id,
+        actorName: newUser.name,
+        reason: `New registration ${code} (${newUser.name}) pending Super Admin approval.`,
+      });
       return { ok: true, user: newUser };
     },
     [users, appendLog, t.authErrDuplicate]
@@ -153,50 +172,57 @@ export function usePerformanceStore(t) {
 
   const handleUpdateUser = useCallback(
     (userId, patch) => {
-      let approvedEmployee = null;
-      setUsers((prev) =>
-        prev.map((u) => {
-          if (u.id !== userId) return u;
-          const updated = { ...u, ...patch };
-          if (
-            u.accountStatus === 'PENDING_APPROVAL' &&
-            updated.accountStatus === 'ACTIVE' &&
-            updated.role === ROLES.EMPLOYEE
-          ) {
-            approvedEmployee = updated;
-          }
-          appendLog(
-            'ADMIN_UPDATE_USER',
-            `Updated ${updated.employeeCode}: role=${updated.role}, status=${updated.accountStatus}`
-          );
-          return updated;
-        })
-      );
+      const target = users.find((u) => u.id === userId);
+      if (!target) return;
+      const updated = { ...target, ...patch };
+      const becameActiveEmployee =
+        target.accountStatus === 'PENDING_APPROVAL' &&
+        updated.accountStatus === 'ACTIVE' &&
+        updated.role === ROLES.EMPLOYEE;
 
-      if (approvedEmployee) {
+      setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+
+      if (patch.jobLevel) {
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.employeeId === userId
+              ? { ...r, employee: { ...r.employee, jobLevel: patch.jobLevel } }
+              : r
+          )
+        );
+      }
+
+      if (becameActiveEmployee) {
         setReviews((prev) => {
-          if (prev.some((r) => r.employeeId === approvedEmployee.id)) return prev;
+          if (prev.some((r) => r.employeeId === updated.id)) return prev;
           return [
             ...prev,
             {
-              id: `rev-${approvedEmployee.id}`,
-              employeeId: approvedEmployee.id,
+              id: `rev-${updated.id}`,
+              employeeId: updated.id,
               managerId: 'usr-mgr-eng',
               employee: {
-                id: approvedEmployee.id,
-                name: approvedEmployee.name,
-                nameTh: approvedEmployee.nameTh,
-                title: approvedEmployee.title,
-                department: approvedEmployee.department,
+                id: updated.id,
+                name: updated.name,
+                nameTh: updated.nameTh,
+                title: updated.title,
+                department: updated.department,
+                jobLevel: updated.jobLevel || 'L1_JUNIOR',
               },
               manager: {
                 id: 'usr-mgr-eng',
                 name: 'Sarah Chen',
                 nameTh: 'ซาร่า เฉิน',
                 department: 'Engineering',
+                jobLevel: 'L4_LEAD',
               },
               status: 'GOAL_DRAFT',
               revisionRound: 1,
+              goalsSubmittedAt: null,
+              goalsApprovedAt: null,
+              selfSubmittedAt: null,
+              managerSubmittedAt: null,
+              publishedAt: null,
               commentHistory: [],
               isOverdue: false,
               daysOverdue: 0,
@@ -216,244 +242,382 @@ export function usePerformanceStore(t) {
         });
       }
 
+      appendLog({
+        action: 'ADMIN_UPDATE_USER',
+        visibilityScope: 'ADMIN_SECURITY',
+        targetEmployeeId: updated.id,
+        reason: `Updated ${updated.employeeCode} (${updated.name}): role=${updated.role}, level=${updated.jobLevel}, status=${updated.accountStatus}`,
+      });
+
       showToast(t.toastUserUpdated, 'success');
     },
-    [appendLog, showToast, t.toastUserUpdated]
+    [users, appendLog, showToast, t.toastUserUpdated]
   );
 
   const handleTogglePermission = useCallback(
     (role, permissionKey) => {
       if (role === ROLES.SUPER_ADMIN && permissionKey === 'rbac:manage') return;
-      setRolePermissions((prev) => {
-        const nextVal = !prev[role]?.[permissionKey];
-        appendLog('UPDATE_ROLE_PERMISSION', `Set ${role} -> ${permissionKey} = ${nextVal ? 'ALLOW' : 'DENY'}`);
-        return {
-          ...prev,
-          [role]: { ...prev[role], [permissionKey]: nextVal },
-        };
+      const nextVal = !rolePermissions[role]?.[permissionKey];
+      setRolePermissions((prev) => ({
+        ...prev,
+        [role]: { ...prev[role], [permissionKey]: nextVal },
+      }));
+      appendLog({
+        action: 'UPDATE_ROLE_PERMISSION',
+        visibilityScope: 'ADMIN_SECURITY',
+        reason: `Set ${role} -> ${permissionKey} = ${nextVal ? 'ALLOW' : 'DENY'}`,
       });
       showToast(t.toastPermUpdated, 'success');
     },
-    [appendLog, showToast, t.toastPermUpdated]
+    [rolePermissions, appendLog, showToast, t.toastPermUpdated]
   );
 
-  // Phase A: Employee builds / edits OKR/KPI goals and submits (Weight = 100%) to Manager
   const handleSubmitEmployeeGoals = useCallback(
     (reviewId, goals, note = '') => {
-      setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const nextRound = r.status === 'GOAL_REVISION_REQUIRED' ? (r.revisionRound || 1) + 1 : r.revisionRound || 1;
-          const updatedRev = { ...r, revisionRound: nextRound };
-          const entry = makeComment(updatedRev, {
-            phase: 'GOAL',
-            actorName: r.employee.name,
-            actorRole: 'EMPLOYEE',
-            action: 'GOAL_SUBMITTED',
-            comment: note.trim() || `Submitted ${goals.length} OKR/KPI goal(s) totaling 100% weight for manager approval.`,
-          });
-          return {
-            ...updatedRev,
-            goals,
-            status: 'GOAL_PENDING_APPROVAL',
-            commentHistory: [...(r.commentHistory || []), entry],
-          };
-        })
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nowIso = new Date().toISOString();
+      const nextRound =
+        target.status === 'GOAL_REVISION_REQUIRED'
+          ? (target.revisionRound || 1) + 1
+          : target.revisionRound || 1;
+      const commentText =
+        note.trim() || `Submitted ${goals.length} OKR(s) totaling 100% weight for manager approval.`;
+      const entry = makeComment(
+        { ...target, revisionRound: nextRound },
+        {
+          phase: 'GOAL',
+          actorName: target.employee.name,
+          actorRole: 'EMPLOYEE',
+          action: 'GOAL_SUBMITTED',
+          comment: commentText,
+        }
       );
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                revisionRound: nextRound,
+                goals,
+                status: 'GOAL_PENDING_APPROVAL',
+                goalsSubmittedAt: nowIso,
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
+      );
+
+      appendLog({
+        action: 'GOAL_SUBMITTED',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        actorId: target.employeeId,
+        actorName: target.employee.name,
+        reason: `${target.employee.name} submitted ${goals.length} OKR(s) (Round ${nextRound}) for approval.`,
+      });
       showToast(t.toastGoalsSubmitted, 'success');
     },
-    [showToast, t.toastGoalsSubmitted]
+    [reviews, appendLog, showToast, t.toastGoalsSubmitted]
   );
 
-  // Phase A Ping-Pong: Manager Approves Goals or Returns for Revision
   const handleDecideEmployeeGoals = useCallback(
-    (reviewId, decision, comment) => {
+    (reviewId, decision, comment, adjustedGoals = null) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nowIso = new Date().toISOString();
+      const isApprove = decision === 'APPROVE';
+      let nextGoals = target.goals;
+      const adjustments = [];
+
+      if (isApprove && Array.isArray(adjustedGoals) && adjustedGoals.length > 0) {
+        const adjMap = new Map(adjustedGoals.map((g) => [g.id, g]));
+        nextGoals = target.goals.map((g) => {
+          const adj = adjMap.get(g.id);
+          if (!adj) return g;
+          if (Number(adj.weight) !== Number(g.weight) || Number(adj.multiplier) !== Number(g.multiplier)) {
+            adjustments.push(
+              `"${g.title}": Weight ${g.weight}% -> ${adj.weight}%, Multiplier ${g.multiplier}x -> ${adj.multiplier}x`
+            );
+          }
+          return { ...g, weight: Number(adj.weight), multiplier: Number(adj.multiplier) };
+        });
+      }
+
+      const diffNote = adjustments.length > 0 ? ` [Manager adjusted: ${adjustments.join(' | ')}]` : '';
+      const finalComment =
+        (comment?.trim() || (isApprove ? 'Approved all OKRs for execution.' : 'Please revise OKRs.')) +
+        diffNote;
+
+      const entry = makeComment(target, {
+        phase: 'GOAL',
+        actorName: currentUser?.name || target.manager?.name || 'Manager',
+        actorRole: activeRole,
+        action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
+        comment: finalComment,
+      });
+
       setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const isApprove = decision === 'APPROVE';
-          const entry = makeComment(r, {
-            phase: 'GOAL',
-            actorName: currentUser?.name || r.manager?.name || 'Manager',
-            actorRole: activeRole,
-            action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
-            comment: comment?.trim() || (isApprove ? 'Approved all OKR/KPI goals for execution.' : 'Please revise goals.'),
-          });
-          return {
-            ...r,
-            status: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUIRED',
-            commentHistory: [...(r.commentHistory || []), entry],
-          };
-        })
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                goals: nextGoals,
+                status: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUIRED',
+                goalsApprovedAt: isApprove ? nowIso : r.goalsApprovedAt,
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
       );
-      showToast(decision === 'APPROVE' ? t.toastGoalsApproved : t.toastGoalsReturned, decision === 'APPROVE' ? 'success' : 'warning');
+
+      appendLog({
+        action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        actorId: currentUser?.id || target.managerId,
+        actorName: currentUser?.name || target.manager?.name || 'Manager',
+        reason: `${target.employee.name}: ${finalComment}`,
+      });
+      showToast(
+        isApprove ? t.toastGoalsApproved : t.toastGoalsReturned,
+        isApprove ? 'success' : 'warning'
+      );
     },
-    [currentUser, activeRole, showToast, t.toastGoalsApproved, t.toastGoalsReturned]
+    [reviews, currentUser, activeRole, appendLog, showToast, t.toastGoalsApproved, t.toastGoalsReturned]
   );
 
-  // Phase B: Employee submits Actual + Description + Self Score (1-5) per goal
   const handleSubmitSelfReview = useCallback(
     (reviewId, selfPayload, updatedGoals) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nowIso = new Date().toISOString();
+      const entry = makeComment(target, {
+        phase: 'REVIEW',
+        actorName: target.employee.name,
+        actorRole: 'EMPLOYEE',
+        action: 'SELF_REVIEW_SUBMITTED',
+        comment: selfPayload.reflection || 'Submitted actual OKR outcomes, achievement notes, and self scores.',
+      });
+
       setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const entry = makeComment(r, {
-            phase: 'REVIEW',
-            actorName: r.employee.name,
-            actorRole: 'EMPLOYEE',
-            action: 'SELF_REVIEW_SUBMITTED',
-            comment: selfPayload.reflection || 'Submitted actual results, achievement notes, and self scores.',
-          });
-          return {
-            ...r,
-            goals: updatedGoals || r.goals,
-            selfPayload,
-            status: 'SELF_REVIEW_SUBMITTED',
-            isOverdue: false,
-            daysOverdue: 0,
-            commentHistory: [...(r.commentHistory || []), entry],
-          };
-        })
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                goals: updatedGoals || r.goals,
+                selfPayload,
+                status: 'SELF_REVIEW_SUBMITTED',
+                selfSubmittedAt: nowIso,
+                isOverdue: false,
+                daysOverdue: 0,
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
       );
+
+      appendLog({
+        action: 'SELF_REVIEW_SUBMITTED',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        actorId: target.employeeId,
+        actorName: target.employee.name,
+        reason: `${target.employee.name} submitted OKR achievements and self-review.`,
+      });
       showToast(t.toastSelfSubmitted, 'success');
     },
-    [showToast, t.toastSelfSubmitted]
+    [reviews, appendLog, showToast, t.toastSelfSubmitted]
   );
 
-  // Phase C Ping-Pong: Manager returns Self-Review to Employee for more evidence
   const handleReturnReviewToEmployee = useCallback(
     (reviewId, comment) => {
-      setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const nextRound = (r.revisionRound || 1) + 1;
-          const updated = { ...r, revisionRound: nextRound };
-          const entry = makeComment(updated, {
-            phase: 'REVIEW',
-            actorName: currentUser?.name || r.manager?.name || 'Manager',
-            actorRole: activeRole,
-            action: 'REVIEW_REVISION_REQUESTED',
-            comment,
-          });
-          return {
-            ...updated,
-            status: 'REVIEW_REVISION_REQUIRED',
-            commentHistory: [...(r.commentHistory || []), entry],
-          };
-        })
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nextRound = (target.revisionRound || 1) + 1;
+      const entry = makeComment(
+        { ...target, revisionRound: nextRound },
+        {
+          phase: 'REVIEW',
+          actorName: currentUser?.name || target.manager?.name || 'Manager',
+          actorRole: activeRole,
+          action: 'REVIEW_REVISION_REQUESTED',
+          comment,
+        }
       );
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                revisionRound: nextRound,
+                status: 'REVIEW_REVISION_REQUIRED',
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
+      );
+
+      appendLog({
+        action: 'REVIEW_REVISION_REQUESTED',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        actorId: currentUser?.id || target.managerId,
+        actorName: currentUser?.name || target.manager?.name || 'Manager',
+        reason: `Returned self-review for ${target.employee.name} (Round ${nextRound}): ${comment}`,
+      });
       showToast(t.toastReviewReturned, 'warning');
     },
-    [currentUser, activeRole, showToast, t.toastReviewReturned]
+    [reviews, currentUser, activeRole, appendLog, showToast, t.toastReviewReturned]
   );
 
-  // Phase C: Manager evaluates and forwards to HR Calibration
   const handleSaveManagerEvaluation = useCallback(
     (reviewId, managerPayload, submit) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nowIso = new Date().toISOString();
+      const scores = computeScoresClient({
+        goals: target.goals,
+        goalRatings: managerPayload.goalRatings,
+        competencyRatings: managerPayload.competencyRatings,
+        cycle,
+      });
+      const entry = submit
+        ? makeComment(target, {
+            phase: 'REVIEW',
+            actorName: currentUser?.name || target.manager?.name || 'Manager',
+            actorRole: activeRole,
+            action: 'MANAGER_APPROVED',
+            comment: managerPayload.managerSummary || 'Evaluation approved and sent to HR review queue.',
+          })
+        : null;
+
       setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const scores = computeScoresClient({
-            goals: r.goals,
-            goalRatings: managerPayload.goalRatings,
-            competencyRatings: managerPayload.competencyRatings,
-            cycle,
-          });
-          const nextHistory = submit
-            ? [
-                ...(r.commentHistory || []),
-                makeComment(r, {
-                  phase: 'REVIEW',
-                  actorName: currentUser?.name || r.manager?.name || 'Manager',
-                  actorRole: activeRole,
-                  action: 'MANAGER_APPROVED',
-                  comment: managerPayload.managerSummary || 'Evaluation approved and forwarded to HR Calibration.',
-                }),
-              ]
-            : r.commentHistory || [];
-          return {
-            ...r,
-            managerPayload,
-            ...scores,
-            status: submit ? 'MANAGER_APPROVED' : r.status,
-            isOverdue: submit ? false : r.isOverdue,
-            daysOverdue: submit ? 0 : r.daysOverdue,
-            commentHistory: nextHistory,
-          };
-        })
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                managerPayload,
+                ...scores,
+                status: submit ? 'MANAGER_APPROVED' : r.status,
+                managerSubmittedAt: submit ? nowIso : r.managerSubmittedAt,
+                isOverdue: submit ? false : r.isOverdue,
+                daysOverdue: submit ? 0 : r.daysOverdue,
+                commentHistory: entry ? [...(r.commentHistory || []), entry] : r.commentHistory || [],
+              }
+        )
       );
+
+      if (submit) {
+        appendLog({
+          action: 'MANAGER_APPROVED',
+          visibilityScope: 'TEAM_MANAGER',
+          targetEmployeeId: target.employeeId,
+          targetManagerId: target.managerId,
+          actorId: currentUser?.id || target.managerId,
+          actorName: currentUser?.name || target.manager?.name || 'Manager',
+          reason: `Submitted manager evaluation for ${target.employee.name} (Score: ${scores.overallScore}) to HR Approve & Publish queue.`,
+        });
+      }
       showToast(t.toastEvalSaved, 'success');
     },
-    [cycle, currentUser, activeRole, showToast, t.toastEvalSaved]
+    [reviews, cycle, currentUser, activeRole, appendLog, showToast, t.toastEvalSaved]
   );
 
-  // Phase D: HR Returns review to Manager during Calibration (e.g., Bias Alert)
+  const handlePostHrbpAdvisorComment = useCallback(
+    (reviewId, comment) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const entry = makeComment(target, {
+        phase: 'HRBP_ADVISOR',
+        actorName: currentUser?.name || 'Pluem Srisuk (HRBP)',
+        actorRole: 'HR_ADMIN',
+        action: 'HRBP_ADVISOR_COMMENT',
+        comment,
+      });
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : { ...r, commentHistory: [...(r.commentHistory || []), entry] }
+        )
+      );
+
+      appendLog({
+        action: 'HRBP_ADVISOR_COMMENT',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        reason: `HRBP Advisor on ${target.employee.name}: ${comment}`,
+      });
+      showToast(t.toastAdvisorPosted, 'success');
+    },
+    [reviews, currentUser, appendLog, showToast, t.toastAdvisorPosted]
+  );
+
   const handleHrReturnToManager = useCallback(
     (reviewId, comment) => {
-      setReviews((prev) =>
-        prev.map((r) => {
-          if (r.id !== reviewId) return r;
-          const nextRound = (r.revisionRound || 1) + 1;
-          const updated = { ...r, revisionRound: nextRound };
-          const entry = makeComment(updated, {
-            phase: 'CALIBRATION',
-            actorName: currentUser?.name || 'HR Admin',
-            actorRole: 'HR_ADMIN',
-            action: 'HR_RETURNED_TO_MANAGER',
-            comment,
-          });
-          return {
-            ...updated,
-            status: 'SELF_REVIEW_SUBMITTED',
-            commentHistory: [...(r.commentHistory || []), entry],
-          };
-        })
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target) return;
+      const nextRound = (target.revisionRound || 1) + 1;
+      const entry = makeComment(
+        { ...target, revisionRound: nextRound },
+        {
+          phase: 'HR_REVIEW',
+          actorName: currentUser?.name || 'HR Admin',
+          actorRole: 'HR_ADMIN',
+          action: 'HR_RETURNED_TO_MANAGER',
+          comment,
+        }
       );
-      appendLog('HR_RETURN_TO_MANAGER', `${comment} (${reviewId})`);
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                revisionRound: nextRound,
+                status: 'SELF_REVIEW_SUBMITTED',
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
+      );
+
+      appendLog({
+        action: 'HR_RETURN_TO_MANAGER',
+        visibilityScope: 'TEAM_MANAGER',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        reason: `HR returned ${target.employee.name} to manager: ${comment}`,
+      });
       showToast(t.toastHrReturned, 'warning');
     },
-    [currentUser, appendLog, showToast, t.toastHrReturned]
+    [reviews, currentUser, appendLog, showToast, t.toastHrReturned]
   );
 
-  // Phase D: HR Locks Calibration (MANAGER_APPROVED -> CALIBRATION_LOCKED)
-  const handleLockCalibration = useCallback(() => {
-    let count = 0;
+  const handlePublishReady = useCallback(() => {
+    const nowIso = new Date().toISOString();
+    const targets = reviews.filter((r) => r.status === 'MANAGER_APPROVED');
+    if (targets.length === 0) return;
+
     setReviews((prev) =>
       prev.map((r) => {
         if (r.status !== 'MANAGER_APPROVED') return r;
-        count += 1;
-        const entry = makeComment(r, {
-          phase: 'CALIBRATION',
-          actorName: currentUser?.name || 'HR Admin',
-          actorRole: 'HR_ADMIN',
-          action: 'CALIBRATION_LOCKED',
-          comment: 'Cross-team calibration completed and locked prior to publication.',
-        });
-        return {
-          ...r,
-          status: 'CALIBRATION_LOCKED',
-          commentHistory: [...(r.commentHistory || []), entry],
-        };
-      })
-    );
-    appendLog('CALIBRATION_LOCKED', `Locked calibration for ${count || 'approved'} review(s).`);
-    showToast(t.toastCalibrated, 'success');
-  }, [currentUser, appendLog, showToast, t.toastCalibrated]);
-
-  // Phase D: HR Publishes Calibrated Results (CALIBRATION_LOCKED -> PUBLISHED)
-  const handlePublishReady = useCallback(() => {
-    const nowIso = new Date().toISOString();
-    let count = 0;
-    setReviews((prev) =>
-      prev.map((r) => {
-        if (r.status !== 'CALIBRATION_LOCKED') return r;
-        count += 1;
         const entry = makeComment(r, {
           phase: 'RELEASE',
           actorName: currentUser?.name || 'HR Admin',
           actorRole: 'HR_ADMIN',
           action: 'PUBLISHED',
-          comment: 'Final calibrated annual review result published to employee.',
+          comment: 'HR approved and published final annual performance outcome.',
         });
         return {
           ...r,
@@ -463,57 +627,125 @@ export function usePerformanceStore(t) {
         };
       })
     );
-    appendLog('PUBLISH', `Published ${count || 'calibrated'} review(s) to employees.`);
+
+    const newLogs = [
+      {
+        id: `aud-${Date.now()}-batch`,
+        action: 'HR_PUBLISH_BATCH',
+        actorId: currentUser?.id || 'usr-hr',
+        actorName: currentUser?.name || 'HR Admin',
+        visibilityScope: 'HR_INTERNAL',
+        targetEmployeeId: null,
+        targetManagerId: null,
+        reason: `HR Approve & Publish released ${targets.length} manager-approved review(s) to employees.`,
+        createdAt: nowIso,
+      },
+      ...targets.map((target, idx) => ({
+        id: `aud-${Date.now()}-${idx}`,
+        action: 'PUBLISH',
+        actorId: currentUser?.id || 'usr-hr',
+        actorName: currentUser?.name || 'HR Admin',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        reason: `HR Approve & Publish released final review outcome for ${target.employee.name}.`,
+        createdAt: nowIso,
+      })),
+    ];
+
+    setAuditLogs((prev) => [...newLogs, ...prev]);
     showToast(t.toastPublished, 'success');
-  }, [currentUser, appendLog, showToast, t.toastPublished]);
+  }, [reviews, currentUser, showToast, t.toastPublished]);
+
+  const handleUpdateStageDeadlines = useCallback(
+    (datesPatch) => {
+      setCycle((prev) => ({
+        ...prev,
+        ...datesPatch,
+        managerDeadline: datesPatch.stage2ApprovalDeadline || prev.managerDeadline,
+      }));
+      appendLog({
+        action: 'UPDATE_STAGE_DEADLINES',
+        visibilityScope: 'CYCLE_GOVERNANCE',
+        reason: 'Updated 3-Stage Due Dates (OKR Draft / Manager 5d SLA / HRBP Audit & Publish fixed window).',
+      });
+      showToast(t.toastStageDatesSaved, 'success');
+    },
+    [appendLog, showToast, t.toastStageDatesSaved]
+  );
 
   const handleToggleGracePeriod = useCallback(() => {
-    setCycle((prev) => {
-      const next = !prev.isGracePeriodActive;
-      appendLog(next ? 'ENABLE_GRACE_PERIOD' : 'DISABLE_GRACE_PERIOD', next ? 'Enabled grace period.' : 'Disabled grace period.');
-      return { ...prev, isGracePeriodActive: next };
+    const next = !cycle.isGracePeriodActive;
+    setCycle((prev) => ({ ...prev, isGracePeriodActive: next }));
+    appendLog({
+      action: next ? 'ENABLE_GRACE_PERIOD' : 'DISABLE_GRACE_PERIOD',
+      visibilityScope: 'CYCLE_GOVERNANCE',
+      reason: next ? 'Enabled cycle grace period.' : 'Disabled cycle grace period.',
     });
     showToast(t.toastCycleUpdated, 'success');
-  }, [appendLog, showToast, t.toastCycleUpdated]);
+  }, [cycle.isGracePeriodActive, appendLog, showToast, t.toastCycleUpdated]);
 
   const handleToggleLockCycle = useCallback(() => {
-    setCycle((prev) => {
-      const next = !prev.isLocked;
-      appendLog(next ? 'LOCK_CYCLE' : 'UNLOCK_CYCLE', next ? 'Locked review cycle.' : 'Reopened review cycle.');
-      return { ...prev, isLocked: next };
+    const next = !cycle.isLocked;
+    setCycle((prev) => ({ ...prev, isLocked: next }));
+    appendLog({
+      action: next ? 'LOCK_CYCLE' : 'UNLOCK_CYCLE',
+      visibilityScope: 'CYCLE_GOVERNANCE',
+      reason: next ? 'Locked review cycle.' : 'Reopened review cycle.',
     });
     showToast(t.toastCycleUpdated, 'warning');
-  }, [appendLog, showToast, t.toastCycleUpdated]);
+  }, [cycle.isLocked, appendLog, showToast, t.toastCycleUpdated]);
 
   const handleNudge = useCallback(
     (reviewId) => {
       const nowIso = new Date().toISOString();
+      const rev = reviews.find((r) => r.id === reviewId);
       setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, lastNudgedAt: nowIso } : r)));
-      appendLog('NUDGE', `Sent overdue reminder nudge for ${reviewId}.`);
+      appendLog({
+        action: 'NUDGE',
+        visibilityScope: 'TEAM_MANAGER',
+        targetEmployeeId: rev?.employeeId || null,
+        targetManagerId: rev?.managerId || null,
+        reason: `Sent overdue SLA reminder nudge for ${rev?.employee?.name || reviewId}.`,
+      });
       showToast(t.toastNudged, 'success');
     },
-    [appendLog, showToast, t.toastNudged]
+    [reviews, appendLog, showToast, t.toastNudged]
   );
 
   const handleExtendDeadline = useCallback(
     (reviewId, reason) => {
       const extended = new Date(Date.now() + 5 * 86400000).toISOString();
+      const rev = reviews.find((r) => r.id === reviewId);
       setReviews((prev) =>
         prev.map((r) => (r.id === reviewId ? { ...r, extendedDeadline: extended, isOverdue: false, daysOverdue: 0 } : r))
       );
-      appendLog('EXTEND_DEADLINE', `${reason} (+5 days for ${reviewId})`);
+      appendLog({
+        action: 'EXTEND_DEADLINE',
+        visibilityScope: 'PUBLIC_SELF',
+        targetEmployeeId: rev?.employeeId || null,
+        targetManagerId: rev?.managerId || null,
+        reason: `${reason} (+5 days for ${rev?.employee?.name || reviewId})`,
+      });
       showToast(t.toastExtended, 'success');
     },
-    [appendLog, showToast, t.toastExtended]
+    [reviews, appendLog, showToast, t.toastExtended]
   );
 
   const handleEscalate = useCallback(
     (reviewId, reason) => {
+      const rev = reviews.find((r) => r.id === reviewId);
       setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, escalatedToSkipLevel: true } : r)));
-      appendLog('ESCALATE', `${reason} (${reviewId})`);
+      appendLog({
+        action: 'ESCALATE',
+        visibilityScope: 'HR_INTERNAL',
+        targetEmployeeId: rev?.employeeId || null,
+        targetManagerId: rev?.managerId || null,
+        reason: `Internal Escalation (${rev?.employee?.name || reviewId}): ${reason}`,
+      });
       showToast(t.toastEscalated, 'warning');
     },
-    [appendLog, showToast, t.toastEscalated]
+    [reviews, appendLog, showToast, t.toastEscalated]
   );
 
   return {
@@ -547,9 +779,10 @@ export function usePerformanceStore(t) {
     handleSubmitSelfReview,
     handleReturnReviewToEmployee,
     handleSaveManagerEvaluation,
+    handlePostHrbpAdvisorComment,
     handleHrReturnToManager,
-    handleLockCalibration,
     handlePublishReady,
+    handleUpdateStageDeadlines,
     handleToggleGracePeriod,
     handleToggleLockCycle,
     handleNudge,

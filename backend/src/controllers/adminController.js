@@ -1,4 +1,5 @@
 import { toPublicUser } from './authController.js';
+import { filterActivityLogsForUser } from '../services/scoringService.js';
 import {
   appendAuditLog,
   getAuditLogs,
@@ -9,13 +10,13 @@ import {
   updateUser,
 } from '../services/storeService.js';
 
-export function listAdminUsers(_req, res) {
+export function listAdminUsers(req, res) {
   res.json({
     ok: true,
     data: {
       users: getUsers().map(toPublicUser),
       rolePermissions: getRolePermissions(),
-      auditLogs: getAuditLogs(),
+      auditLogs: filterActivityLogsForUser(getAuditLogs(), req.user),
     },
     meta: { timestamp: new Date().toISOString() },
   });
@@ -37,7 +38,9 @@ export function patchAdminUser(req, res) {
   appendAuditLog({
     actor: req.user,
     action: 'ADMIN_UPDATE_USER',
-    reason: `Updated ${updated.employeeCode} (${updated.name}): role=${updated.role}, status=${updated.accountStatus}`,
+    visibilityScope: 'ADMIN_SECURITY',
+    targetEmployeeId: userId,
+    reason: `Updated ${updated.employeeCode} (${updated.name}): role=${updated.role}, level=${updated.jobLevel}, status=${updated.accountStatus}`,
     metadata: { targetUserId: userId, ...patch },
   });
 
@@ -63,6 +66,7 @@ export function putAdminPermission(req, res) {
   appendAuditLog({
     actor: req.user,
     action: 'UPDATE_ROLE_PERMISSION',
+    visibilityScope: 'ADMIN_SECURITY',
     reason: `Set ${role} -> ${permissionKey} = ${allowed ? 'ALLOW' : 'DENY'}`,
     metadata: { role, permissionKey, allowed },
   });

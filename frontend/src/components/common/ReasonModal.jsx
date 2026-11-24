@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
-export function ReasonModal({ isOpen, title, subtitle, t, onClose, onConfirm }) {
+export function ReasonModal({
+  isOpen,
+  title,
+  subtitle,
+  quickTemplateLabel = '',
+  quickTemplateText = '',
+  t,
+  onClose,
+  onConfirm,
+}) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
 
@@ -40,6 +49,31 @@ export function ReasonModal({ isOpen, title, subtitle, t, onClose, onConfirm }) 
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
+
+        {quickTemplateText && (
+          <div
+            className="rounded-md border p-3 space-y-2"
+            style={{
+              backgroundColor: 'var(--status-indigo-bg)',
+              borderColor: 'var(--status-indigo-border)',
+            }}
+          >
+            <p className="text-xs font-bold" style={{ color: 'var(--status-indigo-text)' }}>
+              {quickTemplateLabel}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setReason(quickTemplateText);
+                setError('');
+              }}
+              className="inline-flex items-start gap-2 text-left text-xs font-medium text-[var(--ink-primary)] hover:underline cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: 'var(--status-indigo-text)' }} aria-hidden="true" />
+              <span>&ldquo;{quickTemplateText}&rdquo;</span>
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">

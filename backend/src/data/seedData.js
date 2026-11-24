@@ -91,7 +91,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 };
 
 /**
- * 1-Office-Unit Demo Dataset (16 users total):
+ * 1-Office-Unit Demo Dataset (16 users total) with Job Leveling & 3-Stage Due Dates:
  * - 1 Super Admin (EMP-0001)
  * - 2 HR Admins (EMP-1001, EMP-1002)
  * - 3 Managers (EMP-2001..2003)
@@ -110,8 +110,15 @@ export function createInitialSeed() {
     period: 'Jan 2026 – Dec 2026',
     whatWeight: 60,
     howWeight: 40,
+    // 3-Stage Due Dates configured by HR:
+    // Stage 1: Employee OKR Draft & Submit (ended 6d ago)
+    // Stage 2: Manager Review / Ping-Pong 5-day SLA (ended 1d ago)
+    // Stage 3: HRBP Audit & Publish Fixed Window (due in 4 days)
+    stage1DraftDeadline: daysAgo(6),
+    stage2ApprovalDeadline: daysAgo(1),
+    stage3HrAuditDeadline: daysFromNow(4),
     selfDeadline: daysAgo(4),
-    managerDeadline: daysAgo(2),
+    managerDeadline: daysAgo(1),
     isGracePeriodActive: false,
     isLocked: false,
     isActive: true,
@@ -130,6 +137,7 @@ export function createInitialSeed() {
       nameTh: 'กฤตนรินทร์ พ.',
       title: 'System Super Administrator',
       department: 'IT & Governance',
+      jobLevel: 'L4_LEAD',
       role: 'SUPER_ADMIN',
       accountStatus: 'ACTIVE',
       managerId: null,
@@ -144,6 +152,7 @@ export function createInitialSeed() {
       nameTh: 'ปลื้ม ศรีสุข',
       title: 'People Operations Lead',
       department: 'Human Resources',
+      jobLevel: 'L4_LEAD',
       role: 'HR_ADMIN',
       accountStatus: 'ACTIVE',
       managerId: 'usr-super',
@@ -157,6 +166,7 @@ export function createInitialSeed() {
       nameTh: 'ศิริพร กมล',
       title: 'HR Business Partner',
       department: 'Human Resources',
+      jobLevel: 'L3_SENIOR',
       role: 'HR_ADMIN',
       accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
@@ -171,6 +181,7 @@ export function createInitialSeed() {
       nameTh: 'ซาร่า เฉิน',
       title: 'Engineering Manager',
       department: 'Engineering',
+      jobLevel: 'L4_LEAD',
       role: 'MANAGER',
       accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
@@ -184,6 +195,7 @@ export function createInitialSeed() {
       nameTh: 'สมชาย วัฒนา',
       title: 'Enterprise Sales Director',
       department: 'Sales',
+      jobLevel: 'L4_LEAD',
       role: 'MANAGER',
       accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
@@ -197,11 +209,12 @@ export function createInitialSeed() {
       nameTh: 'กัญญา รัตนพงศ์',
       title: 'Head of Product',
       department: 'Product',
+      jobLevel: 'L4_LEAD',
       role: 'MANAGER',
       accountStatus: 'ACTIVE',
       managerId: 'usr-hr',
     },
-    // 6 Active Employees (2 per Manager)
+    // 6 Active Employees (across L1 Junior -> L3 Senior)
     {
       id: 'usr-emp-nida',
       employeeCode: 'EMP-3001',
@@ -211,6 +224,7 @@ export function createInitialSeed() {
       nameTh: 'นิดา พาณิชย์',
       title: 'Senior Backend Engineer',
       department: 'Engineering',
+      jobLevel: 'L3_SENIOR',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-eng',
@@ -224,6 +238,7 @@ export function createInitialSeed() {
       nameTh: 'ต้นรัก ชัยวัฒน์',
       title: 'Frontend Engineer',
       department: 'Engineering',
+      jobLevel: 'L2_MID',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-eng',
@@ -237,6 +252,7 @@ export function createInitialSeed() {
       nameTh: 'มยุรี ลิ้ม',
       title: 'Enterprise Account Executive',
       department: 'Sales',
+      jobLevel: 'L3_SENIOR',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-sales',
@@ -250,6 +266,7 @@ export function createInitialSeed() {
       nameTh: 'อาทิตย์ ก้องเกียรติ',
       title: 'Account Executive',
       department: 'Sales',
+      jobLevel: 'L2_MID',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-sales',
@@ -263,6 +280,7 @@ export function createInitialSeed() {
       nameTh: 'ฟ้า ประภาพร',
       title: 'Product Designer',
       department: 'Product',
+      jobLevel: 'L2_MID',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-prod',
@@ -276,11 +294,12 @@ export function createInitialSeed() {
       nameTh: 'ณัฐพงศ์ มีกุล',
       title: 'Product Operations Analyst',
       department: 'Product',
+      jobLevel: 'L1_JUNIOR',
       role: 'EMPLOYEE',
       accountStatus: 'ACTIVE',
       managerId: 'usr-mgr-prod',
     },
-    // 4 New Employees Pending Super Admin Approval (can be approved as HR_ADMIN, MANAGER, or EMPLOYEE)
+    // 4 New Employees Pending Super Admin Approval
     {
       id: 'usr-new-1',
       employeeCode: 'EMP-3091',
@@ -290,6 +309,7 @@ export function createInitialSeed() {
       nameTh: 'พิมพ์ชนก ดรุณี',
       title: 'Junior Data Analyst',
       department: 'Operations',
+      jobLevel: 'L1_JUNIOR',
       role: 'EMPLOYEE',
       accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-mgr-prod',
@@ -303,6 +323,7 @@ export function createInitialSeed() {
       nameTh: 'ธนพล วรวิทย์',
       title: 'People & Culture Specialist',
       department: 'Human Resources',
+      jobLevel: 'L2_MID',
       role: 'HR_ADMIN',
       accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-hr',
@@ -316,6 +337,7 @@ export function createInitialSeed() {
       nameTh: 'ชัญญา สุธิดา',
       title: 'Engineering Squad Lead',
       department: 'Engineering',
+      jobLevel: 'L4_LEAD',
       role: 'MANAGER',
       accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-hr',
@@ -329,6 +351,7 @@ export function createInitialSeed() {
       nameTh: 'วรุตม์ กิตติพงศ์',
       title: 'Sales Representative',
       department: 'Sales',
+      jobLevel: 'L1_JUNIOR',
       role: 'EMPLOYEE',
       accountStatus: 'PENDING_APPROVAL',
       managerId: 'usr-mgr-sales',
@@ -359,9 +382,10 @@ export function createInitialSeed() {
     commentHistory = [],
     selfPayload,
     managerPayload,
-    selfSubmittedAt,
-    managerSubmittedAt,
-    calibratedAt = null,
+    goalsSubmittedAt = null,
+    goalsApprovedAt = null,
+    selfSubmittedAt = null,
+    managerSubmittedAt = null,
     publishedAt = null,
   }) => {
     const empGoals = goals.filter((g) => g.employeeId === employeeId);
@@ -385,9 +409,10 @@ export function createInitialSeed() {
       selfPayload,
       managerPayload,
       ...scores,
+      goalsSubmittedAt,
+      goalsApprovedAt,
       selfSubmittedAt,
       managerSubmittedAt,
-      calibratedAt,
       extendedDeadline: null,
       escalatedToSkipLevel: false,
       lastNudgedAt: null,
@@ -396,12 +421,22 @@ export function createInitialSeed() {
   };
 
   const reviews = [
-    // 1. Nida — High Performer (PUBLISHED)
+    // 1. Nida (L3 Senior) — PUBLISHED early (5 days before Stage 3 HR deadline!)
     makeScoredReview({
       id: 'rev-nida',
       employeeId: 'usr-emp-nida',
       managerId: 'usr-mgr-eng',
       status: 'PUBLISHED',
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(3),
+      publishedAt: daysAgo(1),
+      commentHistory: [
+        { id: 'cmt-nida-1', round: 1, phase: 'GOAL', actorName: 'Nida Phanich', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 high-impact payroll reliability OKRs (100% weight).', createdAt: daysAgo(9) },
+        { id: 'cmt-nida-2', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Strong L3 Senior stretch targets — approved with 1.2x & 1.1x multipliers.', createdAt: daysAgo(7) },
+        { id: 'cmt-nida-3', round: 1, phase: 'RELEASE', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'PUBLISHED', comment: 'HR approved and published final performance outcome.', createdAt: daysAgo(1) },
+      ],
       selfPayload: {
         goalAssessments: [
           { goalId: 'g-nida-1', selfScore: 5, selfEvidence: 'Rewrote payroll batch queries and added composite indexes, cutting p95 from 340ms to 145ms.' },
@@ -427,17 +462,22 @@ export function createInitialSeed() {
         managerSummary: 'Exceptional year. Nida set the engineering bar for reliability and mentored peers effectively.',
         developmentFocus: 'Lead cross-squad architecture reviews and represent Engineering in enterprise technical pre-sales.',
       },
-      selfSubmittedAt: daysAgo(7),
-      managerSubmittedAt: daysAgo(4),
-      publishedAt: daysAgo(1),
     }),
 
-    // 2. Ton — SELF_REVIEW_SUBMITTED (Overdue Manager Review!)
+    // 2. Ton (L2 Mid) — SELF_REVIEW_SUBMITTED (Overdue Stage 2 Manager SLA!)
     makeScoredReview({
       id: 'rev-ton',
       employeeId: 'usr-emp-ton',
       managerId: 'usr-mgr-eng',
       status: 'SELF_REVIEW_SUBMITTED',
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(4),
+      managerSubmittedAt: null,
+      commentHistory: [
+        { id: 'cmt-ton-1', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Approved ESS mobile and regression OKRs for L2 Mid scope.', createdAt: daysAgo(7) },
+        { id: 'cmt-ton-2', round: 1, phase: 'REVIEW', actorName: 'Tonrak Chaiyawat', actorRole: 'EMPLOYEE', action: 'SELF_REVIEW_SUBMITTED', comment: 'Submitted Q4 actual achievements and self ratings.', createdAt: daysAgo(4) },
+      ],
       selfPayload: {
         goalAssessments: [
           { goalId: 'g-ton-1', selfScore: 4, selfEvidence: 'Delivered mobile-first ESS screens tested across iOS and Android viewports.' },
@@ -451,19 +491,21 @@ export function createInitialSeed() {
         reflection: 'Delivered responsive ESS screens cleanly; want to deepen state-management testing.',
       },
       managerPayload: null,
-      selfSubmittedAt: daysAgo(5),
-      managerSubmittedAt: null,
     }),
 
-    // 3 & 4. Sales team under Somchai (MANAGER_APPROVED → awaits HR Calibration!)
+    // 3 & 4. Sales team under Somchai (MANAGER_APPROVED -> ready for HR Approve & Publish or Return due to Bias Alert!)
     makeScoredReview({
       id: 'rev-may',
       employeeId: 'usr-emp-may',
       managerId: 'usr-mgr-sales',
       status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(10),
+      goalsApprovedAt: daysAgo(8),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(2),
       commentHistory: [
-        { id: 'cmt-may-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Enterprise ARR target 12M THB approved with 1.2x breakthrough multiplier.', createdAt: daysAgo(15) },
+        { id: 'cmt-may-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Enterprise ARR target 12M THB approved with 1.2x breakthrough multiplier.', createdAt: daysAgo(8) },
       ],
       selfPayload: {
         goalAssessments: [
@@ -490,8 +532,6 @@ export function createInitialSeed() {
         managerSummary: 'Top enterprise closer this year with strong retention.',
         developmentFocus: 'Mentor junior AEs on executive discovery and multi-stakeholder deals.',
       },
-      selfSubmittedAt: daysAgo(6),
-      managerSubmittedAt: daysAgo(3),
     }),
 
     makeScoredReview({
@@ -500,8 +540,12 @@ export function createInitialSeed() {
       managerId: 'usr-mgr-sales',
       status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(10),
+      goalsApprovedAt: daysAgo(8),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(2),
       commentHistory: [
-        { id: 'cmt-art-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Mid-market 8M THB quota approved.', createdAt: daysAgo(15) },
+        { id: 'cmt-art-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Mid-market 8M THB quota approved.', createdAt: daysAgo(8) },
       ],
       selfPayload: {
         goalAssessments: [
@@ -528,36 +572,40 @@ export function createInitialSeed() {
         managerSummary: 'Great attitude and high potential for next year.',
         developmentFocus: 'Accelerate closing cadence on late-stage pipeline.',
       },
-      selfSubmittedAt: daysAgo(6),
-      managerSubmittedAt: daysAgo(3),
     }),
 
-    // 5. Fah (Product — Active Goal Setting Ping-Pong Round 1!)
+    // 5. Fah (L2 Mid Product) — Ping-Pong Round 2! Triggers HRBP Audit & Advisor Intervention!
     makeScoredReview({
       id: 'rev-fah',
       employeeId: 'usr-emp-fah',
       managerId: 'usr-mgr-prod',
       status: 'GOAL_REVISION_REQUIRED',
-      revisionRound: 1,
+      revisionRound: 2,
+      goalsSubmittedAt: daysAgo(8),
+      goalsApprovedAt: null,
       commentHistory: [
         { id: 'cmt-fah-1', round: 1, phase: 'GOAL', actorName: 'Fah Prapaporn', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 annual UX OKRs totaling 100% weight.', createdAt: daysAgo(9) },
-        { id: 'cmt-fah-2', round: 1, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Good start! Please raise mobile UX target to SUS >= 88 (Stretch 1.1x) and add a 3rd KPI for accessibility audit coverage.', createdAt: daysAgo(7) },
+        { id: 'cmt-fah-2', round: 1, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Good start! Please raise mobile UX target to SUS >= 88 (1.1x Stretch) and clarify token adoption metric.', createdAt: daysAgo(7) },
+        { id: 'cmt-fah-3', round: 2, phase: 'GOAL', actorName: 'Fah Prapaporn', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Updated mobile UX milestone details; kept weight 50/50.', createdAt: daysAgo(5) },
+        { id: 'cmt-fah-4', round: 2, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Still need clearer measurable criteria for the 4 HR modules before locking OKRs.', createdAt: daysAgo(3) },
       ],
       selfPayload: null,
       managerPayload: null,
-      selfSubmittedAt: null,
-      managerSubmittedAt: null,
     }),
 
-    // 6. Nut (Product Ops — Low Performer, CALIBRATION_LOCKED — still hidden from Employee until PUBLISHED!)
+    // 6. Nut (L1 Junior Product Ops) — Low Performer, MANAGER_APPROVED (hidden from Employee until HR Approve & Publish!)
     makeScoredReview({
       id: 'rev-nut',
       employeeId: 'usr-emp-nut',
       managerId: 'usr-mgr-prod',
-      status: 'CALIBRATION_LOCKED',
+      status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(4),
+      managerSubmittedAt: daysAgo(2),
       commentHistory: [
-        { id: 'cmt-nut-1', round: 1, phase: 'CALIBRATION', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'CALIBRATION_LOCKED', comment: 'Cross-team calibration confirmed Needs Action tier with 90-day PIP support.', createdAt: daysAgo(1) },
+        { id: 'cmt-nut-1', round: 1, phase: 'REVIEW', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'MANAGER_APPROVED', comment: 'Submitted L1 Junior evaluation with structured 90-day coaching plan for HR review.', createdAt: daysAgo(2) },
       ],
       selfPayload: {
         goalAssessments: [
@@ -581,15 +629,14 @@ export function createInitialSeed() {
           { competencyId: 'comp-collab', score: 2, evidence: 'Repeated rework required from CS due to incomplete handoff notes on import errors.' },
           { competencyId: 'comp-problem', score: 2, evidence: 'Relied on manual spreadsheet fixes instead of adopting the automated validation script.' },
         ],
-        managerSummary: 'Performance fell below role expectations across delivery reliability and SLA.',
+        managerSummary: 'Performance fell below L1 Junior expectations across delivery reliability and SLA.',
         developmentFocus: '90-day structured Performance Improvement Plan (PIP) with weekly check-ins and SQL automation coaching.',
       },
-      selfSubmittedAt: daysAgo(5),
-      managerSubmittedAt: daysAgo(2),
-      calibratedAt: daysAgo(1),
     }),
   ];
 
+  // Role-Scoped Seeded Activity Logs covering all 4 visibility scopes:
+  // ADMIN_SECURITY | CYCLE_GOVERNANCE | HR_INTERNAL | TEAM_MANAGER | PUBLIC_SELF
   const auditLogs = [
     {
       id: 'aud-1',
@@ -597,14 +644,108 @@ export function createInitialSeed() {
       reviewId: 'rev-nida',
       actorId: 'usr-hr',
       actorName: 'Pluem Srisuk',
+      actorRole: 'HR_ADMIN',
       action: 'PUBLISH',
-      reason: 'Early pilot verification completed for Engineering senior review.',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-nida',
+      targetManagerId: 'usr-mgr-eng',
+      reason: 'HR approved and published FY 2026 final performance outcome for Nida Phanich (5d early).',
       metadata: { count: 1 },
       createdAt: daysAgo(1),
+    },
+    {
+      id: 'aud-2',
+      cycleId: cycle.id,
+      reviewId: 'rev-art',
+      actorId: 'usr-hr',
+      actorName: 'Pluem Srisuk',
+      actorRole: 'HR_ADMIN',
+      action: 'BIAS_ALERT_FLAGGED',
+      visibilityScope: 'HR_INTERNAL',
+      targetEmployeeId: 'usr-emp-art',
+      targetManagerId: 'usr-mgr-sales',
+      reason: 'Internal HR Alert: Sales team average (5.00) exceeds org benchmark (+0.88). Recommended HR review before publishing.',
+      metadata: { flagType: 'LENIENCY_BIAS' },
+      createdAt: daysAgo(1),
+    },
+    {
+      id: 'aud-3',
+      cycleId: cycle.id,
+      reviewId: 'rev-nut',
+      actorId: 'usr-mgr-prod',
+      actorName: 'Kanya Rattanapong',
+      actorRole: 'MANAGER',
+      action: 'MANAGER_APPROVED',
+      visibilityScope: 'TEAM_MANAGER',
+      targetEmployeeId: 'usr-emp-nut',
+      targetManagerId: 'usr-mgr-prod',
+      reason: 'Submitted manager evaluation for Nattapong Meekul to HR review queue (hidden from employee until published).',
+      metadata: { overallScore: 2.0 },
+      createdAt: daysAgo(2),
+    },
+    {
+      id: 'aud-4',
+      cycleId: cycle.id,
+      reviewId: 'rev-fah',
+      actorId: 'usr-mgr-prod',
+      actorName: 'Kanya Rattanapong',
+      actorRole: 'MANAGER',
+      action: 'GOAL_REVISION_REQUESTED',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-fah',
+      targetManagerId: 'usr-mgr-prod',
+      reason: 'Returned OKRs to Fah Prapaporn (Round 2) requesting measurable module criteria.',
+      metadata: { round: 2 },
+      createdAt: daysAgo(3),
+    },
+    {
+      id: 'aud-5',
+      cycleId: cycle.id,
+      reviewId: 'rev-ton',
+      actorId: 'usr-emp-ton',
+      actorName: 'Tonrak Chaiyawat',
+      actorRole: 'EMPLOYEE',
+      action: 'SELF_REVIEW_SUBMITTED',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-ton',
+      targetManagerId: 'usr-mgr-eng',
+      reason: 'Tonrak Chaiyawat submitted self-assessment and OKR achievements to Sarah Chen.',
+      metadata: {},
+      createdAt: daysAgo(4),
+    },
+    {
+      id: 'aud-6',
+      cycleId: cycle.id,
+      reviewId: null,
+      actorId: 'usr-hr',
+      actorName: 'Pluem Srisuk',
+      actorRole: 'HR_ADMIN',
+      action: 'UPDATE_STAGE_DEADLINES',
+      visibilityScope: 'CYCLE_GOVERNANCE',
+      targetEmployeeId: null,
+      targetManagerId: null,
+      reason: 'Configured 3-Stage Due Dates: Stage 1 OKR Draft, Stage 2 Manager 5d SLA, Stage 3 HRBP Audit & Publish window.',
+      metadata: {},
+      createdAt: daysAgo(10),
+    },
+    {
+      id: 'aud-7',
+      cycleId: null,
+      reviewId: null,
+      actorId: 'usr-super',
+      actorName: 'Kritnarin P.',
+      actorRole: 'SUPER_ADMIN',
+      action: 'USER_REGISTERED',
+      visibilityScope: 'ADMIN_SECURITY',
+      targetEmployeeId: 'usr-new-1',
+      targetManagerId: null,
+      reason: '4 new employee registrations (EMP-3091 to EMP-3094) queued for Super Admin role approval.',
+      metadata: { count: 4 },
+      createdAt: daysAgo(2),
     },
   ];
 
   const rolePermissions = structuredClone(DEFAULT_ROLE_PERMISSIONS);
 
-  return { cycle, users, goals, reviews, auditLogs, rolePermissions, nextDeadlineSample: daysFromNow(5) };
+  return { cycle, users, goals, reviews, auditLogs, rolePermissions, nextDeadlineSample: daysFromNow(4) };
 }

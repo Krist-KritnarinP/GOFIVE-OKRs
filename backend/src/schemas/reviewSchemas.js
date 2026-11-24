@@ -21,11 +21,13 @@ export const registerSchema = z.object({
   name: z.string().trim().min(2, 'Full name is required.').max(100),
   department: z.string().trim().min(2, 'Department is required.').max(80),
   title: z.string().trim().min(2, 'Job title is required.').max(100),
+  jobLevel: z.enum(['L1_JUNIOR', 'L2_MID', 'L3_SENIOR', 'L4_LEAD']).default('L2_MID'),
   password: z.string().min(8, 'Password must be at least 8 characters.').max(100),
 });
 
 export const adminUpdateUserSchema = z.object({
   role: z.enum(['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER', 'EMPLOYEE']).optional(),
+  jobLevel: z.enum(['L1_JUNIOR', 'L2_MID', 'L3_SENIOR', 'L4_LEAD']).optional(),
   accountStatus: z.enum(['PENDING_APPROVAL', 'ACTIVE', 'SUSPENDED']).optional(),
 });
 
@@ -48,6 +50,9 @@ export const updateCycleSchema = z
   .object({
     whatWeight: z.coerce.number().int().min(10).max(90).optional(),
     howWeight: z.coerce.number().int().min(10).max(90).optional(),
+    stage1DraftDeadline: z.string().datetime().optional(),
+    stage2ApprovalDeadline: z.string().datetime().optional(),
+    stage3HrAuditDeadline: z.string().datetime().optional(),
     selfDeadline: z.string().datetime().optional(),
     managerDeadline: z.string().datetime().optional(),
     isGracePeriodActive: z.boolean().optional(),
@@ -66,22 +71,25 @@ export const updateCycleSchema = z
 
 export const goalItemSchema = z.object({
   id: z.string().optional(),
-  title: z.string().trim().min(3, 'Goal title is required.').max(200),
+  title: z.string().trim().min(3, 'OKR title is required.').max(200),
   titleTh: z.string().trim().max(200).optional(),
   metricType: z.enum(['QUANTITATIVE', 'QUALITATIVE']).default('QUANTITATIVE'),
   targetValue: z.string().trim().min(1, 'Target value is required.').max(80),
   unit: z.string().trim().min(1, 'Unit is required.').max(40),
   weight: z.coerce.number().int().min(5).max(100),
-  multiplier: z.coerce.number().refine((v) => [1, 1.1, 1.2].includes(v), {
-    message: 'Multiplier must be 1.0, 1.1, or 1.2.',
-  }).default(1.0),
+  multiplier: z.coerce
+    .number()
+    .refine((v) => [1, 1.1, 1.2].includes(v), {
+      message: 'Multiplier must be 1.0, 1.1, or 1.2.',
+    })
+    .default(1.0),
   dueDate: z.string().min(4, 'Target hit date is required.'),
   progressPct: z.coerce.number().int().min(0).max(100).default(0),
 });
 
 export const submitGoalsSchema = z
   .object({
-    goals: z.array(goalItemSchema).min(1, 'At least one goal is required.').max(10),
+    goals: z.array(goalItemSchema).min(1, 'At least one OKR is required.').max(10),
     comment: z.string().trim().max(1000).default(''),
     submit: z.boolean().default(true),
   })
@@ -91,26 +99,44 @@ export const submitGoalsSchema = z
       const sum = data.goals.reduce((acc, g) => acc + g.weight, 0);
       return sum === 100;
     },
-    { message: 'Total goal weight must equal exactly 100% before submission.', path: ['goals'] }
+    { message: 'Total OKR weight must equal exactly 100% before submission.', path: ['goals'] }
   );
+
+const adjustedGoalSchema = z.object({
+  id: z.string().min(1),
+  weight: z.coerce.number().int().min(5).max(100),
+  multiplier: z.coerce.number().refine((v) => [1, 1.1, 1.2].includes(v), {
+    message: 'Multiplier must be 1.0, 1.1, or 1.2.',
+  }),
+});
 
 export const goalDecisionSchema = z
   .object({
     decision: z.enum(['APPROVE', 'REQUEST_REVISION']),
     comment: z.string().trim().max(1000).default(''),
+    adjustedGoals: z.array(adjustedGoalSchema).optional(),
   })
   .refine(
     (data) => data.decision === 'APPROVE' || data.comment.trim().length >= 5,
-    { message: 'Please provide a revision comment (min 5 characters) when returning goals.', path: ['comment'] }
+    { message: 'Please provide a revision comment (min 5 characters) when returning OKRs.', path: ['comment'] }
+  )
+  .refine(
+    (data) => {
+      if (data.decision !== 'APPROVE' || !data.adjustedGoals || data.adjustedGoals.length === 0) {
+        return true;
+      }
+      const sum = data.adjustedGoals.reduce((acc, g) => acc + g.weight, 0);
+      return sum === 100;
+    },
+    { message: 'Adjusted OKR weights must total exactly 100% before approval.', path: ['adjustedGoals'] }
   );
 
 export const reviewReturnSchema = z.object({
   comment: z.string().trim().min(5, 'Revision comment must be at least 5 characters.').max(1000),
 });
 
-export const calibrateSchema = z.object({
-  reviewIds: z.array(z.string().min(1)).optional(),
-  note: z.string().trim().max(500).optional(),
+export const hrbpAdvisorCommentSchema = z.object({
+  comment: z.string().trim().min(5, 'Advisor comment must be at least 5 characters.').max(1000),
 });
 
 export const selfReviewSchema = z.object({

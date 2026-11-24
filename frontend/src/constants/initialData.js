@@ -2,6 +2,70 @@ import { COMPETENCIES, RUBRIC_LEVELS } from '../constants/rubric.js';
 import { DEFAULT_ROLE_PERMISSIONS } from '../constants/roles.js';
 
 const ROUND2 = (n) => Math.round(n * 100) / 100;
+const DAY_MS = 86400000;
+
+export function computeStageTimingClient({ deadline, completedAt = null, now = new Date() }) {
+  if (!deadline) return null;
+  const dueMs = new Date(deadline).getTime();
+
+  if (completedAt) {
+    const doneMs = new Date(completedAt).getTime();
+    const diffDays = Math.round((dueMs - doneMs) / DAY_MS);
+    if (diffDays > 0) return { state: 'EARLY', days: diffDays };
+    if (diffDays === 0) return { state: 'ON_TIME', days: 0 };
+    return { state: 'LATE_DONE', days: Math.abs(diffDays) };
+  }
+
+  const remainingMs = dueMs - now.getTime();
+  if (remainingMs >= 0) {
+    return { state: 'COUNTDOWN', days: Math.max(0, Math.ceil(remainingMs / DAY_MS)) };
+  }
+  return { state: 'OVERDUE', days: Math.max(1, Math.ceil(Math.abs(remainingMs) / DAY_MS)) };
+}
+
+export function getHrbpInterventionClient(review) {
+  if (!review || review.status === 'PUBLISHED') {
+    return { needed: false, reasons: [] };
+  }
+  const reasons = [];
+  if (
+    (review.revisionRound || 1) >= 2 &&
+    ['GOAL_REVISION_REQUIRED', 'GOAL_PENDING_APPROVAL', 'REVIEW_REVISION_REQUIRED'].includes(
+      review.status
+    )
+  ) {
+    reasons.push('PING_PONG_LIMIT');
+  }
+  if (review.isOverdue) {
+    reasons.push('SLA_BREACH');
+  }
+  return { needed: reasons.length > 0, reasons };
+}
+
+export function filterActivityLogsForRole(logs, { role, userId }) {
+  const list = Array.isArray(logs) ? logs : [];
+  if (role === 'SUPER_ADMIN') {
+    return list.filter((l) => ['ADMIN_SECURITY', 'CYCLE_GOVERNANCE'].includes(l.visibilityScope));
+  }
+  if (role === 'HR_ADMIN') {
+    return list.filter((l) =>
+      ['CYCLE_GOVERNANCE', 'HR_INTERNAL', 'TEAM_MANAGER', 'PUBLIC_SELF'].includes(l.visibilityScope)
+    );
+  }
+  if (role === 'MANAGER') {
+    return list.filter(
+      (l) =>
+        ['TEAM_MANAGER', 'PUBLIC_SELF'].includes(l.visibilityScope) &&
+        (l.targetManagerId === userId || l.actorId === userId)
+    );
+  }
+  if (role === 'EMPLOYEE') {
+    return list.filter(
+      (l) => l.visibilityScope === 'PUBLIC_SELF' && l.targetEmployeeId === userId
+    );
+  }
+  return [];
+}
 
 export function computeNineBoxCell(whatPct, howScore) {
   if (whatPct == null || howScore == null) return null;
@@ -109,12 +173,14 @@ export function computeAnalytics(reviews) {
 }
 
 /**
- * 1-Office-Unit Demo Dataset (16 Users):
- * 1 Super Admin | 2 HR Admins | 3 Managers | 6 Active Employees | 4 Pending New Employees
+ * 1-Office-Unit Demo Dataset (16 Users) with Job Leveling, 3-Stage Due Dates,
+ * HRBP Intervention Case (Fah Round 2 Ping-Pong), Approach A (HR Approve & Publish),
+ * and Role-Scoped Activity Logs.
  */
 export function createInitialClientState() {
   const now = new Date();
-  const daysAgo = (d) => new Date(now.getTime() - d * 86400000).toISOString();
+  const daysAgo = (d) => new Date(now.getTime() - d * DAY_MS).toISOString();
+  const daysFromNow = (d) => new Date(now.getTime() + d * DAY_MS).toISOString();
 
   const cycle = {
     id: 'cycle-fy2026',
@@ -123,8 +189,11 @@ export function createInitialClientState() {
     period: 'Jan 2026 – Dec 2026',
     whatWeight: 60,
     howWeight: 40,
+    stage1DraftDeadline: daysAgo(6),
+    stage2ApprovalDeadline: daysAgo(1),
+    stage3HrAuditDeadline: daysFromNow(4),
     selfDeadline: daysAgo(4),
-    managerDeadline: daysAgo(2),
+    managerDeadline: daysAgo(1),
     isGracePeriodActive: false,
     isLocked: false,
     rubricLevels: RUBRIC_LEVELS,
@@ -136,14 +205,19 @@ export function createInitialClientState() {
       id: 'rev-nida',
       employeeId: 'usr-emp-nida',
       managerId: 'usr-mgr-eng',
-      employee: { id: 'usr-emp-nida', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering' },
-      manager: { id: 'usr-mgr-eng', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', department: 'Engineering' },
+      employee: { id: 'usr-emp-nida', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering', jobLevel: 'L3_SENIOR' },
+      manager: { id: 'usr-mgr-eng', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', department: 'Engineering', jobLevel: 'L4_LEAD' },
       status: 'PUBLISHED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(3),
+      publishedAt: daysAgo(1),
       commentHistory: [
-        { id: 'cmt-nida-1', round: 1, phase: 'GOAL', actorName: 'Nida Phanich', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 high-impact payroll reliability OKRs (100% weight).', createdAt: daysAgo(20) },
-        { id: 'cmt-nida-2', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Strong stretch targets — approved with 1.2x & 1.1x multipliers.', createdAt: daysAgo(18) },
-        { id: 'cmt-nida-3', round: 1, phase: 'CALIBRATION', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'CALIBRATION_LOCKED', comment: 'Calibrated & verified Star / High Performer placement.', createdAt: daysAgo(2) },
+        { id: 'cmt-nida-1', round: 1, phase: 'GOAL', actorName: 'Nida Phanich', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 high-impact payroll reliability OKRs (100% weight).', createdAt: daysAgo(9) },
+        { id: 'cmt-nida-2', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Strong L3 Senior stretch targets — approved with 1.2x & 1.1x multipliers.', createdAt: daysAgo(7) },
+        { id: 'cmt-nida-3', round: 1, phase: 'RELEASE', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'PUBLISHED', comment: 'HR approved and published final performance outcome (5d ahead of HR window).', createdAt: daysAgo(1) },
       ],
       isOverdue: false,
       daysOverdue: 0,
@@ -184,16 +258,21 @@ export function createInitialClientState() {
       id: 'rev-ton',
       employeeId: 'usr-emp-ton',
       managerId: 'usr-mgr-eng',
-      employee: { id: 'usr-emp-ton', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering' },
-      manager: { id: 'usr-mgr-eng', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', department: 'Engineering' },
+      employee: { id: 'usr-emp-ton', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering', jobLevel: 'L2_MID' },
+      manager: { id: 'usr-mgr-eng', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', department: 'Engineering', jobLevel: 'L4_LEAD' },
       status: 'SELF_REVIEW_SUBMITTED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(4),
+      managerSubmittedAt: null,
+      publishedAt: null,
       commentHistory: [
-        { id: 'cmt-ton-1', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Approved ESS mobile and regression targets.', createdAt: daysAgo(16) },
-        { id: 'cmt-ton-2', round: 1, phase: 'REVIEW', actorName: 'Tonrak Chaiyawat', actorRole: 'EMPLOYEE', action: 'SELF_REVIEW_SUBMITTED', comment: 'Submitted Q4 actual achievements and self ratings.', createdAt: daysAgo(5) },
+        { id: 'cmt-ton-1', round: 1, phase: 'GOAL', actorName: 'Sarah Chen', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Approved ESS mobile and regression OKRs for L2 Mid scope.', createdAt: daysAgo(7) },
+        { id: 'cmt-ton-2', round: 1, phase: 'REVIEW', actorName: 'Tonrak Chaiyawat', actorRole: 'EMPLOYEE', action: 'SELF_REVIEW_SUBMITTED', comment: 'Submitted Q4 actual achievements and self ratings.', createdAt: daysAgo(4) },
       ],
       isOverdue: true,
-      daysOverdue: 2,
+      daysOverdue: 1,
       missingActor: 'MANAGER',
       escalatedToSkipLevel: false,
       lastNudgedAt: null,
@@ -220,12 +299,17 @@ export function createInitialClientState() {
       id: 'rev-may',
       employeeId: 'usr-emp-may',
       managerId: 'usr-mgr-sales',
-      employee: { id: 'usr-emp-may', name: 'Mayuree Lim', nameTh: 'มยุรี ลิ้ม', title: 'Enterprise Account Executive', department: 'Sales' },
-      manager: { id: 'usr-mgr-sales', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', department: 'Sales' },
+      employee: { id: 'usr-emp-may', name: 'Mayuree Lim', nameTh: 'มยุรี ลิ้ม', title: 'Enterprise Account Executive', department: 'Sales', jobLevel: 'L3_SENIOR' },
+      manager: { id: 'usr-mgr-sales', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', department: 'Sales', jobLevel: 'L4_LEAD' },
       status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(10),
+      goalsApprovedAt: daysAgo(8),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(2),
+      publishedAt: null,
       commentHistory: [
-        { id: 'cmt-may-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Enterprise ARR target 12M THB approved with 1.2x breakthrough multiplier.', createdAt: daysAgo(15) },
+        { id: 'cmt-may-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Enterprise ARR target 12M THB approved with 1.2x breakthrough multiplier.', createdAt: daysAgo(8) },
       ],
       isOverdue: false,
       daysOverdue: 0,
@@ -266,12 +350,17 @@ export function createInitialClientState() {
       id: 'rev-art',
       employeeId: 'usr-emp-art',
       managerId: 'usr-mgr-sales',
-      employee: { id: 'usr-emp-art', name: 'Arthit Kongkiat', nameTh: 'อาทิตย์ ก้องเกียรติ', title: 'Account Executive', department: 'Sales' },
-      manager: { id: 'usr-mgr-sales', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', department: 'Sales' },
+      employee: { id: 'usr-emp-art', name: 'Arthit Kongkiat', nameTh: 'อาทิตย์ ก้องเกียรติ', title: 'Account Executive', department: 'Sales', jobLevel: 'L2_MID' },
+      manager: { id: 'usr-mgr-sales', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', department: 'Sales', jobLevel: 'L4_LEAD' },
       status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(10),
+      goalsApprovedAt: daysAgo(8),
+      selfSubmittedAt: daysAgo(5),
+      managerSubmittedAt: daysAgo(2),
+      publishedAt: null,
       commentHistory: [
-        { id: 'cmt-art-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Mid-market 8M THB quota approved.', createdAt: daysAgo(15) },
+        { id: 'cmt-art-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Mid-market 8M THB quota approved.', createdAt: daysAgo(8) },
       ],
       isOverdue: false,
       daysOverdue: 0,
@@ -312,13 +401,20 @@ export function createInitialClientState() {
       id: 'rev-fah',
       employeeId: 'usr-emp-fah',
       managerId: 'usr-mgr-prod',
-      employee: { id: 'usr-emp-fah', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product' },
-      manager: { id: 'usr-mgr-prod', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', department: 'Product' },
+      employee: { id: 'usr-emp-fah', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', jobLevel: 'L2_MID' },
+      manager: { id: 'usr-mgr-prod', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', department: 'Product', jobLevel: 'L4_LEAD' },
       status: 'GOAL_REVISION_REQUIRED',
-      revisionRound: 1,
+      revisionRound: 2,
+      goalsSubmittedAt: daysAgo(8),
+      goalsApprovedAt: null,
+      selfSubmittedAt: null,
+      managerSubmittedAt: null,
+      publishedAt: null,
       commentHistory: [
         { id: 'cmt-fah-1', round: 1, phase: 'GOAL', actorName: 'Fah Prapaporn', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 annual UX OKRs totaling 100% weight.', createdAt: daysAgo(9) },
-        { id: 'cmt-fah-2', round: 1, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Good start! Please raise mobile UX target to SUS >= 88 (Stretch 1.1x) and add a 3rd KPI for WCAG accessibility coverage.', createdAt: daysAgo(7) },
+        { id: 'cmt-fah-2', round: 1, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Good start! Please raise mobile UX target to SUS >= 88 (1.1x Stretch) and clarify token adoption metric.', createdAt: daysAgo(7) },
+        { id: 'cmt-fah-3', round: 2, phase: 'GOAL', actorName: 'Fah Prapaporn', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Updated mobile UX milestone details; kept weight 50/50.', createdAt: daysAgo(5) },
+        { id: 'cmt-fah-4', round: 2, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Still need clearer measurable criteria for the 4 HR modules before locking OKRs.', createdAt: daysAgo(3) },
       ],
       isOverdue: false,
       daysOverdue: 0,
@@ -336,12 +432,17 @@ export function createInitialClientState() {
       id: 'rev-nut',
       employeeId: 'usr-emp-nut',
       managerId: 'usr-mgr-prod',
-      employee: { id: 'usr-emp-nut', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', title: 'Product Operations Analyst', department: 'Product' },
-      manager: { id: 'usr-mgr-prod', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', department: 'Product' },
-      status: 'CALIBRATION_LOCKED',
+      employee: { id: 'usr-emp-nut', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', title: 'Product Operations Analyst', department: 'Product', jobLevel: 'L1_JUNIOR' },
+      manager: { id: 'usr-mgr-prod', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', department: 'Product', jobLevel: 'L4_LEAD' },
+      status: 'MANAGER_APPROVED',
       revisionRound: 1,
+      goalsSubmittedAt: daysAgo(9),
+      goalsApprovedAt: daysAgo(7),
+      selfSubmittedAt: daysAgo(4),
+      managerSubmittedAt: daysAgo(2),
+      publishedAt: null,
       commentHistory: [
-        { id: 'cmt-nut-1', round: 1, phase: 'CALIBRATION', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'CALIBRATION_LOCKED', comment: 'Cross-team calibration confirmed Needs Action tier with 90-day PIP support.', createdAt: daysAgo(1) },
+        { id: 'cmt-nut-1', round: 1, phase: 'REVIEW', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'MANAGER_APPROVED', comment: 'Submitted L1 Junior evaluation with structured 90-day coaching plan for HR review.', createdAt: daysAgo(2) },
       ],
       isOverdue: false,
       daysOverdue: 0,
@@ -374,7 +475,7 @@ export function createInitialClientState() {
           { competencyId: 'comp-collab', score: 2, evidence: 'Repeated rework required from CS due to incomplete handoff notes on import errors.' },
           { competencyId: 'comp-problem', score: 2, evidence: 'Relied on manual spreadsheet fixes instead of adopting the automated validation script.' },
         ],
-        managerSummary: 'Performance fell below role expectations across delivery reliability and SLA.',
+        managerSummary: 'Performance fell below L1 Junior expectations across delivery reliability and SLA.',
         developmentFocus: '90-day structured Performance Improvement Plan (PIP) with weekly check-ins and SQL automation coaching.',
       },
     },
@@ -391,40 +492,105 @@ export function createInitialClientState() {
     return { ...r, ...scores };
   });
 
+  // Role-Scoped Seeded Activity Logs (strict visibilityScope per role)
   const auditLogs = [
     {
       id: 'aud-1',
       action: 'PUBLISH',
+      actorId: 'usr-hr',
       actorName: 'Pluem Srisuk',
-      reason: 'Early pilot verification completed for Engineering senior review.',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-nida',
+      targetManagerId: 'usr-mgr-eng',
+      reason: 'HR approved and published FY 2026 final outcome for Nida Phanich (5d early).',
       createdAt: daysAgo(1),
+    },
+    {
+      id: 'aud-2',
+      action: 'BIAS_ALERT_FLAGGED',
+      actorId: 'usr-hr',
+      actorName: 'Pluem Srisuk',
+      visibilityScope: 'HR_INTERNAL',
+      targetEmployeeId: 'usr-emp-art',
+      targetManagerId: 'usr-mgr-sales',
+      reason: 'Internal HR Alert: Sales team average (5.00) exceeds org benchmark (+0.88). Review recommended before publishing.',
+      createdAt: daysAgo(1),
+    },
+    {
+      id: 'aud-3',
+      action: 'MANAGER_APPROVED',
+      actorId: 'usr-mgr-prod',
+      actorName: 'Kanya Rattanapong',
+      visibilityScope: 'TEAM_MANAGER',
+      targetEmployeeId: 'usr-emp-nut',
+      targetManagerId: 'usr-mgr-prod',
+      reason: 'Submitted L1 Junior manager evaluation for Nattapong Meekul to HR queue (private until published).',
+      createdAt: daysAgo(2),
+    },
+    {
+      id: 'aud-4',
+      action: 'GOAL_REVISION_REQUESTED',
+      actorId: 'usr-mgr-prod',
+      actorName: 'Kanya Rattanapong',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-fah',
+      targetManagerId: 'usr-mgr-prod',
+      reason: 'Returned OKRs to Fah Prapaporn (Round 2) requesting measurable criteria for the 4 HR modules.',
+      createdAt: daysAgo(3),
+    },
+    {
+      id: 'aud-5',
+      action: 'SELF_REVIEW_SUBMITTED',
+      actorId: 'usr-emp-ton',
+      actorName: 'Tonrak Chaiyawat',
+      visibilityScope: 'PUBLIC_SELF',
+      targetEmployeeId: 'usr-emp-ton',
+      targetManagerId: 'usr-mgr-eng',
+      reason: 'Tonrak Chaiyawat submitted OKR achievements and self-review to Sarah Chen.',
+      createdAt: daysAgo(4),
+    },
+    {
+      id: 'aud-6',
+      action: 'UPDATE_STAGE_DEADLINES',
+      actorId: 'usr-hr',
+      actorName: 'Pluem Srisuk',
+      visibilityScope: 'CYCLE_GOVERNANCE',
+      targetEmployeeId: null,
+      targetManagerId: null,
+      reason: 'Configured 3-Stage Due Dates: Stage 1 OKR Draft, Stage 2 Manager 5d SLA, Stage 3 HRBP Audit & Publish window.',
+      createdAt: daysAgo(10),
+    },
+    {
+      id: 'aud-7',
+      action: 'USER_REGISTERED',
+      actorId: 'usr-super',
+      actorName: 'Kritnarin P.',
+      visibilityScope: 'ADMIN_SECURITY',
+      targetEmployeeId: 'usr-new-1',
+      targetManagerId: null,
+      reason: '4 new employee accounts (EMP-3091–EMP-3094) queued for Super Admin approval & role assignment.',
+      createdAt: daysAgo(2),
     },
   ];
 
-  // Exact 16-User 1-Office-Unit Roster:
-  // 1 Super Admin + 2 HR Admins + 3 Managers + 6 Active Employees + 4 Pending New Employees
+  // Exact 16-User 1-Office-Unit Roster with Job Leveling:
   const users = [
-    // 1 Super Admin
-    { id: 'usr-super', employeeCode: 'EMP-0001', name: 'Kritnarin P.', nameTh: 'กฤตนรินทร์ พ.', title: 'System Super Administrator', department: 'IT & Governance', role: 'SUPER_ADMIN', accountStatus: 'ACTIVE' },
-    // 2 HR Admins
-    { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
-    { id: 'usr-hr-2', employeeCode: 'EMP-1002', name: 'Siriporn Kamol', nameTh: 'ศิริพร กมล', title: 'HR Business Partner', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
-    // 3 Managers
-    { id: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', title: 'Engineering Manager', department: 'Engineering', role: 'MANAGER', accountStatus: 'ACTIVE' },
-    { id: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', title: 'Enterprise Sales Director', department: 'Sales', role: 'MANAGER', accountStatus: 'ACTIVE' },
-    { id: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', title: 'Head of Product', department: 'Product', role: 'MANAGER', accountStatus: 'ACTIVE' },
-    // 6 Active Employees
-    { id: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-may', employeeCode: 'EMP-3003', name: 'Mayuree Lim', nameTh: 'มยุรี ลิ้ม', title: 'Enterprise Account Executive', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-art', employeeCode: 'EMP-3004', name: 'Arthit Kongkiat', nameTh: 'อาทิตย์ ก้องเกียรติ', title: 'Account Executive', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    { id: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', title: 'Product Operations Analyst', department: 'Product', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
-    // 4 New Employees Pending Super Admin Approval (can be approved as HR_ADMIN, MANAGER, or EMPLOYEE)
-    { id: 'usr-new-1', employeeCode: 'EMP-3091', name: 'Pimchanok Darunee', nameTh: 'พิมพ์ชนก ดรุณี', title: 'Junior Data Analyst', department: 'Operations', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
-    { id: 'usr-new-2', employeeCode: 'EMP-3092', name: 'Tanapol Worawit', nameTh: 'ธนพล วรวิทย์', title: 'People & Culture Specialist', department: 'Human Resources', role: 'HR_ADMIN', accountStatus: 'PENDING_APPROVAL' },
-    { id: 'usr-new-3', employeeCode: 'EMP-3093', name: 'Chanya Suthida', nameTh: 'ชัญญา สุธิดา', title: 'Engineering Squad Lead', department: 'Engineering', role: 'MANAGER', accountStatus: 'PENDING_APPROVAL' },
-    { id: 'usr-new-4', employeeCode: 'EMP-3094', name: 'Warut Kittipong', nameTh: 'วรุตม์ กิตติพงศ์', title: 'Sales Representative', department: 'Sales', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-super', employeeCode: 'EMP-0001', name: 'Kritnarin P.', nameTh: 'กฤตนรินทร์ พ.', title: 'System Super Administrator', department: 'IT & Governance', jobLevel: 'L4_LEAD', role: 'SUPER_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', jobLevel: 'L4_LEAD', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-hr-2', employeeCode: 'EMP-1002', name: 'Siriporn Kamol', nameTh: 'ศิริพร กมล', title: 'HR Business Partner', department: 'Human Resources', jobLevel: 'L3_SENIOR', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', title: 'Engineering Manager', department: 'Engineering', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', title: 'Enterprise Sales Director', department: 'Sales', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', title: 'Head of Product', department: 'Product', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', title: 'Senior Backend Engineer', department: 'Engineering', jobLevel: 'L3_SENIOR', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', title: 'Frontend Engineer', department: 'Engineering', jobLevel: 'L2_MID', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-may', employeeCode: 'EMP-3003', name: 'Mayuree Lim', nameTh: 'มยุรี ลิ้ม', title: 'Enterprise Account Executive', department: 'Sales', jobLevel: 'L3_SENIOR', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-art', employeeCode: 'EMP-3004', name: 'Arthit Kongkiat', nameTh: 'อาทิตย์ ก้องเกียรติ', title: 'Account Executive', department: 'Sales', jobLevel: 'L2_MID', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', title: 'Product Designer', department: 'Product', jobLevel: 'L2_MID', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', title: 'Product Operations Analyst', department: 'Product', jobLevel: 'L1_JUNIOR', role: 'EMPLOYEE', accountStatus: 'ACTIVE' },
+    { id: 'usr-new-1', employeeCode: 'EMP-3091', name: 'Pimchanok Darunee', nameTh: 'พิมพ์ชนก ดรุณี', title: 'Junior Data Analyst', department: 'Operations', jobLevel: 'L1_JUNIOR', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-2', employeeCode: 'EMP-3092', name: 'Tanapol Worawit', nameTh: 'ธนพล วรวิทย์', title: 'People & Culture Specialist', department: 'Human Resources', jobLevel: 'L2_MID', role: 'HR_ADMIN', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-3', employeeCode: 'EMP-3093', name: 'Chanya Suthida', nameTh: 'ชัญญา สุธิดา', title: 'Engineering Squad Lead', department: 'Engineering', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'PENDING_APPROVAL' },
+    { id: 'usr-new-4', employeeCode: 'EMP-3094', name: 'Warut Kittipong', nameTh: 'วรุตม์ กิตติพงศ์', title: 'Sales Representative', department: 'Sales', jobLevel: 'L1_JUNIOR', role: 'EMPLOYEE', accountStatus: 'PENDING_APPROVAL' },
   ];
 
   const rolePermissions = structuredClone(DEFAULT_ROLE_PERMISSIONS);

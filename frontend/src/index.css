@@ -3,7 +3,7 @@
 /*
  * empeo Design System — "Nordic Slate & Electric Cobalt"
  * Strict WCAG 2.1 AA / APCA contrast, opaque surfaces only (zero glassmorphism),
- * 1px crisp hairlines, and tabular numerals for data alignment.
+ * 1px crisp hairlines, subtle enterprise polish, and tabular numerals.
  */
 :root {
   /* Surfaces & Canvas */
@@ -24,22 +24,31 @@
   --brand-primary-hover: #003ecc;
   --data-secondary: #6366f1;
 
-  /* Semantic Status Locked Pairs */
+  /* Semantic Status Locked Pairs (WCAG 2.1 AA >= 4.5:1) */
   --status-high-bg: #ecfdf5;
   --status-high-text: #065f46;
   --status-high-border: #a7f3d0;
+  --status-high-accent: #10b981;
 
-  --status-track-bg: #f0f9ff;
-  --status-track-text: #0369a1;
-  --status-track-border: #bae6fd;
+  --status-track-bg: #eff6ff;
+  --status-track-text: #1d4ed8;
+  --status-track-border: #bfdbfe;
+  --status-track-accent: #2563eb;
+
+  --status-indigo-bg: #eef2ff;
+  --status-indigo-text: #3730a3;
+  --status-indigo-border: #c7d2fe;
+  --status-indigo-accent: #4f46e5;
 
   --status-warn-bg: #fffbeb;
   --status-warn-text: #92400e;
   --status-warn-border: #fde68a;
+  --status-warn-accent: #d97706;
 
   --status-low-bg: #fef2f2;
   --status-low-text: #991b1b;
   --status-low-border: #fecaca;
+  --status-low-accent: #dc2626;
 
   /* Floating Layer Elevation (Opaque only) */
   --shadow-popover: 0 4px 12px rgba(15, 23, 42, 0.08);
@@ -76,4 +85,26 @@
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes empeo-live-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 82, 255, 0.35);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(0, 82, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 82, 255, 0);
+  }
+}
+
+.empeo-live-dot {
+  animation: empeo-live-ring 2.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empeo-live-dot {
+    animation: none;
+  }
 }

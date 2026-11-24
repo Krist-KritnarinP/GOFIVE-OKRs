@@ -15,7 +15,7 @@ export function AppShell({
   children,
 }) {
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
       <header className="sticky top-0 z-30 w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
         <div className="w-full px-4 sm:px-6 lg:px-8 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
           {/* Left: Text-only Wordmark, Cycle & Logged-in Employee Code */}
@@ -103,7 +103,7 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">{children}</main>
+      <main className="flex-1 w-full max-w-full min-w-0 overflow-x-clip px-4 sm:px-6 lg:px-8 py-6">{children}</main>
     </div>
   );
 }

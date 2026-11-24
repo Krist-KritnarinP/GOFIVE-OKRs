@@ -1,5 +1,8 @@
-import { Bell, CalendarPlus, ShieldAlert } from 'lucide-react';
+import { Bell, CalendarPlus, MessageSquarePlus, ShieldAlert } from 'lucide-react';
+import { getHrbpInterventionClient } from '../../constants/initialData.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
+import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
+import { ActivityLogPanel } from '../common/ActivityLogPanel.jsx';
 
 export function ExceptionQueue({
   reviews,
@@ -9,18 +12,22 @@ export function ExceptionQueue({
   onNudge,
   onOpenExtend,
   onOpenEscalate,
+  onOpenAdvisor,
 }) {
-  const overdueItems = reviews.filter((r) => r.isOverdue || r.escalatedToSkipLevel);
+  const alertItems = reviews.filter((r) => {
+    const intervention = getHrbpInterventionClient(r);
+    return r.isOverdue || r.escalatedToSkipLevel || intervention.needed;
+  });
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <section className="xl:col-span-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 min-w-0">
+      <section className="min-w-0 xl:col-span-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div>
           <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.exceptionsTitle}</h2>
           <p className="text-sm text-[var(--ink-secondary)]">{t.exceptionsSubtitle}</p>
         </div>
 
-        {overdueItems.length === 0 ? (
+        {alertItems.length === 0 ? (
           <p className="text-sm text-[var(--ink-secondary)] py-4">{t.noExceptions}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -34,88 +41,96 @@ export function ExceptionQueue({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
-                {overdueItems.map((rev) => (
-                  <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
-                    <td className="py-3 px-3 font-semibold text-[var(--ink-primary)]">
-                      {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
-                      <div className="text-xs font-normal text-[var(--ink-muted)]">{rev.employee.department}</div>
-                    </td>
-                    <td className="py-3 px-3 text-[var(--ink-secondary)]">
-                      {lang === 'th' ? rev.manager?.nameTh : rev.manager?.name}
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex flex-wrap gap-1.5">
-                        {rev.isOverdue && (
-                          <StatusBadge tone="warn">
-                            {rev.daysOverdue} {t.daysOverdue}
-                          </StatusBadge>
-                        )}
-                        {rev.escalatedToSkipLevel && (
-                          <StatusBadge tone="low">{t.status.ESCALATED}</StatusBadge>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center justify-end gap-2 flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => onNudge(rev.id)}
-                          className="inline-flex items-center gap-1.5 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
-                        >
-                          <Bell className="w-3.5 h-3.5" aria-hidden="true" />
-                          {t.nudgeBtn}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenExtend(rev)}
-                          className="inline-flex items-center gap-1.5 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
-                        >
-                          <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
-                          {t.extendBtn}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onOpenEscalate(rev)}
-                          className="inline-flex items-center gap-1.5 min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer"
-                          style={{
-                            backgroundColor: 'var(--status-low-bg)',
-                            color: 'var(--status-low-text)',
-                            borderColor: 'var(--status-low-border)',
-                          }}
-                        >
-                          <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
-                          {t.escalateBtn}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {alertItems.map((rev) => {
+                  const intervention = getHrbpInterventionClient(rev);
+                  const isPingPongStall = intervention.reasons.includes('PING_PONG_LIMIT');
+                  return (
+                    <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-[var(--ink-primary)]">
+                            {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                          </span>
+                          <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
+                        </div>
+                        <div className="text-xs text-[var(--ink-muted)]">{rev.employee.department}</div>
+                      </td>
+                      <td className="py-3 px-3 text-[var(--ink-secondary)]">
+                        {lang === 'th' ? rev.manager?.nameTh : rev.manager?.name}
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {rev.isOverdue && (
+                            <StatusBadge tone="warn">
+                              {rev.daysOverdue} {t.daysOverdue}
+                            </StatusBadge>
+                          )}
+                          {isPingPongStall && (
+                            <StatusBadge tone="indigo">
+                              {t.pingPongLimitBadge.replace('{r}', rev.revisionRound)}
+                            </StatusBadge>
+                          )}
+                          {rev.escalatedToSkipLevel && (
+                            <StatusBadge tone="low">{t.status.ESCALATED}</StatusBadge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => onOpenAdvisor(rev)}
+                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer"
+                            style={{
+                              backgroundColor: 'var(--status-indigo-bg)',
+                              color: 'var(--status-indigo-text)',
+                              borderColor: 'var(--status-indigo-border)',
+                            }}
+                          >
+                            <MessageSquarePlus className="w-3.5 h-3.5" aria-hidden="true" />
+                            {t.hrbpAdviseBtn}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onNudge(rev.id)}
+                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                          >
+                            <Bell className="w-3.5 h-3.5" aria-hidden="true" />
+                            {t.nudgeBtn}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenExtend(rev)}
+                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                          >
+                            <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
+                            {t.extendBtn}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenEscalate(rev)}
+                            className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer"
+                            style={{
+                              backgroundColor: 'var(--status-low-bg)',
+                              color: 'var(--status-low-text)',
+                              borderColor: 'var(--status-low-border)',
+                            }}
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />
+                            {t.escalateBtn}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </section>
 
-      {/* Audit Log Panel */}
-      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-3">
-        <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.auditLogTitle}</h2>
-        <ul className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
-          {auditLogs.map((log) => (
-            <li
-              key={log.id}
-              className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3 text-xs space-y-1"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-[var(--ink-primary)]">{log.action}</span>
-                <span className="text-[var(--ink-muted)] tabular-nums">
-                  {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <p className="text-[var(--ink-secondary)]">{log.reason}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ActivityLogPanel logs={auditLogs} role="HR_ADMIN" t={t} />
     </div>
   );
 }
