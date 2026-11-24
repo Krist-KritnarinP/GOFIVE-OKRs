@@ -4,6 +4,7 @@ import { filterActivityLogsForRole, getHrbpInterventionClient } from '../constan
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
+import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { NineBoxGrid } from '../components/hr/NineBoxGrid.jsx';
 import { OrgDistributionBar } from '../components/hr/OrgDistributionBar.jsx';
@@ -94,10 +95,11 @@ export function HrDashboardPage({
         </div>
       </div>
 
-      {/* 3-Stage Due Date Timeline Bar (Editable by HR with Countdown / Overdue / Early chips) */}
+      {/* 3-Stage Due Date Timeline Bar (Editable by HR with Real Pending Counts + Countdown / Overdue / Early chips) */}
       <StageStatusBar
         mode="cycle"
         cycle={cycle}
+        reviews={reviews}
         editable={canConfigure}
         onSaveDeadlines={onUpdateStageDeadlines}
         t={t}
@@ -168,21 +170,22 @@ export function HrDashboardPage({
       {/* Scannable 6-Column Org Roster with Job Level Badges */}
       <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.allEmployeesTitle}</h2>
+          <h2 id="hr-roster-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.allEmployeesTitle}</h2>
           <span className="text-xs font-semibold text-[var(--ink-muted)] tabular-nums">
             {t.cycleWeightsLabel}: What {cycle.whatWeight}% / How {cycle.howWeight}%
           </span>
         </div>
-        <div className="overflow-x-auto">
+        <TableRegion labelledBy="hr-roster-heading">
           <table className="w-full text-left border-collapse">
+            <caption className="visually-hidden">{t.allEmployeesTitle}</caption>
             <thead>
               <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
-                <th className="py-2.5 px-3">{t.colEmployee}</th>
-                <th className="py-2.5 px-3">{t.colDepartment}</th>
-                <th className="py-2.5 px-3">{t.colManager}</th>
-                <th className="py-2.5 px-3">{t.colStatus}</th>
-                <th className="py-2.5 px-3">{t.colScore}</th>
-                <th className="py-2.5 px-3 text-right">{t.colAction}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colDepartment}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colManager}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colStatus}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colScore}</th>
+                <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
@@ -250,7 +253,7 @@ export function HrDashboardPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </TableRegion>
       </section>
 
       {selectedReview && (

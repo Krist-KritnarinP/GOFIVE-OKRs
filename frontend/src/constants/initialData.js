@@ -23,6 +23,68 @@ export function computeStageTimingClient({ deadline, completedAt = null, now = n
   return { state: 'OVERDUE', days: Math.max(1, Math.ceil(Math.abs(remainingMs) / DAY_MS)) };
 }
 
+export function computeOverdueClient(review, cycle, now = new Date()) {
+  if (!review || !cycle || ['MANAGER_APPROVED', 'PUBLISHED'].includes(review.status)) {
+    return { isOverdue: false, daysOverdue: 0, missingActor: null };
+  }
+
+  const isEmployeeStage = [
+    'GOAL_DRAFT',
+    'GOAL_REVISION_REQUIRED',
+    'GOAL_APPROVED',
+    'REVIEW_REVISION_REQUIRED',
+  ].includes(review.status);
+
+  const stageDeadline = ['GOAL_DRAFT', 'GOAL_REVISION_REQUIRED'].includes(review.status)
+    ? cycle.stage1DraftDeadline || cycle.selfDeadline
+    : ['GOAL_PENDING_APPROVAL', 'SELF_REVIEW_SUBMITTED'].includes(review.status)
+      ? cycle.stage2ApprovalDeadline || cycle.managerDeadline
+      : cycle.selfDeadline;
+
+  const effectiveDeadline = review.extendedDeadline
+    ? new Date(review.extendedDeadline)
+    : new Date(stageDeadline);
+
+  const diffMs = now.getTime() - effectiveDeadline.getTime();
+  if (diffMs <= 0) {
+    return { isOverdue: false, daysOverdue: 0, missingActor: null };
+  }
+
+  return {
+    isOverdue: true,
+    daysOverdue: Math.max(1, Math.ceil(diffMs / DAY_MS)),
+    missingActor: isEmployeeStage ? 'EMPLOYEE' : 'MANAGER',
+  };
+}
+
+export function defaultManagerForDepartmentClient(department, users = []) {
+  const key = String(department || '').trim().toLowerCase();
+  const map = {
+    engineering: 'usr-mgr-eng',
+    sales: 'usr-mgr-sales',
+    product: 'usr-mgr-prod',
+    operations: 'usr-mgr-prod',
+    'human resources': 'usr-hr',
+  };
+  const mgrId = map[key] || 'usr-mgr-eng';
+  const found = users.find((u) => u.id === mgrId);
+  return found
+    ? {
+        id: found.id,
+        name: found.name,
+        nameTh: found.nameTh,
+        department: found.department,
+        jobLevel: found.jobLevel || 'L4_LEAD',
+      }
+    : {
+        id: 'usr-mgr-eng',
+        name: 'Sarah Chen',
+        nameTh: 'ซาร่า เฉิน',
+        department: 'Engineering',
+        jobLevel: 'L4_LEAD',
+      };
+}
+
 export function getHrbpInterventionClient(review) {
   if (!review || review.status === 'PUBLISHED') {
     return { needed: false, reasons: [] };

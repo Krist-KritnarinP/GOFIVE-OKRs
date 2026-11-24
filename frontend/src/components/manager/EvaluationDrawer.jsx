@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { AlertCircle, RotateCcw, X } from 'lucide-react';
 import { COMPETENCIES, RUBRIC_LEVELS } from '../../constants/rubric.js';
+import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { CommentHistoryPanel } from '../common/CommentHistoryPanel.jsx';
@@ -41,6 +42,8 @@ export function EvaluationDrawer({
   onSave,
   onReturnToEmployee,
 }) {
+  const uid = useId();
+  const titleId = `${uid}-title`;
   const [form, setForm] = useState(() => buildInitialForm(review));
   const [returnNote, setReturnNote] = useState('');
   const [showReturnBox, setShowReturnBox] = useState(false);
@@ -95,20 +98,15 @@ export function EvaluationDrawer({
   const isLocked = readOnly || review.status === 'PUBLISHED';
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex justify-end"
-      style={{ backgroundColor: 'var(--backdrop-overlay)' }}
-    >
-      <div className="w-full max-w-3xl h-full bg-[var(--surface-card)] border-l border-[var(--border-strong)] flex flex-col">
+    <ModalDialog isOpen labelledBy={titleId} variant="drawer" maxWidthClass="max-w-3xl" onClose={onClose}>
+      <div className="h-full bg-[var(--surface-card)] flex flex-col">
         {/* Drawer Header */}
         <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4 bg-[var(--surface-card)]">
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+              <h1 id={titleId} className="text-lg font-bold text-[var(--ink-primary)]">
                 {lang === 'th' ? review.employee.nameTh : review.employee.name}
-              </h2>
+              </h1>
               <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
               <StatusBadge tone={review.status === 'PUBLISHED' ? 'high' : review.isOverdue ? 'warn' : 'track'}>
                 {t.status[review.status]}
@@ -352,10 +350,10 @@ export function EvaluationDrawer({
                 <button
                   type="button"
                   onClick={handleConfirmReturn}
-                  className="min-h-9 px-3 rounded-md text-xs font-semibold text-white cursor-pointer"
-                  style={{ backgroundColor: '#B45309' }}
+                  className="min-h-10 px-3.5 rounded-md text-xs font-semibold text-white cursor-pointer"
+                  style={{ backgroundColor: 'var(--status-warn-solid)' }}
                 >
-                  {t.confirmBtn}
+                  {t.returnReviewBtn}
                 </button>
               </div>
             </div>
@@ -363,6 +361,7 @@ export function EvaluationDrawer({
 
           {errorMsg && (
             <div
+              role="alert"
               className="flex items-start gap-2 rounded-md border p-3 text-sm font-semibold"
               style={{
                 backgroundColor: 'var(--status-low-bg)',
@@ -423,6 +422,6 @@ export function EvaluationDrawer({
           )}
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 }

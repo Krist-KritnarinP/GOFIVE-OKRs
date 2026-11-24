@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { X } from 'lucide-react';
+import { ModalDialog } from '../common/ModalDialog.jsx';
 
 export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
+  const uid = useId();
+  const titleId = `${uid}-title`;
   const [form, setForm] = useState(() => ({
     id: initialGoal?.id || `g-${Date.now()}`,
     title: initialGoal?.title || '',
@@ -35,22 +38,17 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'var(--backdrop-overlay)' }}
-    >
-      <div className="w-full max-w-xl rounded-lg border border-[var(--border-strong)] bg-[var(--surface-card)] p-6 space-y-5">
+    <ModalDialog isOpen={isOpen} labelledBy={titleId} variant="center" maxWidthClass="max-w-xl" onClose={onClose}>
+      <div className="p-6 space-y-5">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+          <h1 id={titleId} className="text-lg font-bold text-[var(--ink-primary)]">
             {initialGoal ? t.goalModalEditTitle : t.goalModalAddTitle}
-          </h2>
+          </h1>
           <button
             type="button"
             onClick={onClose}
             aria-label={t.cancelBtn}
-            className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)] cursor-pointer"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)] cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -58,25 +56,30 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+            <label htmlFor={`${uid}-gtitle`} className="block text-sm font-semibold text-[var(--ink-primary)]">
               {t.goalTitleLabel}
             </label>
             <input
+              id={`${uid}-gtitle`}
+              name="title"
               type="text"
               required
+              autoFocus
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value, titleTh: e.target.value }))}
-              placeholder="e.g. Ship WCAG AA Accessibility Audit across 5 core HR screens"
-              className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
+              placeholder={t.goalTitlePlaceholder || 'e.g. Ship WCAG AA Audit across 5 core HR screens'}
+              className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-mtype`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalMetricTypeLabel}
               </label>
               <select
+                id={`${uid}-mtype`}
+                name="metricType"
                 value={form.metricType}
                 onChange={(e) => setForm((p) => ({ ...p, metricType: e.target.value }))}
                 className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
@@ -86,10 +89,12 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-due`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalDueDateLabel}
               </label>
               <input
+                id={`${uid}-due`}
+                name="dueDate"
                 type="date"
                 required
                 value={form.dueDate}
@@ -101,10 +106,12 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-target`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalTargetLabel}
               </label>
               <input
+                id={`${uid}-target`}
+                name="targetValue"
                 type="text"
                 required
                 value={form.targetValue}
@@ -114,10 +121,12 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-unit`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalUnitLabel}
               </label>
               <input
+                id={`${uid}-unit`}
+                name="unit"
                 type="text"
                 required
                 value={form.unit}
@@ -130,10 +139,12 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-weight`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalWeightLabel}
               </label>
               <input
+                id={`${uid}-weight`}
+                name="weight"
                 type="number"
                 min={5}
                 max={100}
@@ -145,10 +156,12 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-mult`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalMultiplierLabel}
               </label>
               <select
+                id={`${uid}-mult`}
+                name="multiplier"
                 value={form.multiplier}
                 onChange={(e) => setForm((p) => ({ ...p, multiplier: Number(e.target.value) }))}
                 className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
@@ -164,19 +177,19 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] cursor-pointer"
+              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-sm font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
             >
               {t.cancelBtn}
             </button>
             <button
               type="submit"
-              className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+              className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
             >
-              {t.confirmBtn}
+              {t.saveOkrBtn || t.confirmBtn}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </ModalDialog>
   );
 }

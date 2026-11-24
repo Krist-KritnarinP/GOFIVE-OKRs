@@ -2,6 +2,7 @@ import { Check, Lock, UserCheck } from 'lucide-react';
 import { JOB_LEVELS, PERMISSION_CATALOG, ROLES } from '../constants/roles.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
+import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 
 const ROLE_COLUMNS = [ROLES.SUPER_ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE];
@@ -133,18 +134,19 @@ export function SuperAdminPage({
       {/* Dynamic Role Permission Matrix */}
       <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div>
-          <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.permMatrixTitle}</h2>
+          <h2 id="super-perm-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.permMatrixTitle}</h2>
           <p className="text-sm text-[var(--ink-secondary)]">{t.permMatrixSubtitle}</p>
         </div>
 
-        <div className="overflow-x-auto">
+        <TableRegion labelledBy="super-perm-heading">
           <table className="w-full text-left border-collapse">
+            <caption className="visually-hidden">{t.permMatrixTitle}</caption>
             <thead>
               <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
-                <th className="py-3 px-3">Permission</th>
+                <th scope="col" className="py-3 px-3">{t.colPermission || 'Permission'}</th>
                 {ROLE_COLUMNS.map((role) => (
-                  <th key={role} className="py-3 px-3 text-center">
-                    {role}
+                  <th scope="col" key={role} className="py-3 px-3 text-center">
+                    {t.roleLabels?.[role] || role}
                   </th>
                 ))}
               </tr>
@@ -200,23 +202,24 @@ export function SuperAdminPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </TableRegion>
       </section>
 
       {/* Organization User Directory with Role + Job Level */}
       <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
-        <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.usersTableTitle}</h2>
-        <div className="overflow-x-auto">
+        <h2 id="super-users-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.usersTableTitle}</h2>
+        <TableRegion labelledBy="super-users-heading">
           <table className="w-full text-left border-collapse">
+            <caption className="visually-hidden">{t.usersTableTitle}</caption>
             <thead>
               <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
-                <th className="py-2.5 px-3">{t.colEmpCode}</th>
-                <th className="py-2.5 px-3">{t.colEmployee}</th>
-                <th className="py-2.5 px-3">{t.colDepartment}</th>
-                <th className="py-2.5 px-3">{t.colJobLevel}</th>
-                <th className="py-2.5 px-3">{t.colRole}</th>
-                <th className="py-2.5 px-3">{t.colAccountStatus}</th>
-                <th className="py-2.5 px-3 text-right">{t.colAction}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colEmpCode}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colDepartment}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colJobLevel}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colRole}</th>
+                <th scope="col" className="py-2.5 px-3">{t.colAccountStatus}</th>
+                <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
@@ -290,7 +293,7 @@ export function SuperAdminPage({
               ))}
             </tbody>
           </table>
-        </div>
+        </TableRegion>
       </section>
     </div>
   );

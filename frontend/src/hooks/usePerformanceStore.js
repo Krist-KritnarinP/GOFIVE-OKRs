@@ -1,8 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
 import {
   computeAnalytics,
+  computeOverdueClient,
   computeScoresClient,
   createInitialClientState,
+  defaultManagerForDepartmentClient,
 } from '../constants/initialData.js';
 import { DEMO_PERSONAS, ROLES } from '../constants/roles.js';
 
@@ -44,7 +46,12 @@ export function usePerformanceStore(t) {
 
   const dismissToast = useCallback(() => setToast(null), []);
 
-  const analytics = useMemo(() => computeAnalytics(reviews), [reviews]);
+  const enrichedReviews = useMemo(
+    () => reviews.map((r) => ({ ...r, ...computeOverdueClient(r, cycle) })),
+    [reviews, cycle]
+  );
+
+  const analytics = useMemo(() => computeAnalytics(enrichedReviews), [enrichedReviews]);
 
   const appendLog = useCallback(
     ({
@@ -193,6 +200,7 @@ export function usePerformanceStore(t) {
       }
 
       if (becameActiveEmployee) {
+        const assignedManager = defaultManagerForDepartmentClient(updated.department, users);
         setReviews((prev) => {
           if (prev.some((r) => r.employeeId === updated.id)) return prev;
           return [
@@ -200,7 +208,7 @@ export function usePerformanceStore(t) {
             {
               id: `rev-${updated.id}`,
               employeeId: updated.id,
-              managerId: 'usr-mgr-eng',
+              managerId: assignedManager.id,
               employee: {
                 id: updated.id,
                 name: updated.name,
@@ -209,13 +217,7 @@ export function usePerformanceStore(t) {
                 department: updated.department,
                 jobLevel: updated.jobLevel || 'L1_JUNIOR',
               },
-              manager: {
-                id: 'usr-mgr-eng',
-                name: 'Sarah Chen',
-                nameTh: 'ซาร่า เฉิน',
-                department: 'Engineering',
-                jobLevel: 'L4_LEAD',
-              },
+              manager: assignedManager,
               status: 'GOAL_DRAFT',
               revisionRound: 1,
               goalsSubmittedAt: null,
@@ -750,7 +752,7 @@ export function usePerformanceStore(t) {
 
   return {
     cycle,
-    reviews,
+    reviews: enrichedReviews,
     auditLogs,
     users,
     rolePermissions,

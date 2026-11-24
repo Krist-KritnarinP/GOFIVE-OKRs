@@ -5,6 +5,7 @@ import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
+import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 import { EvaluationDrawer } from '../components/manager/EvaluationDrawer.jsx';
 import { GoalApprovalDrawer } from '../components/manager/GoalApprovalDrawer.jsx';
@@ -79,7 +80,7 @@ export function ManagerWorkspacePage({
       </div>
 
       {/* 3-Stage Cycle SLA Status Bar */}
-      <StageStatusBar mode="cycle" cycle={cycle} editable={false} t={t} lang={lang} />
+      <StageStatusBar mode="cycle" cycle={cycle} reviews={teamReviews} editable={false} t={t} lang={lang} />
 
       {/* 3 Team KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -160,14 +161,15 @@ export function ManagerWorkspacePage({
       {/* Scannable Team Table + Team-Only Activity Log */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-w-0">
         <section className="min-w-0 xl:col-span-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
-          <div className="overflow-x-auto">
+          <TableRegion label={t.mgrTitle}>
             <table className="w-full text-left border-collapse">
+              <caption className="visually-hidden">{t.mgrTitle}</caption>
               <thead>
                 <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
-                  <th className="py-2.5 px-3">{t.colEmployee}</th>
-                  <th className="py-2.5 px-3">{t.colStatus}</th>
-                  <th className="py-2.5 px-3">{t.colScore}</th>
-                  <th className="py-2.5 px-3 text-right">{t.colAction}</th>
+                  <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
+                  <th scope="col" className="py-2.5 px-3">{t.colStatus}</th>
+                  <th scope="col" className="py-2.5 px-3">{t.colScore}</th>
+                  <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
@@ -243,7 +245,7 @@ export function ManagerWorkspacePage({
                 })}
               </tbody>
             </table>
-          </div>
+          </TableRegion>
         </section>
 
         <div className="xl:col-span-4">

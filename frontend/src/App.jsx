@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ROLES } from './constants/roles.js';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { ToastBar } from './components/common/ToastBar.jsx';
@@ -14,6 +15,24 @@ import { usePerformanceStore } from './hooks/usePerformanceStore.js';
 export function App() {
   const { lang, toggleLanguage, t } = useLanguage('en');
   const store = usePerformanceStore(t);
+
+  // Sync SPA document title per view (modern-web-guidance: accessibility §4)
+  useEffect(() => {
+    const pageName = !store.currentUser
+      ? store.authScreen === 'register'
+        ? t.registerTitle
+        : store.authScreen === 'demo-picker'
+          ? t.demoPickerTitle
+          : t.loginTitle
+      : store.activeRole === ROLES.SUPER_ADMIN
+        ? t.superTitle
+        : store.activeRole === ROLES.HR_ADMIN
+          ? t.hrTitle
+          : store.activeRole === ROLES.MANAGER
+            ? t.mgrTitle
+            : t.empTitle;
+    document.title = `${pageName} | ${t.appName}`;
+  }, [store.currentUser, store.authScreen, store.activeRole, t]);
 
   if (!store.currentUser) {
     if (store.authScreen === 'demo-picker') {

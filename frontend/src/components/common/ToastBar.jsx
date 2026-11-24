@@ -34,7 +34,7 @@ export function ToastBar({ toast, onDismiss }) {
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss notification"
-        className="inline-flex items-center justify-center w-7 h-7 rounded hover:bg-slate-800 text-white transition-colors duration-150 ease-out cursor-pointer"
+        className="inline-flex items-center justify-center w-10 h-10 rounded hover:bg-slate-800 text-white transition-colors duration-150 ease-out cursor-pointer shrink-0"
       >
         <X className="w-4 h-4" aria-hidden="true" />
       </button>

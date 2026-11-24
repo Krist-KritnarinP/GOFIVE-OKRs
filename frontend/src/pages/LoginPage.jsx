@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, Languages, Sparkles } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Languages, Sparkles } from 'lucide-react';
 
 export function LoginPage({
   t,
@@ -10,6 +10,7 @@ export function LoginPage({
 }) {
   const [employeeCode, setEmployeeCode] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
@@ -60,8 +61,14 @@ export function LoginPage({
               </label>
               <input
                 id="login-emp-code"
+                name="employeeCode"
                 type="text"
                 required
+                autoComplete="username"
+                autoCorrect="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                enterKeyHint="next"
                 value={employeeCode}
                 onChange={(e) => setEmployeeCode(e.target.value)}
                 placeholder={t.empCodePlaceholder}
@@ -73,15 +80,29 @@ export function LoginPage({
               <label htmlFor="login-password" className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.passwordLabel}
               </label>
-              <input
-                id="login-password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t.passwordPlaceholder}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3.5 text-base text-[var(--ink-primary)]"
-              />
+              <div className="relative flex items-center">
+                <input
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  enterKeyHint="done"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t.passwordPlaceholder}
+                  className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] pl-3.5 pr-12 text-base text-[var(--ink-primary)]"
+                />
+                <button
+                  type="button"
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? (t.hidePasswordLabel || 'Hide password') : (t.showPasswordLabel || 'Show password')}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-1 inline-flex items-center justify-center w-10 h-10 rounded-md text-[var(--ink-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -101,29 +122,18 @@ export function LoginPage({
 
             <button
               type="submit"
-              className="w-full min-h-11 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm sm:text-base font-semibold text-white transition-colors duration-150 cursor-pointer"
+              className="w-full min-h-11 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm sm:text-base font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
             >
               {t.signInBtn}
             </button>
           </form>
 
-          {/* Gold Bypass Demo Section */}
+          {/* Gold Bypass Demo Section — CSS Token Powered */}
           <div className="pt-5 border-t border-[var(--border-subtle)] space-y-3">
             <button
               type="button"
               onClick={onBypassDemo}
-              className="w-full min-h-12 px-4 rounded-md inline-flex items-center justify-center gap-2 text-base font-extrabold tracking-tight transition-colors duration-150 cursor-pointer"
-              style={{
-                backgroundColor: '#F59E0B',
-                color: '#0F172A',
-                border: '1px solid #B45309',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#D97706';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#F59E0B';
-              }}
+              className="demo-gold-btn w-full min-h-12 px-4 rounded-md inline-flex items-center justify-center gap-2 text-base font-extrabold tracking-tight active:scale-[0.98] transition-[background-color,transform] duration-150 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{t.bypassDemoBtn}</span>
@@ -138,7 +148,7 @@ export function LoginPage({
             <button
               type="button"
               onClick={onGoRegister}
-              className="font-semibold text-[var(--brand-primary)] hover:underline cursor-pointer"
+              className="min-h-10 px-2 font-semibold text-[var(--brand-primary)] hover:underline cursor-pointer"
             >
               {t.goToRegister}
             </button>

@@ -3,7 +3,7 @@
 /*
  * empeo Design System — "Nordic Slate & Electric Cobalt"
  * Strict WCAG 2.1 AA / APCA contrast, opaque surfaces only (zero glassmorphism),
- * 1px crisp hairlines, subtle enterprise polish, and tabular numerals.
+ * 1px crisp hairlines, semantic tokens (zero random hex), and tabular numerals.
  */
 :root {
   /* Surfaces & Canvas */
@@ -24,13 +24,20 @@
   --brand-primary-hover: #003ecc;
   --data-secondary: #6366f1;
 
+  /* Gold Demo Bypass Token */
+  --demo-gold-bg: #f59e0b;
+  --demo-gold-hover: #d97706;
+  --demo-gold-border: #b45309;
+
   /* Semantic Status Locked Pairs (WCAG 2.1 AA >= 4.5:1) */
   --status-high-bg: #ecfdf5;
+  --status-high-tint: #f7fefb;
   --status-high-text: #065f46;
   --status-high-border: #a7f3d0;
   --status-high-accent: #10b981;
 
   --status-track-bg: #eff6ff;
+  --status-track-tint: #f7faff;
   --status-track-text: #1d4ed8;
   --status-track-border: #bfdbfe;
   --status-track-accent: #2563eb;
@@ -44,6 +51,7 @@
   --status-warn-text: #92400e;
   --status-warn-border: #fde68a;
   --status-warn-accent: #d97706;
+  --status-warn-solid: #b45309;
 
   --status-low-bg: #fef2f2;
   --status-low-text: #991b1b;
@@ -72,6 +80,16 @@
     overflow-x: hidden;
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   ::placeholder {
     color: var(--ink-muted);
     opacity: 1;
@@ -83,8 +101,44 @@
   }
 }
 
+/* Native <dialog> modal scroll containment (modern-web-guidance: dialog) */
+dialog:modal {
+  overscroll-behavior: contain;
+  max-width: none;
+  max-height: none;
+}
+
+dialog::backdrop {
+  background-color: var(--backdrop-overlay);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Visually hidden utility with focus-within reveal for skip links (modern-web-guidance: accessibility) */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+.demo-gold-btn {
+  background-color: var(--demo-gold-bg);
+  color: var(--ink-primary);
+  border: 1px solid var(--demo-gold-border);
+}
+
+.demo-gold-btn:hover {
+  background-color: var(--demo-gold-hover);
 }
 
 @keyframes empeo-live-ring {

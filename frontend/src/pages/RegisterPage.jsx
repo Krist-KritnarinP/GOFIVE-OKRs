@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { AlertCircle, CheckCircle2, Languages } from 'lucide-react';
+import { useId, useState } from 'react';
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Languages } from 'lucide-react';
 
 export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin }) {
+  const uid = useId();
   const [form, setForm] = useState({
     employeeCode: 'EMP-4001',
     name: '',
@@ -9,6 +10,7 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
     title: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submittedUser, setSubmittedUser] = useState(null);
 
@@ -16,11 +18,11 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
     e.preventDefault();
     setError('');
     if (!/^[A-Z]{2,6}-\d{3,6}$/i.test(form.employeeCode.trim())) {
-      setError('Employee code format must be e.g. EMP-4001');
+      setError(t.regErrCodeFormat || 'Employee code format must be e.g. EMP-4001.');
       return;
     }
     if (form.password.length < 8) {
-      setError('Password must be at least 8 characters.');
+      setError(t.regErrPasswordMin || 'Password must be at least 8 characters.');
       return;
     }
     const res = onRegister(form);
@@ -90,38 +92,48 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    <label htmlFor={`${uid}-code`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                       {t.empCodeLabel}
                     </label>
                     <input
+                      id={`${uid}-code`}
+                      name="employeeCode"
                       type="text"
                       required
+                      autoComplete="username"
+                      autoCorrect="off"
+                      spellCheck={false}
                       value={form.employeeCode}
                       onChange={(e) => setForm((p) => ({ ...p, employeeCode: e.target.value }))}
                       placeholder="EMP-4001"
-                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] uppercase tabular-nums"
+                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)] uppercase tabular-nums"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    <label htmlFor={`${uid}-name`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                       {t.fullNameLabel}
                     </label>
                     <input
+                      id={`${uid}-name`}
+                      name="name"
                       type="text"
                       required
+                      autoComplete="name"
                       value={form.name}
                       onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
+                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    <label htmlFor={`${uid}-dept`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                       {t.departmentLabel}
                     </label>
                     <select
+                      id={`${uid}-dept`}
+                      name="department"
                       value={form.department}
                       onChange={(e) => setForm((p) => ({ ...p, department: e.target.value }))}
                       className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
@@ -134,34 +146,57 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    <label htmlFor={`${uid}-title`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                       {t.jobTitleLabel}
                     </label>
                     <input
+                      id={`${uid}-title`}
+                      name="title"
                       type="text"
                       required
+                      autoComplete="organization-title"
                       value={form.title}
                       onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
+                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold text-[var(--ink-primary)]">
-                    {t.passwordLabel} (min 8 chars)
+                  <label htmlFor={`${uid}-pwd`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    {t.passwordLabel}
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={form.password}
-                    onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                    className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
-                  />
+                  <p id={`${uid}-pwd-hint`} className="text-xs text-[var(--ink-muted)]">
+                    {t.passwordHint || 'At least 8 characters.'}
+                  </p>
+                  <div className="relative flex items-center">
+                    <input
+                      id={`${uid}-pwd`}
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      aria-describedby={`${uid}-pwd-hint`}
+                      value={form.password}
+                      onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] pl-3 pr-12 text-base text-[var(--ink-primary)]"
+                    />
+                    <button
+                      type="button"
+                      aria-pressed={showPassword}
+                      aria-label={showPassword ? (t.hidePasswordLabel || 'Hide password') : (t.showPasswordLabel || 'Show password')}
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-1 inline-flex items-center justify-center w-10 h-10 rounded-md text-[var(--ink-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                    </button>
+                  </div>
                 </div>
 
                 {error && (
                   <div
+                    role="alert"
                     className="flex items-start gap-2 rounded-md border p-3 text-sm font-semibold"
                     style={{
                       backgroundColor: 'var(--status-low-bg)',
@@ -184,7 +219,7 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
                   </button>
                   <button
                     type="submit"
-                    className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+                    className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
                   >
                     {t.registerBtn}
                   </button>
