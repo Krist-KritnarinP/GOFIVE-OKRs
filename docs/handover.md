@@ -54,8 +54,8 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
 ## 5. Open Items & Active Phased Hardening (2026-11-24)
 1. **4-Phase Skill-Audited Quality Hardening (`GOFIVE-OKRs.git`):**
    - **Phase A (Docs & Rules Sync):** DONE (`docs/rules/00`, `03`, `docs/note.md`, `docs/plan.md`, `docs/agent-hub/01-api-contract.md`, `docs/handover.md`)
-   - **Phase B (Backend State Guards & Dept Manager Mapping):** IN PROGRESS NEXT
-   - **Phase C (Native `<dialog>`, Dynamic Overdue, Local Date Parsing, Table/Form A11y):** PENDING
+   - **Phase B (Backend State Guards & Dept Manager Mapping):** DONE (`9/9` backend tests pass)
+   - **Phase C (Native `<dialog>`, Dynamic Overdue, Local Date Parsing, Table/Form A11y):** IN PROGRESS NEXT
    - **Phase D (Zero Raw Enum Badges, 100% EN/TH Copy, Segmented Status Track, UI Craft Polish):** PENDING
 2. **Public Deployment:** Deploy frontend & backend preview link (set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` [32+ chars], `CORS_ORIGINS`, `NODE_ENV=production` on backend host, and `VITE_API_BASE_URL` on frontend host).
 3. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Updated with all 3 real AI collaboration examples for Q3.

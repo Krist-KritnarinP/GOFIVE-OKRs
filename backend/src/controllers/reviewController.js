@@ -196,6 +196,9 @@ export function decideEmployeeGoals(req, res) {
   if (!isAssignedManager && !isAdmin) {
     return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the assigned manager can review these OKRs.' } });
   }
+  if (review.status !== 'GOAL_PENDING_APPROVAL') {
+    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'OKRs can only be approved or returned while pending manager approval.' } });
+  }
 
   const { decision, comment, adjustedGoals } = req.validatedBody;
   const isApprove = decision === 'APPROVE';
@@ -333,6 +336,9 @@ export function returnSelfReviewToEmployee(req, res) {
   const isAdmin = req.user.role === 'HR_ADMIN' || req.user.role === 'SUPER_ADMIN';
   if (!isAssignedManager && !isAdmin) {
     return res.status(403).json({ ok: false, error: { code: 'FORBIDDEN', message: 'Only the assigned manager can return this self-review.' } });
+  }
+  if (review.status !== 'SELF_REVIEW_SUBMITTED') {
+    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'Only submitted self-reviews can be returned to the employee.' } });
   }
 
   const nextRound = (review.revisionRound || 1) + 1;

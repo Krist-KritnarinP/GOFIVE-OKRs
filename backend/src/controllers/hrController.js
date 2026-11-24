@@ -216,6 +216,9 @@ export function returnReviewToManager(req, res) {
   if (!review) {
     return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
   }
+  if (review.status !== 'MANAGER_APPROVED') {
+    return res.status(409).json({ ok: false, error: { code: 'CONFLICT', message: 'Only manager-approved reviews can be returned to the manager.' } });
+  }
 
   updateReview(reviewId, {
     status: 'SELF_REVIEW_SUBMITTED',

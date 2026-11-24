@@ -10,6 +10,19 @@ import {
   getUsers,
 } from '../services/storeService.js';
 
+const DEPT_MANAGER_MAP = {
+  engineering: 'usr-mgr-eng',
+  sales: 'usr-mgr-sales',
+  product: 'usr-mgr-prod',
+  operations: 'usr-mgr-prod',
+  'human resources': 'usr-hr',
+};
+
+function defaultManagerForDepartment(department) {
+  const key = String(department || '').trim().toLowerCase();
+  return DEPT_MANAGER_MAP[key] || 'usr-mgr-eng';
+}
+
 export function toPublicUser(user) {
   return {
     id: user.id,
@@ -78,7 +91,7 @@ export async function register(req, res) {
     jobLevel: jobLevel || 'L2_MID',
     role: 'EMPLOYEE',
     accountStatus: 'PENDING_APPROVAL',
-    managerId: 'usr-mgr-eng',
+    managerId: defaultManagerForDepartment(department),
   });
 
   appendAuditLog({

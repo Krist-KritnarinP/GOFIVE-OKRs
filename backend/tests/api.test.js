@@ -350,3 +350,49 @@ test('Auth & Super Admin Dynamic RBAC: Register -> Pending -> Approve with JobLe
     assert.equal(deniedPublish.json.error.code, 'FORBIDDEN');
   });
 });
+
+test('State Guards & Dept Manager Mapping: Published reviews reject mutations with 409 and Sales register maps to Sales Manager', async () => {
+  await withServer(async ({ req, tokenFor }) => {
+    const mgrToken = await tokenFor('usr-mgr-eng');
+    const hrToken = await tokenFor('usr-hr');
+
+    // rev-nida is PUBLISHED — all 3 return/decision endpoints must reject with 409 CONFLICT
+    const goalDec = await req('/reviews/rev-nida/goals/decision', {
+      method: 'POST',
+      token: mgrToken,
+      body: { decision: 'REQUEST_REVISION', comment: 'Trying to reopen published goals.' },
+    });
+    assert.equal(goalDec.status, 409);
+    assert.equal(goalDec.json.error.code, 'CONFLICT');
+
+    const retEmp = await req('/reviews/rev-nida/return-to-employee', {
+      method: 'POST',
+      token: mgrToken,
+      body: { comment: 'Trying to return published self-review.' },
+    });
+    assert.equal(retEmp.status, 409);
+    assert.equal(retEmp.json.error.code, 'CONFLICT');
+
+    const retMgr = await req('/hr/reviews/rev-nida/return-to-manager', {
+      method: 'POST',
+      token: hrToken,
+      body: { comment: 'Trying to return published review to manager.' },
+    });
+    assert.equal(retMgr.status, 409);
+    assert.equal(retMgr.json.error.code, 'CONFLICT');
+
+    // Registering a Sales employee assigns Sales Manager (usr-mgr-sales)
+    const regSales = await req('/auth/register', {
+      method: 'POST',
+      body: {
+        employeeCode: 'EMP-4099',
+        name: 'Suda Sales',
+        department: 'Sales',
+        title: 'Account Executive',
+        password: 'SalesUserPass123!',
+      },
+    });
+    assert.equal(regSales.status, 201);
+    assert.equal(regSales.json.data.user.managerId, 'usr-mgr-sales');
+  });
+});
