@@ -40,3 +40,14 @@
    - *Real Example #1 (Uninstalled Heavy Libraries):* AI initially installed `motion` (Framer Motion) and `recharts`. We **rejected and uninstalled both** (-49 packages, -140 kB) to guarantee `0ms` instant UI and crisp pure HTML/Tailwind Grid rendering for the 9-Box Grid and Distribution Bar.
    - *Real Example #2 (Caught Premature Coding & Demanded Research-Backed Pushback):* When discussing OKR/KPI ping-pong and Calibration, AI jumped straight into coding without challenging risks first. We stopped, demanded Devil's Advocate analysis backed by real HR research (*Scullen et al. 2000* IRE study, Google re:Work OKR Sandbagging trap, SHRM/Culture Amp SLA & HRBP facilitation), and **threw out** the premature v1 `Lock Calibration` button (adopting lean Approach A + Job Leveling + Manager Co-Edit + 3-Stage SLA + HRBP Advisor Comment instead).
    - *Real Example #3 (Enforced Real Skill Auditing):* Caught AI skipping installed skills (`0%` usage on a sprint) and forced a full-site review using `modern-web-guidance`, `interface-design`, `ux-writing`, and `ponytail-review`, which uncovered real bugs (UTC+7 date shift, false `"Done on time"` cycle chips, missing `<dialog>` Escape/focus containment, missing backend `PUBLISHED` state guards, and raw `SCREAMING_SNAKE_CASE` enum leaks in UI badges).
+
+---
+
+## 3. Next Session UI/UX Polish Backlog (Pinned by User — Do NOT Execute Until Confirmed)
+1. **Activity Log Placement:** Move `ActivityLogPanel` to the **very bottom** of every role page (`SuperAdminPage`, `HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`) so primary workflows stay top-of-page and logs sit cleanly at the footer.
+2. **Important Dropdowns — Category & Hierarchy Coloring:** Upgrade critical dropdown selectors (e.g., Role assignment, Job Level `L1–L4`, Difficulty Multiplier `1.0x/1.1x/1.2x`, Self Score `1–5`, Measurement Type) with clear visual category/tier color coding or hierarchy cues so users can tell seniority/impact levels apart at a glance.
+3. **Return Cards, Toast & Error Copy Audit (`ux-writing` + Live Check):** Review every **return/ping-pong card** (Manager returning OKRs/Self-Review, HR returning to Manager, HRBP Advisor Note), **Toast notification**, and **inline/form error message** (EN & TH) to verify:
+   - Is the returned reason immediately clear?
+   - Is every error explicit about *what failed*, *why*, and *the exact next step to fix it*?
+   - Can users act and resolve it effortlessly?
+4. **Post-Phase D Browser QA:** Run a quick Desktop (`1440px`) + Mobile (`375px`) visual verification after completing items 1–3 above.
