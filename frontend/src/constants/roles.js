@@ -103,9 +103,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 };
 
 export const EMPLOYEE_DEMO_SWITCHES = [
+  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Goal Ping-Pong · Edit OKRs', tagTh: 'ปิงปองแก้ OKR' },
   { userId: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', tag: 'Published Star', tagTh: 'ประกาศผลแล้ว' },
-  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Locked · Pending HR', tagTh: 'รอฝ่ายบุคคลประกาศ' },
-  { userId: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', tag: 'Pending Manager · Overdue', tagTh: 'รอหัวหน้าประเมิน' },
+  { userId: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', tag: 'Calibration Locked', tagTh: 'รอฝ่ายบุคคลประกาศ' },
+  { userId: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', tag: 'Pending Manager', tagTh: 'รอหัวหน้าประเมิน' },
 ];
 
 export const MANAGER_DEMO_SWITCHES = [

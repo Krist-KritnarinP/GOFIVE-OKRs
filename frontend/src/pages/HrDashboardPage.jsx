@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, Lock, Send } from 'lucide-react';
+import { Clock, Lock, RotateCcw, Send, ShieldCheck } from 'lucide-react';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { NineBoxGrid } from '../components/hr/NineBoxGrid.jsx';
@@ -20,6 +20,8 @@ export function HrDashboardPage({
   onNudge,
   onExtendDeadline,
   onEscalate,
+  onHrReturnToManager,
+  onLockCalibration,
   onPublishReady,
   onSaveEvaluation,
 }) {
@@ -29,12 +31,13 @@ export function HrDashboardPage({
   const canConfigure = can ? can('cycle:configure') : true;
   const canPublish = can ? can('review:publish') : true;
 
-  const completed = reviews.filter(
-    (r) => r.status === 'READY_FOR_RELEASE' || r.status === 'PUBLISHED'
+  const completed = reviews.filter((r) =>
+    ['MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(r.status)
   ).length;
   const completionPct = reviews.length > 0 ? Math.round((completed / reviews.length) * 100) : 0;
   const overdueCount = reviews.filter((r) => r.isOverdue).length;
-  const readyCount = reviews.filter((r) => r.status === 'READY_FOR_RELEASE').length;
+  const pendingCalibrationCount = reviews.filter((r) => r.status === 'MANAGER_APPROVED').length;
+  const readyToPublishCount = reviews.filter((r) => r.status === 'CALIBRATION_LOCKED').length;
 
   return (
     <div className="w-full space-y-6">
@@ -68,15 +71,27 @@ export function HrDashboardPage({
             <span>{t.lockToggleLabel}: {cycle.isLocked ? 'ON' : 'OFF'}</span>
           </button>
 
+          {/* Calibration Lock Gate */}
           <button
             type="button"
-            disabled={readyCount === 0 || !canPublish}
+            disabled={pendingCalibrationCount === 0 || !canPublish}
+            onClick={onLockCalibration}
+            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed tabular-nums"
+          >
+            <ShieldCheck className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
+            <span>{t.lockCalibrationCta} ({pendingCalibrationCount})</span>
+          </button>
+
+          {/* Primary CTA: Publish ONLY Calibration-Locked Results */}
+          <button
+            type="button"
+            disabled={readyToPublishCount === 0 || !canPublish}
             onClick={onPublishReady}
             title={!canPublish ? t.permDeniedBanner : undefined}
             className="inline-flex items-center gap-2 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] disabled:border disabled:border-[var(--border-subtle)] text-sm font-semibold text-white transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed tabular-nums"
           >
             <Send className="w-4 h-4" aria-hidden="true" />
-            <span>{t.publishAllCta} ({readyCount})</span>
+            <span>{t.publishAllCta} ({readyToPublishCount})</span>
           </button>
         </div>
       </div>
@@ -118,12 +133,7 @@ export function HrDashboardPage({
       {/* 9-Box Grid + Distribution & Bias Alerts */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-7">
-          <NineBoxGrid
-            reviews={reviews}
-            t={t}
-            lang={lang}
-            onSelectReview={setSelectedReview}
-          />
+          <NineBoxGrid reviews={reviews} t={t} lang={lang} onSelectReview={setSelectedReview} />
         </div>
         <div className="xl:col-span-5">
           <OrgDistributionBar
@@ -146,7 +156,7 @@ export function HrDashboardPage({
         onOpenEscalate={(rev) => setModalAction({ type: 'ESCALATE', review: rev })}
       />
 
-      {/* Scannable 6-Column Org Roster */}
+      {/* Scannable 6-Column Org Roster (with HR Calibration Return action) */}
       <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.allEmployeesTitle}</h2>
@@ -181,11 +191,9 @@ export function HrDashboardPage({
                       tone={
                         rev.status === 'PUBLISHED'
                           ? 'high'
-                          : rev.isOverdue
+                          : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED'].includes(rev.status) || rev.isOverdue
                             ? 'warn'
-                            : rev.status === 'READY_FOR_RELEASE'
-                              ? 'track'
-                              : 'neutral'
+                            : 'track'
                       }
                     >
                       {t.status[rev.status]}
@@ -197,13 +205,30 @@ export function HrDashboardPage({
                       : '—'}
                   </td>
                   <td className="py-3 px-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedReview(rev)}
-                      className="min-h-9 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
-                    >
-                      {t.inspectBtn}
-                    </button>
+                    <div className="inline-flex items-center gap-2">
+                      {rev.status === 'MANAGER_APPROVED' && canPublish && (
+                        <button
+                          type="button"
+                          onClick={() => setModalAction({ type: 'HR_RETURN', review: rev })}
+                          className="inline-flex items-center gap-1 min-h-9 px-2.5 rounded-md border text-xs font-semibold cursor-pointer"
+                          style={{
+                            backgroundColor: 'var(--status-warn-bg)',
+                            color: 'var(--status-warn-text)',
+                            borderColor: 'var(--status-warn-border)',
+                          }}
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>{t.hrReturnMgrBtn}</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReview(rev)}
+                        className="min-h-9 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                      >
+                        {t.inspectBtn}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -229,13 +254,17 @@ export function HrDashboardPage({
         title={
           modalAction?.type === 'EXTEND'
             ? `${t.extendBtn} — ${modalAction.review.employee.name}`
-            : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
+            : modalAction?.type === 'HR_RETURN'
+              ? `${t.hrReturnMgrBtn} — ${modalAction.review.employee.name}`
+              : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
         }
         t={t}
         onClose={() => setModalAction(null)}
         onConfirm={(reason) => {
           if (modalAction.type === 'EXTEND') {
             onExtendDeadline(modalAction.review.id, reason);
+          } else if (modalAction.type === 'HR_RETURN') {
+            onHrReturnToManager(modalAction.review.id, reason);
           } else {
             onEscalate(modalAction.review.id, reason);
           }

@@ -85,6 +85,8 @@ export function App() {
           onNudge={store.handleNudge}
           onExtendDeadline={store.handleExtendDeadline}
           onEscalate={store.handleEscalate}
+          onHrReturnToManager={store.handleHrReturnToManager}
+          onLockCalibration={store.handleLockCalibration}
           onPublishReady={store.handlePublishReady}
           onSaveEvaluation={store.handleSaveManagerEvaluation}
         />
@@ -98,6 +100,8 @@ export function App() {
           onSelectManager={store.setActiveManagerId}
           t={t}
           lang={lang}
+          onDecideGoals={store.handleDecideEmployeeGoals}
+          onReturnToEmployee={store.handleReturnReviewToEmployee}
           onSaveEvaluation={store.handleSaveManagerEvaluation}
         />
       )}
@@ -110,6 +114,7 @@ export function App() {
           onSelectEmployee={store.setActiveEmployeeId}
           t={t}
           lang={lang}
+          onSubmitGoals={store.handleSubmitEmployeeGoals}
           onSubmitSelfReview={store.handleSubmitSelfReview}
         />
       )}

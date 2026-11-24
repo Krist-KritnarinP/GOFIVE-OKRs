@@ -50,32 +50,88 @@ test('RBAC: Employee cannot access HR overview and Manager cannot read another t
   });
 });
 
-test('Security Gate: Employee cannot see manager scores before HR publishes results', async () => {
+test('Security Gate: Employee cannot see manager scores even in CALIBRATION_LOCKED until PUBLISHED', async () => {
   await withServer(async ({ req, tokenFor }) => {
-    // Fah is READY_FOR_RELEASE (not published yet)
-    const fahToken = await tokenFor('usr-emp-fah');
-    const beforeRes = await req('/reviews/me', { token: fahToken });
+    // Nut is CALIBRATION_LOCKED (not published yet)
+    const nutToken = await tokenFor('usr-emp-nut');
+    const beforeRes = await req('/reviews/me', { token: nutToken });
     assert.equal(beforeRes.status, 200);
     assert.equal(beforeRes.json.data.review.resultsLocked, true);
     assert.equal(beforeRes.json.data.review.overallScore, null);
     assert.equal(beforeRes.json.data.review.managerPayload, null);
 
-    // HR publishes Fah's review
+    // HR publishes Nut's calibrated review
     const hrToken = await tokenFor('usr-hr');
     const pubRes = await req('/hr/cycles/cycle-fy2026/publish', {
       method: 'POST',
       token: hrToken,
-      body: { reviewIds: ['rev-fah'] },
+      body: { reviewIds: ['rev-nut'] },
     });
     assert.equal(pubRes.status, 200);
     assert.equal(pubRes.json.data.publishedCount, 1);
 
-    // Now Fah sees full scores and 9-box placement
-    const afterRes = await req('/reviews/me', { token: fahToken });
+    // Now Nut sees full scores and 9-box placement
+    const afterRes = await req('/reviews/me', { token: nutToken });
     assert.equal(afterRes.status, 200);
     assert.equal(afterRes.json.data.review.resultsLocked, false);
     assert.equal(typeof afterRes.json.data.review.overallScore, 'number');
     assert.ok(afterRes.json.data.review.nineBoxCell);
+  });
+});
+
+test('Full Goal Setting Ping-Pong (Weight=100% + Revision History) & Calibration Lock Flow', async () => {
+  await withServer(async ({ req, tokenFor }) => {
+    const fahToken = await tokenFor('usr-emp-fah');
+    const mgrToken = await tokenFor('usr-mgr-prod');
+    const hrToken = await tokenFor('usr-hr');
+
+    // 1. Submitting goals with total weight !== 100 returns 400
+    const badWeight = await req('/reviews/rev-fah/goals', {
+      method: 'PUT',
+      token: fahToken,
+      body: {
+        goals: [
+          { title: 'Goal A', metricType: 'QUANTITATIVE', targetValue: '88', unit: 'SUS', weight: 60, multiplier: 1.1, dueDate: '2026-10-31' },
+        ],
+        submit: true,
+      },
+    });
+    assert.equal(badWeight.status, 400);
+
+    // 2. Employee submits valid 100% goals (Ping-Pong Round 2)
+    const okGoals = await req('/reviews/rev-fah/goals', {
+      method: 'PUT',
+      token: fahToken,
+      body: {
+        goals: [
+          { title: 'Redesign Leave UX', metricType: 'QUALITATIVE', targetValue: '88', unit: 'SUS Score', weight: 50, multiplier: 1.1, dueDate: '2026-10-31' },
+          { title: 'Unify Tokens + WCAG Audit', metricType: 'QUANTITATIVE', targetValue: '100', unit: '% pass', weight: 50, multiplier: 1.0, dueDate: '2026-11-30' },
+        ],
+        comment: 'Updated targets per Round 1 feedback.',
+        submit: true,
+      },
+    });
+    assert.equal(okGoals.status, 200);
+    assert.equal(okGoals.json.data.review.status, 'GOAL_PENDING_APPROVAL');
+    assert.ok(okGoals.json.data.review.commentHistory.length >= 3);
+
+    // 3. Manager approves goals
+    const approveGoals = await req('/reviews/rev-fah/goals/decision', {
+      method: 'POST',
+      token: mgrToken,
+      body: { decision: 'APPROVE', comment: 'Aligned and ambitious. Approved!' },
+    });
+    assert.equal(approveGoals.status, 200);
+    assert.equal(approveGoals.json.data.review.status, 'GOAL_APPROVED');
+
+    // 4. HR locks calibration for MANAGER_APPROVED reviews (rev-may, rev-art)
+    const calRes = await req('/hr/cycles/cycle-fy2026/calibrate', {
+      method: 'POST',
+      token: hrToken,
+      body: { reviewIds: ['rev-may'], note: 'Verified enterprise revenue numbers.' },
+    });
+    assert.equal(calRes.status, 200);
+    assert.equal(calRes.json.data.calibratedCount, 1);
   });
 });
 
@@ -123,7 +179,7 @@ test('Fairness Guardrail: Manager rating of 5 or 1 without >= 20 char evidence r
       },
     });
     assert.equal(okRes.status, 200);
-    assert.equal(okRes.json.data.review.status, 'READY_FOR_RELEASE');
+    assert.equal(okRes.json.data.review.status, 'MANAGER_APPROVED');
     assert.ok(okRes.json.data.review.nineBoxCell);
   });
 });

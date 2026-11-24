@@ -21,10 +21,20 @@ enum AccountStatus {
   SUSPENDED
 }
 
+enum MetricType {
+  QUANTITATIVE
+  QUALITATIVE
+}
+
 enum ReviewStatus {
-  DRAFT
+  GOAL_DRAFT
+  GOAL_PENDING_APPROVAL
+  GOAL_REVISION_REQUIRED
+  GOAL_APPROVED
   SELF_REVIEW_SUBMITTED
-  READY_FOR_RELEASE
+  REVIEW_REVISION_REQUIRED
+  MANAGER_APPROVED
+  CALIBRATION_LOCKED
   PUBLISHED
 }
 
@@ -104,8 +114,14 @@ model Goal {
   employee    User        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   title       String
   titleTh     String
+  metricType  MetricType  @default(QUANTITATIVE)
+  targetValue String      @default("100")
+  unit        String      @default("%")
   metric      String
   weight      Int
+  multiplier  Float       @default(1.0)
+  dueDate     DateTime?
+  actualValue String?
   progressPct Int         @default(0)
 
   createdAt DateTime @default(now())
@@ -120,9 +136,11 @@ model Review {
   employee             User         @relation("EmployeeReviews", fields: [employeeId], references: [id], onDelete: Cascade)
   managerId            String?
   manager              User?        @relation("ManagerReviews", fields: [managerId], references: [id])
-  status               ReviewStatus @default(DRAFT)
+  status               ReviewStatus @default(GOAL_DRAFT)
+  revisionRound        Int          @default(1)
   selfPayload          Json?
   managerPayload       Json?
+  commentHistory       Json?
   whatPct              Float?
   whatScore            Float?
   howScore             Float?
@@ -130,6 +148,7 @@ model Review {
   nineBoxCell          NineBoxCell?
   selfSubmittedAt      DateTime?
   managerSubmittedAt   DateTime?
+  calibratedAt         DateTime?
   extendedDeadline     DateTime?
   escalatedToSkipLevel Boolean      @default(false)
   lastNudgedAt         DateTime?

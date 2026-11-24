@@ -6,6 +6,19 @@ import {
 } from '../constants/initialData.js';
 import { DEMO_PERSONAS, ROLES } from '../constants/roles.js';
 
+function makeComment(review, { phase, actorName, actorRole, action, comment }) {
+  return {
+    id: `cmt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    round: review.revisionRound || 1,
+    phase,
+    actorName,
+    actorRole,
+    action,
+    comment,
+    createdAt: new Date().toISOString(),
+  };
+}
+
 export function usePerformanceStore(t) {
   const initial = useMemo(() => createInitialClientState(), []);
   const [cycle, setCycle] = useState(initial.cycle);
@@ -17,13 +30,12 @@ export function usePerformanceStore(t) {
     Object.fromEntries(initial.users.map((u) => [u.employeeCode, 'DemoPass123!']))
   );
 
-  // Auth state — starts on Login page so evaluators see the full Employee Code + Password flow
   const [currentUser, setCurrentUser] = useState(null);
   const [authScreen, setAuthScreen] = useState('login');
 
   const [activeRole, setActiveRole] = useState(ROLES.HR_ADMIN);
   const [activeManagerId, setActiveManagerId] = useState('usr-mgr-eng');
-  const [activeEmployeeId, setActiveEmployeeId] = useState('usr-emp-nida');
+  const [activeEmployeeId, setActiveEmployeeId] = useState('usr-emp-fah');
   const [toast, setToast] = useState(null);
 
   const showToast = useCallback((message, tone = 'success') => {
@@ -161,7 +173,6 @@ export function usePerformanceStore(t) {
         })
       );
 
-      // Provision a starter DRAFT review when a new employee is approved as EMPLOYEE
       if (approvedEmployee) {
         setReviews((prev) => {
           if (prev.some((r) => r.employeeId === approvedEmployee.id)) return prev;
@@ -184,30 +195,15 @@ export function usePerformanceStore(t) {
                 nameTh: 'ซาร่า เฉิน',
                 department: 'Engineering',
               },
-              status: 'DRAFT',
+              status: 'GOAL_DRAFT',
+              revisionRound: 1,
+              commentHistory: [],
               isOverdue: false,
               daysOverdue: 0,
               escalatedToSkipLevel: false,
               lastNudgedAt: null,
               extendedDeadline: null,
-              goals: [
-                {
-                  id: `g-${approvedEmployee.id}-1`,
-                  title: 'Complete 90-day onboarding & role KPI alignment',
-                  titleTh: 'ผ่านการปฐมนิเทศ 90 วันและกำหนดเป้าหมาย KPI ประจำตำแหน่ง',
-                  metric: '100% milestones',
-                  weight: 50,
-                  progressPct: 60,
-                },
-                {
-                  id: `g-${approvedEmployee.id}-2`,
-                  title: 'Deliver first quarter departmental objective',
-                  titleTh: 'ส่งมอบเป้าหมายหลักของแผนกในไตรมาสแรก',
-                  metric: 'On-time delivery',
-                  weight: 50,
-                  progressPct: 55,
-                },
-              ],
+              goals: [],
               selfPayload: null,
               managerPayload: null,
               whatPct: null,
@@ -229,18 +225,11 @@ export function usePerformanceStore(t) {
     (role, permissionKey) => {
       if (role === ROLES.SUPER_ADMIN && permissionKey === 'rbac:manage') return;
       setRolePermissions((prev) => {
-        const current = Boolean(prev[role]?.[permissionKey]);
-        const nextVal = !current;
-        appendLog(
-          'UPDATE_ROLE_PERMISSION',
-          `Set ${role} -> ${permissionKey} = ${nextVal ? 'ALLOW' : 'DENY'}`
-        );
+        const nextVal = !prev[role]?.[permissionKey];
+        appendLog('UPDATE_ROLE_PERMISSION', `Set ${role} -> ${permissionKey} = ${nextVal ? 'ALLOW' : 'DENY'}`);
         return {
           ...prev,
-          [role]: {
-            ...prev[role],
-            [permissionKey]: nextVal,
-          },
+          [role]: { ...prev[role], [permissionKey]: nextVal },
         };
       });
       showToast(t.toastPermUpdated, 'success');
@@ -248,85 +237,117 @@ export function usePerformanceStore(t) {
     [appendLog, showToast, t.toastPermUpdated]
   );
 
-  const handleToggleGracePeriod = useCallback(() => {
-    setCycle((prev) => {
-      const next = !prev.isGracePeriodActive;
-      appendLog(
-        next ? 'ENABLE_GRACE_PERIOD' : 'DISABLE_GRACE_PERIOD',
-        next ? 'Enabled cycle grace period for late submissions.' : 'Disabled cycle grace period.'
-      );
-      return { ...prev, isGracePeriodActive: next };
-    });
-    showToast(t.toastCycleUpdated, 'success');
-  }, [appendLog, showToast, t.toastCycleUpdated]);
-
-  const handleToggleLockCycle = useCallback(() => {
-    setCycle((prev) => {
-      const next = !prev.isLocked;
-      appendLog(
-        next ? 'LOCK_CYCLE' : 'UNLOCK_CYCLE',
-        next ? 'Locked annual review cycle.' : 'Reopened annual review cycle.'
-      );
-      return { ...prev, isLocked: next };
-    });
-    showToast(t.toastCycleUpdated, 'warning');
-  }, [appendLog, showToast, t.toastCycleUpdated]);
-
-  const handleNudge = useCallback(
-    (reviewId) => {
-      const nowIso = new Date().toISOString();
+  // Phase A: Employee builds / edits OKR/KPI goals and submits (Weight = 100%) to Manager
+  const handleSubmitEmployeeGoals = useCallback(
+    (reviewId, goals, note = '') => {
       setReviews((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, lastNudgedAt: nowIso } : r))
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const nextRound = r.status === 'GOAL_REVISION_REQUIRED' ? (r.revisionRound || 1) + 1 : r.revisionRound || 1;
+          const updatedRev = { ...r, revisionRound: nextRound };
+          const entry = makeComment(updatedRev, {
+            phase: 'GOAL',
+            actorName: r.employee.name,
+            actorRole: 'EMPLOYEE',
+            action: 'GOAL_SUBMITTED',
+            comment: note.trim() || `Submitted ${goals.length} OKR/KPI goal(s) totaling 100% weight for manager approval.`,
+          });
+          return {
+            ...updatedRev,
+            goals,
+            status: 'GOAL_PENDING_APPROVAL',
+            commentHistory: [...(r.commentHistory || []), entry],
+          };
+        })
       );
-      appendLog('NUDGE', `Sent overdue reminder nudge for ${reviewId}.`);
-      showToast(t.toastNudged, 'success');
+      showToast(t.toastGoalsSubmitted, 'success');
     },
-    [appendLog, showToast, t.toastNudged]
+    [showToast, t.toastGoalsSubmitted]
   );
 
-  const handleExtendDeadline = useCallback(
-    (reviewId, reason) => {
-      const extended = new Date(Date.now() + 5 * 86400000).toISOString();
+  // Phase A Ping-Pong: Manager Approves Goals or Returns for Revision
+  const handleDecideEmployeeGoals = useCallback(
+    (reviewId, decision, comment) => {
       setReviews((prev) =>
-        prev.map((r) =>
-          r.id === reviewId
-            ? { ...r, extendedDeadline: extended, isOverdue: false, daysOverdue: 0 }
-            : r
-        )
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const isApprove = decision === 'APPROVE';
+          const entry = makeComment(r, {
+            phase: 'GOAL',
+            actorName: currentUser?.name || r.manager?.name || 'Manager',
+            actorRole: activeRole,
+            action: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUESTED',
+            comment: comment?.trim() || (isApprove ? 'Approved all OKR/KPI goals for execution.' : 'Please revise goals.'),
+          });
+          return {
+            ...r,
+            status: isApprove ? 'GOAL_APPROVED' : 'GOAL_REVISION_REQUIRED',
+            commentHistory: [...(r.commentHistory || []), entry],
+          };
+        })
       );
-      appendLog('EXTEND_DEADLINE', `${reason} (+5 days for ${reviewId})`);
-      showToast(t.toastExtended, 'success');
+      showToast(decision === 'APPROVE' ? t.toastGoalsApproved : t.toastGoalsReturned, decision === 'APPROVE' ? 'success' : 'warning');
     },
-    [appendLog, showToast, t.toastExtended]
+    [currentUser, activeRole, showToast, t.toastGoalsApproved, t.toastGoalsReturned]
   );
 
-  const handleEscalate = useCallback(
-    (reviewId, reason) => {
+  // Phase B: Employee submits Actual + Description + Self Score (1-5) per goal
+  const handleSubmitSelfReview = useCallback(
+    (reviewId, selfPayload, updatedGoals) => {
       setReviews((prev) =>
-        prev.map((r) => (r.id === reviewId ? { ...r, escalatedToSkipLevel: true } : r))
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const entry = makeComment(r, {
+            phase: 'REVIEW',
+            actorName: r.employee.name,
+            actorRole: 'EMPLOYEE',
+            action: 'SELF_REVIEW_SUBMITTED',
+            comment: selfPayload.reflection || 'Submitted actual results, achievement notes, and self scores.',
+          });
+          return {
+            ...r,
+            goals: updatedGoals || r.goals,
+            selfPayload,
+            status: 'SELF_REVIEW_SUBMITTED',
+            isOverdue: false,
+            daysOverdue: 0,
+            commentHistory: [...(r.commentHistory || []), entry],
+          };
+        })
       );
-      appendLog('ESCALATE', `${reason} (${reviewId})`);
-      showToast(t.toastEscalated, 'warning');
+      showToast(t.toastSelfSubmitted, 'success');
     },
-    [appendLog, showToast, t.toastEscalated]
+    [showToast, t.toastSelfSubmitted]
   );
 
-  const handlePublishReady = useCallback(() => {
-    const nowIso = new Date().toISOString();
-    let count = 0;
-    setReviews((prev) =>
-      prev.map((r) => {
-        if (r.status === 'READY_FOR_RELEASE') {
-          count += 1;
-          return { ...r, status: 'PUBLISHED', publishedAt: nowIso };
-        }
-        return r;
-      })
-    );
-    appendLog('PUBLISH', `Published ${count || 'ready'} review(s) to employees.`);
-    showToast(t.toastPublished, 'success');
-  }, [appendLog, showToast, t.toastPublished]);
+  // Phase C Ping-Pong: Manager returns Self-Review to Employee for more evidence
+  const handleReturnReviewToEmployee = useCallback(
+    (reviewId, comment) => {
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const nextRound = (r.revisionRound || 1) + 1;
+          const updated = { ...r, revisionRound: nextRound };
+          const entry = makeComment(updated, {
+            phase: 'REVIEW',
+            actorName: currentUser?.name || r.manager?.name || 'Manager',
+            actorRole: activeRole,
+            action: 'REVIEW_REVISION_REQUESTED',
+            comment,
+          });
+          return {
+            ...updated,
+            status: 'REVIEW_REVISION_REQUIRED',
+            commentHistory: [...(r.commentHistory || []), entry],
+          };
+        })
+      );
+      showToast(t.toastReviewReturned, 'warning');
+    },
+    [currentUser, activeRole, showToast, t.toastReviewReturned]
+  );
 
+  // Phase C: Manager evaluates and forwards to HR Calibration
   const handleSaveManagerEvaluation = useCallback(
     (reviewId, managerPayload, submit) => {
       setReviews((prev) =>
@@ -338,39 +359,161 @@ export function usePerformanceStore(t) {
             competencyRatings: managerPayload.competencyRatings,
             cycle,
           });
+          const nextHistory = submit
+            ? [
+                ...(r.commentHistory || []),
+                makeComment(r, {
+                  phase: 'REVIEW',
+                  actorName: currentUser?.name || r.manager?.name || 'Manager',
+                  actorRole: activeRole,
+                  action: 'MANAGER_APPROVED',
+                  comment: managerPayload.managerSummary || 'Evaluation approved and forwarded to HR Calibration.',
+                }),
+              ]
+            : r.commentHistory || [];
           return {
             ...r,
             managerPayload,
             ...scores,
-            status: submit ? 'READY_FOR_RELEASE' : r.status,
+            status: submit ? 'MANAGER_APPROVED' : r.status,
             isOverdue: submit ? false : r.isOverdue,
             daysOverdue: submit ? 0 : r.daysOverdue,
+            commentHistory: nextHistory,
           };
         })
       );
       showToast(t.toastEvalSaved, 'success');
     },
-    [cycle, showToast, t.toastEvalSaved]
+    [cycle, currentUser, activeRole, showToast, t.toastEvalSaved]
   );
 
-  const handleSubmitSelfReview = useCallback(
-    (reviewId, selfPayload) => {
+  // Phase D: HR Returns review to Manager during Calibration (e.g., Bias Alert)
+  const handleHrReturnToManager = useCallback(
+    (reviewId, comment) => {
       setReviews((prev) =>
-        prev.map((r) =>
-          r.id === reviewId
-            ? {
-                ...r,
-                selfPayload,
-                status: 'SELF_REVIEW_SUBMITTED',
-                isOverdue: false,
-                daysOverdue: 0,
-              }
-            : r
-        )
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const nextRound = (r.revisionRound || 1) + 1;
+          const updated = { ...r, revisionRound: nextRound };
+          const entry = makeComment(updated, {
+            phase: 'CALIBRATION',
+            actorName: currentUser?.name || 'HR Admin',
+            actorRole: 'HR_ADMIN',
+            action: 'HR_RETURNED_TO_MANAGER',
+            comment,
+          });
+          return {
+            ...updated,
+            status: 'SELF_REVIEW_SUBMITTED',
+            commentHistory: [...(r.commentHistory || []), entry],
+          };
+        })
       );
-      showToast(t.toastSelfSubmitted, 'success');
+      appendLog('HR_RETURN_TO_MANAGER', `${comment} (${reviewId})`);
+      showToast(t.toastHrReturned, 'warning');
     },
-    [showToast, t.toastSelfSubmitted]
+    [currentUser, appendLog, showToast, t.toastHrReturned]
+  );
+
+  // Phase D: HR Locks Calibration (MANAGER_APPROVED -> CALIBRATION_LOCKED)
+  const handleLockCalibration = useCallback(() => {
+    let count = 0;
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.status !== 'MANAGER_APPROVED') return r;
+        count += 1;
+        const entry = makeComment(r, {
+          phase: 'CALIBRATION',
+          actorName: currentUser?.name || 'HR Admin',
+          actorRole: 'HR_ADMIN',
+          action: 'CALIBRATION_LOCKED',
+          comment: 'Cross-team calibration completed and locked prior to publication.',
+        });
+        return {
+          ...r,
+          status: 'CALIBRATION_LOCKED',
+          commentHistory: [...(r.commentHistory || []), entry],
+        };
+      })
+    );
+    appendLog('CALIBRATION_LOCKED', `Locked calibration for ${count || 'approved'} review(s).`);
+    showToast(t.toastCalibrated, 'success');
+  }, [currentUser, appendLog, showToast, t.toastCalibrated]);
+
+  // Phase D: HR Publishes Calibrated Results (CALIBRATION_LOCKED -> PUBLISHED)
+  const handlePublishReady = useCallback(() => {
+    const nowIso = new Date().toISOString();
+    let count = 0;
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.status !== 'CALIBRATION_LOCKED') return r;
+        count += 1;
+        const entry = makeComment(r, {
+          phase: 'RELEASE',
+          actorName: currentUser?.name || 'HR Admin',
+          actorRole: 'HR_ADMIN',
+          action: 'PUBLISHED',
+          comment: 'Final calibrated annual review result published to employee.',
+        });
+        return {
+          ...r,
+          status: 'PUBLISHED',
+          publishedAt: nowIso,
+          commentHistory: [...(r.commentHistory || []), entry],
+        };
+      })
+    );
+    appendLog('PUBLISH', `Published ${count || 'calibrated'} review(s) to employees.`);
+    showToast(t.toastPublished, 'success');
+  }, [currentUser, appendLog, showToast, t.toastPublished]);
+
+  const handleToggleGracePeriod = useCallback(() => {
+    setCycle((prev) => {
+      const next = !prev.isGracePeriodActive;
+      appendLog(next ? 'ENABLE_GRACE_PERIOD' : 'DISABLE_GRACE_PERIOD', next ? 'Enabled grace period.' : 'Disabled grace period.');
+      return { ...prev, isGracePeriodActive: next };
+    });
+    showToast(t.toastCycleUpdated, 'success');
+  }, [appendLog, showToast, t.toastCycleUpdated]);
+
+  const handleToggleLockCycle = useCallback(() => {
+    setCycle((prev) => {
+      const next = !prev.isLocked;
+      appendLog(next ? 'LOCK_CYCLE' : 'UNLOCK_CYCLE', next ? 'Locked review cycle.' : 'Reopened review cycle.');
+      return { ...prev, isLocked: next };
+    });
+    showToast(t.toastCycleUpdated, 'warning');
+  }, [appendLog, showToast, t.toastCycleUpdated]);
+
+  const handleNudge = useCallback(
+    (reviewId) => {
+      const nowIso = new Date().toISOString();
+      setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, lastNudgedAt: nowIso } : r)));
+      appendLog('NUDGE', `Sent overdue reminder nudge for ${reviewId}.`);
+      showToast(t.toastNudged, 'success');
+    },
+    [appendLog, showToast, t.toastNudged]
+  );
+
+  const handleExtendDeadline = useCallback(
+    (reviewId, reason) => {
+      const extended = new Date(Date.now() + 5 * 86400000).toISOString();
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? { ...r, extendedDeadline: extended, isOverdue: false, daysOverdue: 0 } : r))
+      );
+      appendLog('EXTEND_DEADLINE', `${reason} (+5 days for ${reviewId})`);
+      showToast(t.toastExtended, 'success');
+    },
+    [appendLog, showToast, t.toastExtended]
+  );
+
+  const handleEscalate = useCallback(
+    (reviewId, reason) => {
+      setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, escalatedToSkipLevel: true } : r)));
+      appendLog('ESCALATE', `${reason} (${reviewId})`);
+      showToast(t.toastEscalated, 'warning');
+    },
+    [appendLog, showToast, t.toastEscalated]
   );
 
   return {
@@ -399,13 +542,18 @@ export function usePerformanceStore(t) {
     handleEnterAsUser,
     handleUpdateUser,
     handleTogglePermission,
+    handleSubmitEmployeeGoals,
+    handleDecideEmployeeGoals,
+    handleSubmitSelfReview,
+    handleReturnReviewToEmployee,
+    handleSaveManagerEvaluation,
+    handleHrReturnToManager,
+    handleLockCalibration,
+    handlePublishReady,
     handleToggleGracePeriod,
     handleToggleLockCycle,
     handleNudge,
     handleExtendDeadline,
     handleEscalate,
-    handlePublishReady,
-    handleSaveManagerEvaluation,
-    handleSubmitSelfReview,
   };
 }

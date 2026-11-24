@@ -31,10 +31,12 @@ export function computeReviewScores({ goals, goalRatings, competencyRatings, cyc
   for (const rating of goalRatings) {
     const goal = goalMap.get(rating.goalId);
     const weight = goal ? goal.weight : 1;
+    const multiplier = goal?.multiplier ?? 1.0;
+    // Apply difficulty multiplier (1.0x / 1.1x / 1.2x) capped at 5.0 max for fairness
+    const adjustedScore = Math.min(5, rating.score * multiplier);
     totalWeight += weight;
-    weightedGoalScore += rating.score * weight;
-    // Combine objective goal progress with manager goal rating so X-axis reflects real delivery
-    const ratingPct = (rating.score / 5) * 100;
+    weightedGoalScore += adjustedScore * weight;
+    const ratingPct = (adjustedScore / 5) * 100;
     const blendedPct = goal ? goal.progressPct * 0.6 + ratingPct * 0.4 : ratingPct;
     weightedProgress += blendedPct * weight;
   }
@@ -131,13 +133,24 @@ export function computeBiasAlerts(reviews, usersMap) {
 }
 
 export function getOverdueInfo(review, cycle, now = new Date()) {
-  if (review.status === 'READY_FOR_RELEASE' || review.status === 'PUBLISHED') {
+  if (
+    review.status === 'MANAGER_APPROVED' ||
+    review.status === 'CALIBRATION_LOCKED' ||
+    review.status === 'PUBLISHED'
+  ) {
     return { isOverdue: false, daysOverdue: 0, missingActor: null };
   }
 
+  const isEmployeeStage = [
+    'GOAL_DRAFT',
+    'GOAL_REVISION_REQUIRED',
+    'GOAL_APPROVED',
+    'REVIEW_REVISION_REQUIRED',
+  ].includes(review.status);
+
   const effectiveDeadline = review.extendedDeadline
     ? new Date(review.extendedDeadline)
-    : review.status === 'DRAFT'
+    : isEmployeeStage
       ? new Date(cycle.selfDeadline)
       : new Date(cycle.managerDeadline);
 
@@ -147,7 +160,7 @@ export function getOverdueInfo(review, cycle, now = new Date()) {
   }
 
   const daysOverdue = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-  const missingActor = review.status === 'DRAFT' ? 'EMPLOYEE' : 'MANAGER';
+  const missingActor = isEmployeeStage ? 'EMPLOYEE' : 'MANAGER';
   return { isOverdue: true, daysOverdue, missingActor };
 }
 

@@ -76,7 +76,10 @@ async function main() {
     await prisma.goal.upsert({
       where: { id: goal.id },
       update: {},
-      create: goal,
+      create: {
+        ...goal,
+        dueDate: goal.dueDate ? new Date(goal.dueDate) : null,
+      },
     });
   }
 
@@ -90,8 +93,10 @@ async function main() {
         employeeId: rev.employeeId,
         managerId: rev.managerId,
         status: rev.status,
+        revisionRound: rev.revisionRound ?? 1,
         selfPayload: rev.selfPayload,
         managerPayload: rev.managerPayload,
+        commentHistory: rev.commentHistory ?? [],
         whatPct: rev.whatPct,
         whatScore: rev.whatScore,
         howScore: rev.howScore,
@@ -99,6 +104,7 @@ async function main() {
         nineBoxCell: rev.nineBoxCell,
         selfSubmittedAt: rev.selfSubmittedAt ? new Date(rev.selfSubmittedAt) : null,
         managerSubmittedAt: rev.managerSubmittedAt ? new Date(rev.managerSubmittedAt) : null,
+        calibratedAt: rev.calibratedAt ? new Date(rev.calibratedAt) : null,
         publishedAt: rev.publishedAt ? new Date(rev.publishedAt) : null,
       },
     });

@@ -64,11 +64,62 @@ export const updateCycleSchema = z
     { message: 'whatWeight and howWeight must sum to 100.', path: ['whatWeight'] }
   );
 
+export const goalItemSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().trim().min(3, 'Goal title is required.').max(200),
+  titleTh: z.string().trim().max(200).optional(),
+  metricType: z.enum(['QUANTITATIVE', 'QUALITATIVE']).default('QUANTITATIVE'),
+  targetValue: z.string().trim().min(1, 'Target value is required.').max(80),
+  unit: z.string().trim().min(1, 'Unit is required.').max(40),
+  weight: z.coerce.number().int().min(5).max(100),
+  multiplier: z.coerce.number().refine((v) => [1, 1.1, 1.2].includes(v), {
+    message: 'Multiplier must be 1.0, 1.1, or 1.2.',
+  }).default(1.0),
+  dueDate: z.string().min(4, 'Target hit date is required.'),
+  progressPct: z.coerce.number().int().min(0).max(100).default(0),
+});
+
+export const submitGoalsSchema = z
+  .object({
+    goals: z.array(goalItemSchema).min(1, 'At least one goal is required.').max(10),
+    comment: z.string().trim().max(1000).default(''),
+    submit: z.boolean().default(true),
+  })
+  .refine(
+    (data) => {
+      if (!data.submit) return true;
+      const sum = data.goals.reduce((acc, g) => acc + g.weight, 0);
+      return sum === 100;
+    },
+    { message: 'Total goal weight must equal exactly 100% before submission.', path: ['goals'] }
+  );
+
+export const goalDecisionSchema = z
+  .object({
+    decision: z.enum(['APPROVE', 'REQUEST_REVISION']),
+    comment: z.string().trim().max(1000).default(''),
+  })
+  .refine(
+    (data) => data.decision === 'APPROVE' || data.comment.trim().length >= 5,
+    { message: 'Please provide a revision comment (min 5 characters) when returning goals.', path: ['comment'] }
+  );
+
+export const reviewReturnSchema = z.object({
+  comment: z.string().trim().min(5, 'Revision comment must be at least 5 characters.').max(1000),
+});
+
+export const calibrateSchema = z.object({
+  reviewIds: z.array(z.string().min(1)).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+
 export const selfReviewSchema = z.object({
   goalAssessments: z
     .array(
       z.object({
         goalId: z.string().min(1),
+        actualValue: z.string().trim().max(120).optional(),
+        progressPct: z.coerce.number().int().min(0).max(100).optional(),
         selfScore: scoreField,
         selfEvidence: z.string().trim().max(1000).default(''),
       })

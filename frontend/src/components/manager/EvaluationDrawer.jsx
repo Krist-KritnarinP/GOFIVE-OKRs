@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, RotateCcw, X } from 'lucide-react';
 import { COMPETENCIES, RUBRIC_LEVELS } from '../../constants/rubric.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
+import { CommentHistoryPanel } from '../common/CommentHistoryPanel.jsx';
 
 function buildInitialForm(review) {
   const goalRatings = review.goals.map((g) => {
@@ -30,8 +31,18 @@ function buildInitialForm(review) {
   };
 }
 
-export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, onSave }) {
+export function EvaluationDrawer({
+  review,
+  readOnly = false,
+  t,
+  lang,
+  onClose,
+  onSave,
+  onReturnToEmployee,
+}) {
   const [form, setForm] = useState(() => buildInitialForm(review));
+  const [returnNote, setReturnNote] = useState('');
+  const [showReturnBox, setShowReturnBox] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const updateGoal = (goalId, patch) => {
@@ -68,6 +79,15 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
       }
     }
     onSave(review.id, form, submit);
+    onClose();
+  };
+
+  const handleConfirmReturn = () => {
+    if (returnNote.trim().length < 5) {
+      setErrorMsg(t.revisionCommentPlaceholder);
+      return;
+    }
+    onReturnToEmployee(review.id, returnNote.trim());
     onClose();
   };
 
@@ -126,6 +146,8 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
               const selfGoal = review.selfPayload?.goalAssessments?.find((a) => a.goalId === goal.id);
               const selectedRubric = RUBRIC_LEVELS[(rating?.score || 3) - 1];
               const needsEvidence = rating && (rating.score <= 2 || rating.score === 5);
+              const mult = goal.multiplier || 1.0;
+              const effectiveScore = Math.min(5, (rating?.score || 3) * mult).toFixed(2);
 
               return (
                 <div
@@ -138,12 +160,18 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
                         {lang === 'th' ? goal.titleTh : goal.title}
                       </p>
                       <p className="text-xs text-[var(--ink-muted)] tabular-nums">
-                        KPI: {goal.metric} · Weight {goal.weight}% · Progress {goal.progressPct}%
+                        {goal.metricType || 'QUANTITATIVE'} · Target: {goal.targetValue || goal.metric} {goal.unit || ''} · Weight {goal.weight}% · Multiplier {mult}x · Hit: {goal.dueDate || '—'}
                       </p>
+                      {goal.actualValue && (
+                        <p className="text-xs font-semibold text-[var(--ink-primary)] mt-0.5 tabular-nums">
+                          {t.actualAchievedLabel}: {goal.actualValue} ({goal.progressPct}%)
+                        </p>
+                      )}
                     </div>
-                    {selfGoal && (
-                      <StatusBadge tone="neutral">Self: {selfGoal.selfScore}/5</StatusBadge>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {selfGoal && <StatusBadge tone="neutral">Self: {selfGoal.selfScore}/5</StatusBadge>}
+                      <StatusBadge tone="track">Eff: {effectiveScore}</StatusBadge>
+                    </div>
                   </div>
 
                   {selfGoal?.selfEvidence && (
@@ -177,12 +205,10 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
                     </span>
                   </div>
 
-                  {/* Shared Behavioral Anchor */}
                   <p className="text-xs text-[var(--ink-secondary)] border-l-2 border-[var(--brand-primary)] pl-2.5">
                     {lang === 'th' ? selectedRubric.anchorTh : selectedRubric.anchor}
                   </p>
 
-                  {/* Evidence Box */}
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <label className="font-semibold text-[var(--ink-primary)]">
@@ -291,6 +317,48 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
             </div>
           </div>
 
+          {/* Revision & Comment History */}
+          <CommentHistoryPanel history={review.commentHistory || []} t={t} />
+
+          {/* Optional Ping-Pong Return Box */}
+          {!isLocked && onReturnToEmployee && showReturnBox && (
+            <div
+              className="rounded-md border p-4 space-y-2.5"
+              style={{
+                backgroundColor: 'var(--status-warn-bg)',
+                borderColor: 'var(--status-warn-border)',
+              }}
+            >
+              <label className="block text-sm font-bold" style={{ color: 'var(--status-warn-text)' }}>
+                {t.returnReviewBtn} — {t.revisionCommentLabel}
+              </label>
+              <textarea
+                rows={2}
+                value={returnNote}
+                onChange={(e) => setReturnNote(e.target.value)}
+                placeholder={t.revisionCommentPlaceholder}
+                className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReturnBox(false)}
+                  className="min-h-9 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                >
+                  {t.cancelBtn}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmReturn}
+                  className="min-h-9 px-3 rounded-md text-xs font-semibold text-white cursor-pointer"
+                  style={{ backgroundColor: '#B45309' }}
+                >
+                  {t.confirmBtn}
+                </button>
+              </div>
+            </div>
+          )}
+
           {errorMsg && (
             <div
               className="flex items-start gap-2 rounded-md border p-3 text-sm font-semibold"
@@ -307,31 +375,49 @@ export function EvaluationDrawer({ review, readOnly = false, t, lang, onClose, o
         </div>
 
         {/* Drawer Footer */}
-        <div className="px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-card)] flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
-          >
-            {t.drawerCancel}
-          </button>
+        <div className="px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-card)] flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] cursor-pointer"
+            >
+              {t.drawerCancel}
+            </button>
+            {!isLocked && onReturnToEmployee && (
+              <button
+                type="button"
+                onClick={() => setShowReturnBox((v) => !v)}
+                className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border text-sm font-semibold cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--status-warn-bg)',
+                  color: 'var(--status-warn-text)',
+                  borderColor: 'var(--status-warn-border)',
+                }}
+              >
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                <span>{t.returnReviewBtn}</span>
+              </button>
+            )}
+          </div>
+
           {!isLocked && (
-            <>
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => validateAndSubmit(false)}
-                className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+                className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] cursor-pointer"
               >
                 {t.drawerSaveDraft}
               </button>
               <button
                 type="button"
                 onClick={() => validateAndSubmit(true)}
-                className="min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white transition-colors duration-150 cursor-pointer"
+                className="min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
               >
-                {t.drawerSubmit}
+                {t.approveToHrBtn}
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>

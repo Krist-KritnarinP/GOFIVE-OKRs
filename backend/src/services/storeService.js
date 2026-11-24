@@ -78,6 +78,41 @@ export function getGoalsByEmployee(employeeId) {
   return state.goals.filter((g) => g.employeeId === employeeId);
 }
 
+export function replaceGoalsForEmployee(employeeId, cycleId, nextGoals) {
+  state.goals = state.goals.filter((g) => g.employeeId !== employeeId);
+  const created = nextGoals.map((g, idx) => ({
+    id: g.id || `g-${employeeId}-${idx + 1}-${crypto.randomUUID().slice(0, 4)}`,
+    cycleId,
+    employeeId,
+    title: g.title,
+    titleTh: g.titleTh || g.title,
+    metricType: g.metricType || 'QUANTITATIVE',
+    targetValue: g.targetValue || '100',
+    unit: g.unit || '%',
+    metric: `${g.targetValue || '100'} ${g.unit || '%'}`,
+    weight: Number(g.weight),
+    multiplier: Number(g.multiplier || 1.0),
+    dueDate: g.dueDate || '2026-10-31',
+    actualValue: g.actualValue || '',
+    progressPct: Number(g.progressPct || 0),
+  }));
+  state.goals.push(...created);
+  return created;
+}
+
+export function appendReviewComment(reviewId, entry) {
+  const rev = getReviewById(reviewId);
+  if (!rev) return null;
+  const history = Array.isArray(rev.commentHistory) ? rev.commentHistory : [];
+  const nextEntry = {
+    id: `cmt-${crypto.randomUUID().slice(0, 8)}`,
+    round: rev.revisionRound || 1,
+    createdAt: new Date().toISOString(),
+    ...entry,
+  };
+  return updateReview(reviewId, { commentHistory: [...history, nextEntry] });
+}
+
 export function getAllReviews() {
   return state.reviews;
 }

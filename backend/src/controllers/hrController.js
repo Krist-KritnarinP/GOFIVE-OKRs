@@ -5,6 +5,7 @@ import {
 } from '../services/scoringService.js';
 import {
   appendAuditLog,
+  appendReviewComment,
   getAllReviews,
   getAuditLogs,
   getCycle,
@@ -51,11 +52,12 @@ export function getHrOverview(_req, res) {
   });
 
   const exceptions = enriched.filter((r) => r.isOverdue || r.escalatedToSkipLevel);
-  const completedCount = enriched.filter(
-    (r) => r.status === 'READY_FOR_RELEASE' || r.status === 'PUBLISHED'
+  const completedCount = enriched.filter((r) =>
+    ['MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(r.status)
   ).length;
   const publishedCount = enriched.filter((r) => r.status === 'PUBLISHED').length;
-  const readyCount = enriched.filter((r) => r.status === 'READY_FOR_RELEASE').length;
+  const pendingCalibrationCount = enriched.filter((r) => r.status === 'MANAGER_APPROVED').length;
+  const readyCount = enriched.filter((r) => r.status === 'CALIBRATION_LOCKED').length;
 
   return res.json({
     ok: true,
@@ -65,6 +67,7 @@ export function getHrOverview(_req, res) {
         totalEmployees: enriched.length,
         completedCount,
         completionPct: enriched.length > 0 ? Math.round((completedCount / enriched.length) * 100) : 0,
+        pendingCalibrationCount,
         readyToPublishCount: readyCount,
         publishedCount,
         overdueCount: enriched.filter((r) => r.isOverdue).length,
@@ -86,10 +89,7 @@ export function nudgeReview(req, res) {
   const { reviewId } = req.params;
   const review = getReviewById(reviewId);
   if (!review) {
-    return res.status(404).json({
-      ok: false,
-      error: { code: 'NOT_FOUND', message: 'Review not found.' },
-    });
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
   }
 
   const nowIso = new Date().toISOString();
@@ -113,10 +113,7 @@ export function extendReviewDeadline(req, res) {
   const { reviewId } = req.params;
   const review = getReviewById(reviewId);
   if (!review) {
-    return res.status(404).json({
-      ok: false,
-      error: { code: 'NOT_FOUND', message: 'Review not found.' },
-    });
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
   }
 
   const { extraDays, reason } = req.validatedBody;
@@ -142,10 +139,7 @@ export function escalateReview(req, res) {
   const { reviewId } = req.params;
   const review = getReviewById(reviewId);
   if (!review) {
-    return res.status(404).json({
-      ok: false,
-      error: { code: 'NOT_FOUND', message: 'Review not found.' },
-    });
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
   }
 
   const { reason } = req.validatedBody;
@@ -166,19 +160,92 @@ export function escalateReview(req, res) {
   });
 }
 
+export function returnReviewToManager(req, res) {
+  const { reviewId } = req.params;
+  const review = getReviewById(reviewId);
+  if (!review) {
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review not found.' } });
+  }
+
+  updateReview(reviewId, {
+    status: 'SELF_REVIEW_SUBMITTED',
+    revisionRound: (review.revisionRound || 1) + 1,
+  });
+
+  const updated = appendReviewComment(reviewId, {
+    phase: 'CALIBRATION',
+    actorName: req.user.name,
+    actorRole: req.user.role,
+    action: 'HR_RETURNED_TO_MANAGER',
+    comment: req.validatedBody.comment,
+  });
+
+  const log = appendAuditLog({
+    cycleId: review.cycleId,
+    reviewId,
+    actor: req.user,
+    action: 'HR_RETURN_TO_MANAGER',
+    reason: req.validatedBody.comment,
+  });
+
+  return res.json({
+    ok: true,
+    data: { review: updated, auditLog: log },
+    meta: { timestamp: new Date().toISOString() },
+  });
+}
+
+export function lockCalibration(req, res) {
+  const { cycleId } = req.params;
+  const cycle = getCycle();
+  if (cycle.id !== cycleId) {
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review cycle not found.' } });
+  }
+
+  const { reviewIds, note } = req.validatedBody;
+  const targets = getAllReviews().filter((r) => {
+    if (r.status !== 'MANAGER_APPROVED') return false;
+    if (reviewIds && reviewIds.length > 0) return reviewIds.includes(r.id);
+    return true;
+  });
+
+  const nowIso = new Date().toISOString();
+  for (const target of targets) {
+    updateReview(target.id, { status: 'CALIBRATION_LOCKED', calibratedAt: nowIso });
+    appendReviewComment(target.id, {
+      phase: 'CALIBRATION',
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      action: 'CALIBRATION_LOCKED',
+      comment: note || 'Ratings calibrated across teams and locked pending HR publication.',
+    });
+  }
+
+  const log = appendAuditLog({
+    cycleId: cycle.id,
+    actor: req.user,
+    action: 'CALIBRATION_LOCKED',
+    reason: note || `Locked calibration for ${targets.length} manager-approved review(s).`,
+    metadata: { calibratedIds: targets.map((t) => t.id), count: targets.length },
+  });
+
+  return res.json({
+    ok: true,
+    data: { calibratedCount: targets.length, auditLog: log },
+    meta: { timestamp: nowIso },
+  });
+}
+
 export function publishCycleResults(req, res) {
   const { cycleId } = req.params;
   const cycle = getCycle();
   if (cycle.id !== cycleId) {
-    return res.status(404).json({
-      ok: false,
-      error: { code: 'NOT_FOUND', message: 'Review cycle not found.' },
-    });
+    return res.status(404).json({ ok: false, error: { code: 'NOT_FOUND', message: 'Review cycle not found.' } });
   }
 
   const { reviewIds } = req.validatedBody;
   const targets = getAllReviews().filter((r) => {
-    if (r.status !== 'READY_FOR_RELEASE') return false;
+    if (r.status !== 'CALIBRATION_LOCKED') return false;
     if (reviewIds && reviewIds.length > 0) return reviewIds.includes(r.id);
     return true;
   });
@@ -186,13 +253,20 @@ export function publishCycleResults(req, res) {
   const nowIso = new Date().toISOString();
   for (const target of targets) {
     updateReview(target.id, { status: 'PUBLISHED', publishedAt: nowIso });
+    appendReviewComment(target.id, {
+      phase: 'RELEASE',
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      action: 'PUBLISHED',
+      comment: 'Final calibrated performance result published to employee.',
+    });
   }
 
   const log = appendAuditLog({
     cycleId: cycle.id,
     actor: req.user,
     action: 'PUBLISH',
-    reason: `Published ${targets.length} completed review(s) to employees.`,
+    reason: `Published ${targets.length} calibrated review(s) to employees.`,
     metadata: { publishedIds: targets.map((t) => t.id), count: targets.length },
   });
 

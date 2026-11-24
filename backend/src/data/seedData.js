@@ -336,18 +336,18 @@ export function createInitialSeed() {
   ];
 
   const goals = [
-    { id: 'g-nida-1', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Cut payroll API p95 latency by 40%', titleTh: 'ลดเวลาตอบสนอง Payroll API (p95) ลง 40%', metric: 'p95 < 180ms', weight: 60, progressPct: 98 },
-    { id: 'g-nida-2', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Zero P1 incidents during year-end peak', titleTh: 'ไม่เกิดเหตุระบบล่มระดับ P1 ช่วงปิดงบปลายปี', metric: '0 P1 outages', weight: 40, progressPct: 100 },
-    { id: 'g-ton-1', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Ship responsive ESS mobile self-service', titleTh: 'ส่งมอบหน้าจอ ESS รองรับมือถือทุกขนาด', metric: 'Lighthouse >= 95', weight: 50, progressPct: 86 },
-    { id: 'g-ton-2', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Reduce UI regression defects by 30%', titleTh: 'ลดบั๊กหน้าบ้านที่เกิดซ้ำลง 30%', metric: '-30% bugs', weight: 50, progressPct: 78 },
-    { id: 'g-may-1', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Close 12M THB net-new enterprise ARR', titleTh: 'ปิดยอดขายลูกค้าองค์กรใหม่ 12 ล้านบาท', metric: '12M THB ARR', weight: 70, progressPct: 96 },
-    { id: 'g-may-2', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Maintain renewal rate above 94%', titleTh: 'รักษาอัตราต่อสัญญาลูกค้าเดิมเกิน 94%', metric: '>= 94% GRR', weight: 30, progressPct: 95 },
-    { id: 'g-art-1', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Close 8M THB mid-market ARR', titleTh: 'ปิดยอดขายกลุ่ม Mid-Market 8 ล้านบาท', metric: '8M THB ARR', weight: 60, progressPct: 74 },
-    { id: 'g-art-2', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Improve CRM pipeline hygiene to 95%', titleTh: 'อัปเดตข้อมูล Pipeline ใน CRM ครบ 95%', metric: '95% complete', weight: 40, progressPct: 70 },
-    { id: 'g-fah-1', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Redesign Leave & Attendance mobile UX', titleTh: 'ออกแบบ UX ระบบลางานและลงเวลาบนมือถือใหม่', metric: 'SUS >= 85', weight: 50, progressPct: 82 },
-    { id: 'g-fah-2', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Unify design tokens across 4 HR modules', titleTh: 'รวม Design Tokens ให้เป็นมาตรฐานเดียวกัน 4 โมดูล', metric: '4/4 modules', weight: 50, progressPct: 76 },
-    { id: 'g-nut-1', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Deliver monthly HR analytics packs on time', titleTh: 'ส่งมอบรายงานวิเคราะห์ข้อมูล HR รายเดือนตรงเวลา', metric: '12/12 on time', weight: 60, progressPct: 45 },
-    { id: 'g-nut-2', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Resolve customer data import tickets < 24h', titleTh: 'แก้ปัญหาไฟล์นำเข้าข้อมูลลูกค้าภายใน 24 ชม.', metric: 'SLA >= 90%', weight: 40, progressPct: 50 },
+    { id: 'g-nida-1', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Cut payroll API p95 latency by 40%', titleTh: 'ลดเวลาตอบสนอง Payroll API (p95) ลง 40%', metricType: 'QUANTITATIVE', targetValue: '180', unit: 'ms (p95)', metric: 'p95 < 180ms', weight: 60, multiplier: 1.2, dueDate: '2026-10-31', actualValue: '145 ms', progressPct: 98 },
+    { id: 'g-nida-2', cycleId: cycle.id, employeeId: 'usr-emp-nida', title: 'Zero P1 incidents during year-end peak', titleTh: 'ไม่เกิดเหตุระบบล่มระดับ P1 ช่วงปิดงบปลายปี', metricType: 'QUANTITATIVE', targetValue: '0', unit: 'P1 outages', metric: '0 P1 outages', weight: 40, multiplier: 1.1, dueDate: '2026-12-15', actualValue: '0 outages', progressPct: 100 },
+    { id: 'g-ton-1', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Ship responsive ESS mobile self-service', titleTh: 'ส่งมอบหน้าจอ ESS รองรับมือถือทุกขนาด', metricType: 'QUALITATIVE', targetValue: 'WCAG AA + 95', unit: 'Lighthouse', metric: 'Lighthouse >= 95', weight: 50, multiplier: 1.1, dueDate: '2026-10-15', actualValue: 'Lighthouse 96', progressPct: 86 },
+    { id: 'g-ton-2', cycleId: cycle.id, employeeId: 'usr-emp-ton', title: 'Reduce UI regression defects by 30%', titleTh: 'ลดบั๊กหน้าบ้านที่เกิดซ้ำลง 30%', metricType: 'QUANTITATIVE', targetValue: '30', unit: '% reduction', metric: '-30% bugs', weight: 50, multiplier: 1.0, dueDate: '2026-11-30', actualValue: '24% reduction', progressPct: 78 },
+    { id: 'g-may-1', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Close 12M THB net-new enterprise ARR', titleTh: 'ปิดยอดขายลูกค้าองค์กรใหม่ 12 ล้านบาท', metricType: 'QUANTITATIVE', targetValue: '12', unit: 'M THB ARR', metric: '12M THB ARR', weight: 70, multiplier: 1.2, dueDate: '2026-12-20', actualValue: '12.6 M THB', progressPct: 96 },
+    { id: 'g-may-2', cycleId: cycle.id, employeeId: 'usr-emp-may', title: 'Maintain renewal rate above 94%', titleTh: 'รักษาอัตราต่อสัญญาลูกค้าเดิมเกิน 94%', metricType: 'QUANTITATIVE', targetValue: '94', unit: '% GRR', metric: '>= 94% GRR', weight: 30, multiplier: 1.0, dueDate: '2026-12-20', actualValue: '95.2% GRR', progressPct: 95 },
+    { id: 'g-art-1', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Close 8M THB mid-market ARR', titleTh: 'ปิดยอดขายกลุ่ม Mid-Market 8 ล้านบาท', metricType: 'QUANTITATIVE', targetValue: '8', unit: 'M THB ARR', metric: '8M THB ARR', weight: 60, multiplier: 1.0, dueDate: '2026-12-20', actualValue: '5.9 M THB', progressPct: 74 },
+    { id: 'g-art-2', cycleId: cycle.id, employeeId: 'usr-emp-art', title: 'Improve CRM pipeline hygiene to 95%', titleTh: 'อัปเดตข้อมูล Pipeline ใน CRM ครบ 95%', metricType: 'QUANTITATIVE', targetValue: '95', unit: '% complete', metric: '95% complete', weight: 40, multiplier: 1.0, dueDate: '2026-11-30', actualValue: '70% complete', progressPct: 70 },
+    { id: 'g-fah-1', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Redesign Leave & Attendance mobile UX', titleTh: 'ออกแบบ UX ระบบลางานและลงเวลาบนมือถือใหม่', metricType: 'QUALITATIVE', targetValue: '85', unit: 'SUS Score', metric: 'SUS >= 85', weight: 50, multiplier: 1.1, dueDate: '2026-10-31', actualValue: '', progressPct: 0 },
+    { id: 'g-fah-2', cycleId: cycle.id, employeeId: 'usr-emp-fah', title: 'Unify design tokens across 4 HR modules', titleTh: 'รวม Design Tokens ให้เป็นมาตรฐานเดียวกัน 4 โมดูล', metricType: 'QUANTITATIVE', targetValue: '4', unit: 'HR modules', metric: '4/4 modules', weight: 50, multiplier: 1.0, dueDate: '2026-11-30', actualValue: '', progressPct: 0 },
+    { id: 'g-nut-1', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Deliver monthly HR analytics packs on time', titleTh: 'ส่งมอบรายงานวิเคราะห์ข้อมูล HR รายเดือนตรงเวลา', metricType: 'QUANTITATIVE', targetValue: '12', unit: 'packs/year', metric: '12/12 on time', weight: 60, multiplier: 1.0, dueDate: '2026-12-15', actualValue: '6/12 packs', progressPct: 45 },
+    { id: 'g-nut-2', cycleId: cycle.id, employeeId: 'usr-emp-nut', title: 'Resolve customer data import tickets < 24h', titleTh: 'แก้ปัญหาไฟล์นำเข้าข้อมูลลูกค้าภายใน 24 ชม.', metricType: 'QUANTITATIVE', targetValue: '90', unit: '% SLA', metric: 'SLA >= 90%', weight: 40, multiplier: 1.0, dueDate: '2026-12-15', actualValue: '68% SLA', progressPct: 50 },
   ];
 
   const makeScoredReview = ({
@@ -355,10 +355,13 @@ export function createInitialSeed() {
     employeeId,
     managerId,
     status,
+    revisionRound = 1,
+    commentHistory = [],
     selfPayload,
     managerPayload,
     selfSubmittedAt,
     managerSubmittedAt,
+    calibratedAt = null,
     publishedAt = null,
   }) => {
     const empGoals = goals.filter((g) => g.employeeId === employeeId);
@@ -377,11 +380,14 @@ export function createInitialSeed() {
       employeeId,
       managerId,
       status,
+      revisionRound,
+      commentHistory,
       selfPayload,
       managerPayload,
       ...scores,
       selfSubmittedAt,
       managerSubmittedAt,
+      calibratedAt,
       extendedDeadline: null,
       escalatedToSkipLevel: false,
       lastNudgedAt: null,
@@ -449,12 +455,16 @@ export function createInitialSeed() {
       managerSubmittedAt: null,
     }),
 
-    // 3 & 4. Sales team under Somchai (Lenient 5/5 ratings → triggers Leniency Bias Alert!)
+    // 3 & 4. Sales team under Somchai (MANAGER_APPROVED → awaits HR Calibration!)
     makeScoredReview({
       id: 'rev-may',
       employeeId: 'usr-emp-may',
       managerId: 'usr-mgr-sales',
-      status: 'READY_FOR_RELEASE',
+      status: 'MANAGER_APPROVED',
+      revisionRound: 1,
+      commentHistory: [
+        { id: 'cmt-may-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Enterprise ARR target 12M THB approved with 1.2x breakthrough multiplier.', createdAt: daysAgo(15) },
+      ],
       selfPayload: {
         goalAssessments: [
           { goalId: 'g-may-1', selfScore: 5, selfEvidence: 'Closed 12.6M THB ARR including two SET-listed manufacturing groups.' },
@@ -488,7 +498,11 @@ export function createInitialSeed() {
       id: 'rev-art',
       employeeId: 'usr-emp-art',
       managerId: 'usr-mgr-sales',
-      status: 'READY_FOR_RELEASE',
+      status: 'MANAGER_APPROVED',
+      revisionRound: 1,
+      commentHistory: [
+        { id: 'cmt-art-1', round: 1, phase: 'GOAL', actorName: 'Somchai Wattana', actorRole: 'MANAGER', action: 'GOAL_APPROVED', comment: 'Mid-market 8M THB quota approved.', createdAt: daysAgo(15) },
+      ],
       selfPayload: {
         goalAssessments: [
           { goalId: 'g-art-1', selfScore: 3, selfEvidence: 'Closed 5.9M THB ARR; two Q4 deals slipped to Q1.' },
@@ -518,47 +532,33 @@ export function createInitialSeed() {
       managerSubmittedAt: daysAgo(3),
     }),
 
-    // 5. Fah (Product — High Impact / Locked Pending HR Release)
+    // 5. Fah (Product — Active Goal Setting Ping-Pong Round 1!)
     makeScoredReview({
       id: 'rev-fah',
       employeeId: 'usr-emp-fah',
       managerId: 'usr-mgr-prod',
-      status: 'READY_FOR_RELEASE',
-      selfPayload: {
-        goalAssessments: [
-          { goalId: 'g-fah-1', selfScore: 4, selfEvidence: 'Shipped Leave & Attendance redesign with 87 SUS usability score.' },
-          { goalId: 'g-fah-2', selfScore: 3, selfEvidence: 'Completed tokens for 3 of 4 modules; final module in QA.' },
-        ],
-        competencyAssessments: [
-          { competencyId: 'comp-ownership', selfScore: 4, selfNote: 'Led user testing sessions with 18 HR admins.' },
-          { competencyId: 'comp-collab', selfScore: 5, selfNote: 'Co-designed directly with engineers.' },
-          { competencyId: 'comp-problem', selfScore: 4, selfNote: 'Simplified complex shift-scheduling flows.' },
-        ],
-        reflection: 'Strong usability gains; focusing on finishing the 4th module token migration.',
-      },
-      managerPayload: {
-        goalRatings: [
-          { goalId: 'g-fah-1', score: 4, evidence: 'Usability score reached 87 SUS and reduced support tickets on mobile clock-in.' },
-          { goalId: 'g-fah-2', score: 3, evidence: '3 of 4 modules migrated cleanly; remaining module scheduled for Jan.' },
-        ],
-        competencyRatings: [
-          { competencyId: 'comp-ownership', score: 4, evidence: 'Consistently validates designs with real HR users before handoff.' },
-          { competencyId: 'comp-collab', score: 5, evidence: 'Raised design-engineering velocity by pairing directly on accessible UI tokens.' },
-          { competencyId: 'comp-problem', score: 4, evidence: 'Turned dense shift rules into an intuitive visual schedule.' },
-        ],
-        managerSummary: 'High-potential designer with standout collaboration and user empathy.',
-        developmentFocus: 'Drive design system governance across all HRD modules.',
-      },
-      selfSubmittedAt: daysAgo(5),
-      managerSubmittedAt: daysAgo(2),
+      status: 'GOAL_REVISION_REQUIRED',
+      revisionRound: 1,
+      commentHistory: [
+        { id: 'cmt-fah-1', round: 1, phase: 'GOAL', actorName: 'Fah Prapaporn', actorRole: 'EMPLOYEE', action: 'GOAL_SUBMITTED', comment: 'Proposed 2 annual UX OKRs totaling 100% weight.', createdAt: daysAgo(9) },
+        { id: 'cmt-fah-2', round: 1, phase: 'GOAL', actorName: 'Kanya Rattanapong', actorRole: 'MANAGER', action: 'GOAL_REVISION_REQUESTED', comment: 'Good start! Please raise mobile UX target to SUS >= 88 (Stretch 1.1x) and add a 3rd KPI for accessibility audit coverage.', createdAt: daysAgo(7) },
+      ],
+      selfPayload: null,
+      managerPayload: null,
+      selfSubmittedAt: null,
+      managerSubmittedAt: null,
     }),
 
-    // 6. Nut (Product Ops — Low Performer / Needs Action)
+    // 6. Nut (Product Ops — Low Performer, CALIBRATION_LOCKED — still hidden from Employee until PUBLISHED!)
     makeScoredReview({
       id: 'rev-nut',
       employeeId: 'usr-emp-nut',
       managerId: 'usr-mgr-prod',
-      status: 'READY_FOR_RELEASE',
+      status: 'CALIBRATION_LOCKED',
+      revisionRound: 1,
+      commentHistory: [
+        { id: 'cmt-nut-1', round: 1, phase: 'CALIBRATION', actorName: 'Pluem Srisuk', actorRole: 'HR_ADMIN', action: 'CALIBRATION_LOCKED', comment: 'Cross-team calibration confirmed Needs Action tier with 90-day PIP support.', createdAt: daysAgo(1) },
+      ],
       selfPayload: {
         goalAssessments: [
           { goalId: 'g-nut-1', selfScore: 2, selfEvidence: 'Delivered 6 of 12 monthly packs on time due to data cleanup bottlenecks.' },
@@ -586,6 +586,7 @@ export function createInitialSeed() {
       },
       selfSubmittedAt: daysAgo(5),
       managerSubmittedAt: daysAgo(2),
+      calibratedAt: daysAgo(1),
     }),
   ];
 

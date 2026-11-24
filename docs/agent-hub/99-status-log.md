@@ -14,6 +14,16 @@
 
 ## Activity Log
 
+### 2026-11-24 — Full OKR/KPI Builder, 2-Phase Ping-Pong & Calibration Gate Complete
+- **Schema & Backend (`backend/`):**
+  - Expanded `prisma/schema.prisma` with `MetricType` (`QUANTITATIVE | QUALITATIVE`), 9-stage `ReviewStatus` (`GOAL_DRAFT` → `GOAL_PENDING_APPROVAL` → `GOAL_REVISION_REQUIRED` → `GOAL_APPROVED` → `SELF_REVIEW_SUBMITTED` → `REVIEW_REVISION_REQUIRED` → `MANAGER_APPROVED` → `CALIBRATION_LOCKED` → `PUBLISHED`), goal `targetValue`, `unit`, `multiplier` (`1.0x/1.1x/1.2x`), `dueDate`, `actualValue`, and review `commentHistory` + `calibratedAt`.
+  - Added endpoints for Employee OKR submission (`PUT /reviews/:id/goals` enforcing Weight=100%), Manager Goal Approve/Return (`POST /reviews/:id/goals/decision`), Manager Review Return (`POST /reviews/:id/return-to-employee`), HR Return to Manager (`POST /hr/reviews/:id/return-to-manager`), and HR Calibration Lock (`POST /hr/cycles/:id/calibrate`) before Publish.
+  - Verified **7/7 backend tests PASS** and `prisma validate` PASS.
+- **Frontend (`frontend/`):**
+  - Added `GoalEditorModal.jsx`, `CommentHistoryPanel.jsx`, and `GoalApprovalDrawer.jsx`.
+  - Upgraded `EmployeeWorkspacePage.jsx` (OKR Builder with live 100% weight check + Self-Assessment Actual/Description/Score 1–5 + Comment History), `ManagerWorkspacePage.jsx` & `EvaluationDrawer.jsx` (Goal Approval + Return to Employee Ping-Pong + Multiplier preview), and `HrDashboardPage.jsx` (Calibration Lock Gate + Return to Manager + Publish Calibrated Results).
+  - Verified `oxlint` (0 warnings/0 errors across 27 files) and `vite build` (338ms).
+
 ### 2026-11-24 — Gold Bypass Demo Button & 1-Office-Unit Seed (16 Users)
 - Added high-contrast gold bypass button **`คลิกเพื่อจำลองdemo`** (`#F59E0B` bg, `#0F172A` text, `#B45309` border) on `LoginPage.jsx` to enter the simulated 1-office-unit demo in 1 click (`0ms`) without requiring a live backend DB.
 - Synced exact 16-user 1-office-unit roster across `frontend/src/constants/initialData.js`, `backend/src/data/seedData.js`, and new `backend/prisma/seed.js`:

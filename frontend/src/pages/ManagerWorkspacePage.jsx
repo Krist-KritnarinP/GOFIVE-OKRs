@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { EvaluationDrawer } from '../components/manager/EvaluationDrawer.jsx';
+import { GoalApprovalDrawer } from '../components/manager/GoalApprovalDrawer.jsx';
 
 export function ManagerWorkspacePage({
   reviews,
@@ -11,13 +12,16 @@ export function ManagerWorkspacePage({
   onSelectManager,
   t,
   lang,
+  onDecideGoals,
+  onReturnToEmployee,
   onSaveEvaluation,
 }) {
-  const [selectedReview, setSelectedReview] = useState(null);
+  const [evalReview, setEvalReview] = useState(null);
+  const [goalReview, setGoalReview] = useState(null);
 
   const teamReviews = reviews.filter((r) => r.managerId === activeManagerId);
-  const completedTeam = teamReviews.filter(
-    (r) => r.status === 'READY_FOR_RELEASE' || r.status === 'PUBLISHED'
+  const completedTeam = teamReviews.filter((r) =>
+    ['MANAGER_APPROVED', 'CALIBRATION_LOCKED', 'PUBLISHED'].includes(r.status)
   ).length;
   const teamCompletionPct =
     teamReviews.length > 0 ? Math.round((completedTeam / teamReviews.length) * 100) : 0;
@@ -27,8 +31,7 @@ export function ManagerWorkspacePage({
     scoredTeam.length > 0
       ? scoredTeam.reduce((a, b) => a + b.overallScore, 0) / scoredTeam.length
       : null;
-  const hasBiasRisk =
-    teamAvg !== null && teamAvg - analytics.orgAverageScore >= 0.65;
+  const hasBiasRisk = teamAvg !== null && teamAvg - analytics.orgAverageScore >= 0.65;
 
   return (
     <div className="w-full space-y-6">
@@ -40,7 +43,6 @@ export function ManagerWorkspacePage({
           <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.mgrSubtitle}</p>
         </div>
 
-        {/* Persona Switcher for Evaluators */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold uppercase text-[var(--ink-muted)]">
             {t.mgrSwitchLabel}:
@@ -154,69 +156,96 @@ export function ManagerWorkspacePage({
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
-              {teamReviews.map((rev) => (
-                <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
-                  <td className="py-3.5 px-3">
-                    <p className="font-semibold text-[var(--ink-primary)]">
-                      {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
-                    </p>
-                    <p className="text-xs text-[var(--ink-muted)]">{rev.employee.title}</p>
-                  </td>
-                  <td className="py-3.5 px-3">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <StatusBadge
-                        tone={
-                          rev.status === 'PUBLISHED'
-                            ? 'high'
-                            : rev.isOverdue
-                              ? 'warn'
-                              : rev.status === 'READY_FOR_RELEASE'
-                                ? 'track'
-                                : 'neutral'
-                        }
-                      >
-                        {t.status[rev.status]}
-                      </StatusBadge>
-                      {rev.isOverdue && (
-                        <StatusBadge tone="warn">
-                          {rev.daysOverdue} {t.daysOverdue}
+              {teamReviews.map((rev) => {
+                const isGoalStage = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(rev.status);
+                return (
+                  <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                    <td className="py-3.5 px-3">
+                      <p className="font-semibold text-[var(--ink-primary)]">
+                        {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                      </p>
+                      <p className="text-xs text-[var(--ink-muted)]">{rev.employee.title}</p>
+                    </td>
+                    <td className="py-3.5 px-3">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <StatusBadge
+                          tone={
+                            rev.status === 'PUBLISHED'
+                              ? 'high'
+                              : ['GOAL_REVISION_REQUIRED', 'REVIEW_REVISION_REQUIRED', 'GOAL_PENDING_APPROVAL'].includes(rev.status) || rev.isOverdue
+                                ? 'warn'
+                                : 'track'
+                          }
+                        >
+                          {t.status[rev.status]}
                         </StatusBadge>
+                        {rev.isOverdue && (
+                          <StatusBadge tone="warn">
+                            {rev.daysOverdue} {t.daysOverdue}
+                          </StatusBadge>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-3 font-semibold text-[var(--ink-primary)] tabular-nums">
+                      {rev.overallScore != null
+                        ? `${rev.overallScore.toFixed(2)} (${rev.whatPct?.toFixed(0)}% / ${rev.howScore?.toFixed(1)})`
+                        : '—'}
+                    </td>
+                    <td className="py-3.5 px-3 text-right">
+                      {isGoalStage ? (
+                        <button
+                          type="button"
+                          onClick={() => setGoalReview(rev)}
+                          className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+                            rev.status === 'GOAL_PENDING_APPROVAL'
+                              ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
+                              : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                          }`}
+                        >
+                          {t.reviewGoalsBtn}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setEvalReview(rev)}
+                          className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+                            rev.status === 'SELF_REVIEW_SUBMITTED'
+                              ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
+                              : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                          }`}
+                        >
+                          {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
+                        </button>
                       )}
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-3 font-semibold text-[var(--ink-primary)] tabular-nums">
-                    {rev.overallScore != null
-                      ? `${rev.overallScore.toFixed(2)} (${rev.whatPct?.toFixed(0)}% / ${rev.howScore?.toFixed(1)})`
-                      : '—'}
-                  </td>
-                  <td className="py-3.5 px-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedReview(rev)}
-                      className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
-                        rev.status === 'SELF_REVIEW_SUBMITTED'
-                          ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
-                          : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
-                      }`}
-                    >
-                      {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </section>
 
-      {selectedReview && (
-        <EvaluationDrawer
-          key={selectedReview.id}
-          review={selectedReview}
+      {goalReview && (
+        <GoalApprovalDrawer
+          key={goalReview.id}
+          review={goalReview}
           t={t}
           lang={lang}
-          onClose={() => setSelectedReview(null)}
+          onClose={() => setGoalReview(null)}
+          onDecide={onDecideGoals}
+        />
+      )}
+
+      {evalReview && (
+        <EvaluationDrawer
+          key={evalReview.id}
+          review={evalReview}
+          t={t}
+          lang={lang}
+          onClose={() => setEvalReview(null)}
           onSave={onSaveEvaluation}
+          onReturnToEmployee={onReturnToEmployee}
         />
       )}
     </div>
