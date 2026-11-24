@@ -1,8 +1,8 @@
 # Project Handover — empeo Performance Management Prototype (`GOFIVE TEST`)
 
 **Last Updated:** 2026-11-24  
-**Current Milestone:** Phase 3.5 Complete — **Job Leveling, 3-Stage Due Dates (+ Countdown/Overdue/Early Chips), Manager OKR Co-Edit, HRBP Advisor Intervention, Approach A (`HR Approve & Publish`), and Strict 4-Role Activity Log**  
-**Next Action:** Confirm new GitHub remote URL for `git push origin main` and deploy public prototype link for Gofive PO Assignment submission.
+**Current Milestone:** Phase 3.6 Complete — **Job Leveling, 3-Stage Due Dates (+ Countdown/Overdue/Early Chips), Manager OKR Co-Edit, HRBP Advisor Intervention, Approach A (`HR Approve & Publish`), Strict 4-Role Activity Log, GitHub Remote Sync, and Live Supabase PostgreSQL Persistence (Prisma Dual-URL)**  
+**Next Action:** Deploy public prototype link (Frontend + Backend with Supabase env vars) for Gofive PO Assignment submission and finalize Part 2 written answers.
 
 ---
 
@@ -34,14 +34,23 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
 | Check | Command | Result |
 | :--- | :--- | :--- |
 | Backend unit, RBAC & Activity Log privacy tests | `npm test` | **PASS** (`8/8` passed — including 4-role Activity Log zero-leak test, OKR co-edit diff, HRBP Advisor Comment, Approach A Publish Gate) |
-| Prisma schema validation | `cd backend && npx prisma validate` | **PASS** (`schema.prisma` valid with `JobLevel`, 3-stage deadlines, `AuditLog.visibilityScope`) |
+| Prisma schema validation & DB push | `npm --prefix backend run prisma:validate && prisma:push && prisma:seed` | **PASS** (All 6 tables synced to Supabase `ap-southeast-1` and seeded with 16 users, 12 goals, 6 reviews, 7 audit logs) |
+| Supabase live persistence across restart | `initStore()` → `updateCycle()` → `flushStore()` → `resetStore()` → `initStore()` | **PASS** (Changes persist to Supabase and reload accurately after simulated restart; `NODE_ENV=test` stays isolated in `memory-fallback`) |
 | Frontend linter | `npm run lint` | **PASS** (`oxlint`: 0 warnings, 0 errors across 30 files) |
 | Frontend production build | `npm run build` | **PASS** (`vite build`: `573ms`, `115.77 kB` gzip) |
 | Live Browser QA | Desktop `1440x900` + Mobile `375x812` | **PASS** (0 console errors, StrictMode duplicate-log bug fixed, HR Admin Mobile `375px` overflow fixed, EN/TH timing chips verified) |
 
 ---
 
-## 4. Open Items for Next Session
-1. **GitHub Remote URL:** Local Git repo is on branch `main` with clean commits — awaiting user's new GitHub repository URL to run `git push origin main` (NEVER push to `living-wealth-365.git`).
-2. **Public Deployment:** Deploy frontend/backend preview link once GitHub repo is connected.
-3. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Ready for final polish/export before Gofive PO submission.
+## 4. Completed Handover Notes (2026-11-24)
+- **[DONE] GitHub Remote Connected & Pushed:** `origin` is set to `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git` on branch `main` (tracking `origin/main`).
+- **[DONE] Live Supabase PostgreSQL Persistence Wired:**
+  - `backend/src/services/prismaClient.js` lazily initializes Prisma Client only when `env.storageMode === 'prisma'`.
+  - `backend/src/services/storeService.js` hydrates full state from Supabase on startup (`initStore()`) and writes through every mutation (`updateCycle`, `createUser`, `updateUser`, `setRolePermission`, `replaceGoalsForEmployee`, `updateReview`, `appendReviewComment`, `appendAuditLog`) via a serialized persistence queue (`flushStore()` / `closeStore()`).
+  - `backend/src/server.js` awaits `initStore()` before listening and flushes pending writes on `SIGINT`/`SIGTERM`.
+  - `backend/src/config/env.js` & `backend/package.json` force `memory-fallback` when `NODE_ENV=test` so `npm test` never touches the live Supabase DB.
+  - Supabase DB (`fnhbpwvirnjxulfeoljf`, `aws-1-ap-southeast-1.pooler.supabase.com`) has all 6 tables pushed and seeded. Local `backend/.env` and `frontend/.env` are configured and gitignored (never committed).
+
+## 5. Open Items for Next Session
+1. **Public Deployment:** Deploy frontend & backend preview link (remember to set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` [32+ chars], `CORS_ORIGINS`, `NODE_ENV=production` on backend host, and `VITE_API_BASE_URL` on frontend host).
+2. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Ready for final polish/export before Gofive PO submission.

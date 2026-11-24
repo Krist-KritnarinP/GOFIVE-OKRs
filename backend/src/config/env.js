@@ -32,5 +32,6 @@ export const env = {
   corsOriginList: data.CORS_ORIGINS.split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
-  storageMode: data.DATABASE_URL ? 'prisma' : 'memory-fallback',
+  storageMode:
+    data.NODE_ENV === 'test' || !data.DATABASE_URL ? 'memory-fallback' : 'prisma',
 };
