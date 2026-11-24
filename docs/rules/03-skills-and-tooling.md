@@ -33,3 +33,9 @@
 | **Dev Back** | `ponytail` (`lite`), security baseline (`02-backend-and-security-rules.md`) |
 | **QA / QC & Tester** | `hallmark`, `anti-slop-craft`, `ponytail-review`, `modern-web-guidance` |
 | **Reporter** | `humanizer`, `copy-editing` |
+
+---
+
+## 3. Mandatory Enforcement & Disclosure Rule
+- **Actual Invocation Required:** Mentioning a skill in prose does NOT count. Before modifying UI/HTML/CSS/Copy/Code, agents MUST read the relevant `SKILL.md` files (and execute `npx -y modern-web-guidance@latest search/retrieve` for web UI tasks).
+- **Mandatory `Skills Used` Footer:** Every completed task report must include a concise `### Skills Used` section naming each skill loaded and the concrete change/finding it drove. If 0 skills were invoked, state `0%` honestly.

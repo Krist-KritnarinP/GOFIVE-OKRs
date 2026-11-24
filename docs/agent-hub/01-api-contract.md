@@ -1,4 +1,4 @@
-# 01 — API Contract & Data Model Specification
+# 01 — API Contract & Data Model Specification (Synced to v1.5)
 
 **Base URL (Local):** `http://localhost:5001/api/v1`  
 **Format:** JSON (`Content-Type: application/json`), Pure JavaScript ESM (`backend/`)  
@@ -7,110 +7,69 @@
 ---
 
 ## 1. Standard Response & Error Envelope
-
-### Success Response
-```json
-{
-  "ok": true,
-  "data": {},
-  "meta": {
-    "timestamp": "2026-11-23T09:00:00.000Z"
-  }
-}
-```
-
-### Error Response
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "VALIDATION_ERROR | UNAUTHORIZED | FORBIDDEN | NOT_FOUND | CONFLICT | RATE_LIMITED | INTERNAL_ERROR",
-    "message": "Human-readable error summary",
-    "details": [
-      { "field": "evidence", "message": "Evidence (min 20 chars) is required for ratings of 1, 2, or 5." }
-    ]
-  }
-}
-```
+- **Success:** `{ ok: true, data: { ... }, meta: { timestamp } }`
+- **Error:** `{ ok: false, error: { code, message, details? } }` (`VALIDATION_ERROR | UNAUTHORIZED | FORBIDDEN | NOT_FOUND | CONFLICT | RATE_LIMITED | INTERNAL_ERROR`)
 
 ---
 
-## 2. Authentication & RBAC Rules
+## 2. Authentication, Dynamic RBAC & Privacy Scopes
 
-| Role | Code | Access Scope |
-| :--- | :--- | :--- |
-| **HR Admin** | `HR_ADMIN` | Full cycle config, org analytics, bias alerts, exception actions, publish results, audit logs |
-| **Manager** | `MANAGER` | Own direct reports only (`review.managerId === user.id`), plus own employee review if applicable |
-| **Employee** | `EMPLOYEE` | Own review only (`review.employeeId === user.id`). **MUST NEVER receive `managerRatings`, `managerComment`, `overallScore`, or `quadrant` while `status !== 'PUBLISHED'`.** |
+| Role | Code | Access Scope | Activity Log Scope (`GET /api/v1/activity-logs`) |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `SUPER_ADMIN` | User approvals, Role & Job Level assignment, Dynamic Role Permission Matrix (`rbac:manage`) | `ADMIN_SECURITY`, `CYCLE_GOVERNANCE` |
+| **HR Admin** | `HR_ADMIN` | 3-Stage Deadlines, Org 9-Box, Bias Alerts, SLA & HRBP Advisor Notes, `HR Approve & Publish` | `CYCLE_GOVERNANCE`, `HR_INTERNAL`, `TEAM_MANAGER`, `PUBLIC_SELF` |
+| **Manager** | `MANAGER` | Own direct reports only (`review.managerId === user.id`): OKR Co-Edit/Approve, Evidence-enforced Evaluation | Own team `TEAM_MANAGER`, `PUBLIC_SELF` (zero cross-team / HR internal leaks) |
+| **Employee** | `EMPLOYEE` | Own OKRs & Self-Review only (`review.employeeId === user.id`). **Server strips all manager scores, internal comments & 9-Box until `status === 'PUBLISHED'`.** | Own `PUBLIC_SELF` only (zero unpublished scores / bias alerts) |
 
-### Auth Endpoints
-- `GET /health` *(Public)* — Returns server status, storage mode (`prisma` or `memory-fallback`), and timestamp.
-- `GET /auth/demo-accounts` *(Public — Prototype Demo Mode)* — Returns list of selectable demo personas (HR Admin, 2 Managers including 1 lenient/1 overdue, 2 Employees) without password hashes.
-- `POST /auth/login` *(Public, Rate-Limited)* — Body: `{ email, password }` → Returns `{ token, user }`.
-- `POST /auth/demo-switch` *(Public — Prototype Demo Mode, Rate-Limited)* — Body: `{ userId }` → Issues a real signed JWT for the chosen demo persona so all downstream API calls still undergo full JWT + RBAC verification.
-- `GET /auth/me` *(Authenticated)* — Returns current authenticated user profile.
-
----
-
-## 3. Core Domain Endpoints
-
-### Review Cycle & Rubric
-- `GET /cycles/active` *(Authenticated)*
-  - Returns active cycle metadata (`id`, `name`, `nameTh`, `period`, `whatWeight`, `howWeight`, `selfDeadline`, `managerDeadline`, `isGracePeriodActive`, `isLocked`, `rubricLevels[1..5]`, `competencies[]`).
-- `PATCH /cycles/:cycleId` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ whatWeight?, howWeight?, selfDeadline?, managerDeadline?, isGracePeriodActive?, isLocked? }` (`whatWeight + howWeight === 100` when provided). Writes `AuditLog` on lock/grace-period toggles.
-
-### Reviews — Employee & Manager Flows
-- `GET /reviews/me` *(RBAC: `EMPLOYEE`, `MANAGER`, `HR_ADMIN`)*
-  - Returns the authenticated user's own review record, goals, self-review inputs, lifecycle status, and deadline info.
-  - **Security Filter:** Server strips `managerGoalRatings`, `managerCompetencyRatings`, `managerSummary`, `whatScore`, `howScore`, `overallScore`, `quadrant` whenever `status !== 'PUBLISHED'`.
-- `PUT /reviews/:reviewId/self-review` *(RBAC: owner `review.employeeId === user.id`)*
-  - Allowed only when `status === 'DRAFT'`.
-  - Body (Zod): `{ goalAssessments: [{ goalId, selfScore (1..5), selfEvidence }], competencyAssessments: [{ competencyId, selfScore (1..5), selfNote }], reflection, submit: boolean }`.
-  - If `submit: true`, transitions `DRAFT` → `SELF_REVIEW_SUBMITTED` and stamps `selfSubmittedAt`.
-- `GET /reviews/team` *(RBAC: `MANAGER`, `HR_ADMIN`)*
-  - For `MANAGER`, returns ONLY direct reports (`managerId === user.id`) plus team distribution summary vs. org guideline.
-- `GET /reviews/:reviewId` *(RBAC: `HR_ADMIN`, assigned `MANAGER`, or owning `EMPLOYEE`)*
-  - Enforces ownership and strips manager fields for `EMPLOYEE` if not `PUBLISHED`.
-- `PUT /reviews/:reviewId/manager-review` *(RBAC: assigned `MANAGER` or `HR_ADMIN`)*
-  - Allowed when `status` is `SELF_REVIEW_SUBMITTED` or `MANAGER_REVIEW_SUBMITTED` (before publish), or `DRAFT` if HR escalated/unlocked.
-  - Body (Zod): `{ goalRatings: [{ goalId, score (1..5), evidence }], competencyRatings: [{ competencyId, score (1..5), evidence }], managerSummary, developmentFocus, submit: boolean }`.
-  - **Fairness Business Rule (Server-Enforced):** If `submit: true`, any rating with `score === 1 || score === 2 || score === 5` MUST include `evidence.trim().length >= 20`. Otherwise return `400 VALIDATION_ERROR`.
-  - Calculates `whatPct`, `whatScore`, `howScore`, `overallScore`, and `nineBoxCell` (3×3 Goal Achievement % × Competency 1–5) on the server.
-  - If `submit: true`, transitions status to `READY_FOR_RELEASE`.
-
-### HR Analytics, Bias Detection, Exceptions & Publish
-- `GET /hr/overview` *(RBAC: `HR_ADMIN` only)*
-  - Returns:
-    - `summary`: `{ totalEmployees, selfCompletedCount, managerCompletedCount, publishedCount, overdueCount, orgAverageScore }`
-    - `distribution`: histogram buckets `[1..5]`
-    - `talentMatrix`: array of `{ reviewId, employeeName, department, managerName, whatScore, howScore, overallScore, quadrant, status }`
-    - `biasAlerts`: array of `{ managerId, managerName, department, teamSize, teamAvg, orgAvg, delta, flagType: 'LENIENCY_BIAS' | 'SEVERITY_BIAS' | 'UNIFORM_RATING', explanation }`
-    - `exceptions`: overdue reviews with `daysOverdue`, `missingActor`, `escalationStatus`, `extendedDeadline`
-- `POST /hr/reviews/:reviewId/nudge` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ message?: string }` → Logs a nudge reminder in `AuditLog` and updates `lastNudgedAt`.
-- `POST /hr/reviews/:reviewId/extend-deadline` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ extraDays: number (1..30), reason: string (min 5 chars) }` → Extends review deadline, clears overdue flag if new deadline is in the future, writes `AuditLog`.
-- `POST /hr/reviews/:reviewId/escalate` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ reason: string (min 5 chars) }` → Flags `escalatedToSkipLevel: true`, assigns skip-level reviewer note, writes `AuditLog`.
-- `POST /hr/cycles/:cycleId/publish` *(RBAC: `HR_ADMIN` only)*
-  - Body (Zod): `{ reviewIds?: string[] }` (if omitted, publishes all `READY_FOR_RELEASE` reviews) → Transitions matching reviews to `PUBLISHED`, stamps `publishedAt`, writes `AuditLog`.
-- `GET /hr/audit-logs` *(RBAC: `HR_ADMIN` only)*
-  - Returns chronological audit trail of exception actions, deadline changes, and publish events.
+### Auth & Admin Endpoints
+- `GET /health` *(Public)* — Server health, storage mode (`prisma | memory-fallback`), timestamp.
+- `GET /auth/demo-accounts` *(Public)* — 4 default persona profiles (no password hashes).
+- `POST /auth/register` *(Public, Rate-Limited)* — `{ employeeCode, name, department, title, jobLevel?, password }` → Creates `PENDING_APPROVAL` user (maps `managerId` by department).
+- `POST /auth/login` *(Public, Rate-Limited)* — `{ employeeCode, password }` → Returns `{ token, user, permissions }`; blocks `PENDING_APPROVAL`/`SUSPENDED` with `403`.
+- `POST /auth/demo-switch` *(Public, Rate-Limited)* — `{ userId }` → Issues real signed JWT for active demo user.
+- `GET /auth/me` *(Authenticated)* — Current user + live permissions.
+- `GET /admin/users` *(Permission: `rbac:manage`)* — Directory, permissions matrix, admin activity logs.
+- `PATCH /admin/users/:userId` *(Permission: `rbac:manage`)* — Update `{ role?, jobLevel?, accountStatus? }`.
+- `PUT /admin/permissions` *(Permission: `rbac:manage`)* — Toggle `{ role, permissionKey, allowed }`.
 
 ---
 
-## 4. Review Lifecycle State Machine
+## 3. Core Performance & Activity Endpoints
+
+### Cycle & Stage Deadlines
+- `GET /cycles/active` *(Authenticated)* — Active cycle with `stage1DraftDeadline`, `stage2ApprovalDeadline`, `stage3HrAuditDeadline`, weights (`60/40`), rubric levels, competencies.
+- `PATCH /cycles/:cycleId` *(Permission: `cycle:configure`)* — Update weights (`sum=100`), 3-Stage Due Dates, `isGracePeriodActive`, `isLocked`.
+
+### OKRs, Ping-Pong & Reviews
+- `GET /reviews/me` *(Authenticated)* — Own review sanitized by `sanitizeReviewForRole`.
+- `GET /reviews/team` *(Roles: `MANAGER`, `HR_ADMIN`, `SUPER_ADMIN`)* — Direct reports + team vs. org benchmark.
+- `GET /reviews/:reviewId` *(Owner, Assigned Manager, or Admin)* — Single review with RBAC enforcement.
+- `PUT /reviews/:reviewId/goals` *(Owner only; status `GOAL_DRAFT | GOAL_REVISION_REQUIRED`)* — Enforces `sum(weight) === 100` on `submit: true`; transitions to `GOAL_PENDING_APPROVAL`.
+- `POST /reviews/:reviewId/goals/decision` *(Assigned Manager / Admin; status `GOAL_PENDING_APPROVAL`)* — `APPROVE` (supports optional `adjustedGoals: [{ id, weight, multiplier }]` with `sum=100` + transparent before→after diff) or `REQUEST_REVISION` (requires comment `>= 5` chars).
+- `PUT /reviews/:reviewId/self-review` *(Owner only; status `GOAL_APPROVED | REVIEW_REVISION_REQUIRED`)* — Records actuals, progress %, self scores, reflection; transitions to `SELF_REVIEW_SUBMITTED`.
+- `POST /reviews/:reviewId/return-to-employee` *(Assigned Manager / Admin; status `SELF_REVIEW_SUBMITTED`)* — Returns self-review for stronger evidence (`REVIEW_REVISION_REQUIRED`).
+- `PUT /reviews/:reviewId/manager-review` *(Assigned Manager / Admin; blocked if `PUBLISHED`)* — Enforces `evidence.length >= 20` on scores `1`, `2`, `5`; computes weighted What/How/Overall/9-Box; transitions to `MANAGER_APPROVED`.
+
+### HR Oversight, HRBP Advisor, Publish & Activity Logs
+- `GET /hr/overview` *(Permission: `analytics:view_org`)* — Summary KPIs, distribution buckets, `biasAlerts`, `exceptions` (SLA breach + Ping-Pong ≥ 2), enriched reviews, HR-scoped logs.
+- `POST /hr/reviews/:reviewId/advisor-comment` *(Permission: `exception:manage`)* — Posts `HRBP_ADVISOR_COMMENT` facilitator note to thread + `PUBLIC_SELF` Activity Log.
+- `POST /hr/reviews/:reviewId/nudge` *(Permission: `exception:manage`)* — Logs SLA reminder (`TEAM_MANAGER`).
+- `POST /hr/reviews/:reviewId/extend-deadline` *(Permission: `exception:manage`)* — Extends deadline (`+1..30` days, `PUBLIC_SELF`).
+- `POST /hr/reviews/:reviewId/escalate` *(Permission: `exception:manage`)* — Flags `escalatedToSkipLevel` (`HR_INTERNAL` — hidden from Employee & Manager).
+- `POST /hr/reviews/:reviewId/return-to-manager` *(Permission: `review:publish`; status `MANAGER_APPROVED`)* — Returns evaluation to manager for review (`SELF_REVIEW_SUBMITTED`).
+- `POST /hr/cycles/:cycleId/publish` *(Permission: `review:publish`)* — **Approach A (`HR Approve & Publish`)**: releases `MANAGER_APPROVED` → `PUBLISHED`.
+- `GET /activity-logs` *(Authenticated — ALL 4 Roles)* — Returns strictly role-scoped activity logs via `filterActivityLogsForUser`.
+
+---
+
+## 4. Review Lifecycle State Machine (v1 Lean — Approach A)
+```text
+GOAL_DRAFT ⇄ GOAL_PENDING_APPROVAL ⇄ GOAL_REVISION_REQUIRED
+    │ (Manager Co-Edit & Approve)
+    ▼
+GOAL_APPROVED ──▶ SELF_REVIEW_SUBMITTED ⇄ REVIEW_REVISION_REQUIRED
+    │ (Manager Evaluate + Evidence Guardrail)
+    ▼
+MANAGER_APPROVED ──(HR Approve & Publish)──▶ PUBLISHED
 ```
-DRAFT ──(Employee Submit)──▶ SELF_REVIEW_SUBMITTED ──(Manager Submit)──▶ READY_FOR_RELEASE ──(HR Publish)──▶ PUBLISHED
-```
-*Future Calibration Extension Point (Part 2 Q2):* Insert `CALIBRATION_PENDING` → `CALIBRATION_LOCKED` between `READY_FOR_RELEASE` and `PUBLISHED`, keeping the exact same server-side visibility filter (`status === 'PUBLISHED'`) intact.
-
----
-
-## 5. Prisma Schema Plan (Supabase Dual-URL)
-- `User` (`id`, `email`, `passwordHash`, `name`, `title`, `department`, `role`, `managerId`)
-- `ReviewCycle` (`id`, `name`, `period`, `whatWeight`, `howWeight`, `selfDeadline`, `managerDeadline`, `isActive`)
-- `Goal` (`id`, `cycleId`, `employeeId`, `title`, `titleTh`, `metric`, `weight`, `progressPct`)
-- `Review` (`id`, `cycleId`, `employeeId`, `managerId`, `status`, `selfPayload`, `managerPayload`, `whatScore`, `howScore`, `overallScore`, `quadrant`, `extendedDeadline`, `escalatedToSkipLevel`, `lastNudgedAt`, `publishedAt`)
-- `AuditLog` (`id`, `cycleId`, `reviewId`, `actorId`, `action`, `reason`, `metadata`, `createdAt`)
+*Future v2 Calibration Extension Point (Part 2 Q2):* Insert `CALIBRATION_PENDING` → `CALIBRATION_LOCKED` between `MANAGER_APPROVED` and `PUBLISHED`, preserving the exact same `status === 'PUBLISHED'` employee lock.

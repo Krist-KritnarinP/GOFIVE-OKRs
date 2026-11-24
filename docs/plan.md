@@ -11,17 +11,16 @@
 ## 1. Master Checklist — หัวข้อหลักที่ได้มา & แยกว่ามีอะไรต้องทำบ้าง
 
 ### A. สิ่งที่ทำเสร็จแล้ว (Done ✅)
-- [x] **วางกติกา & โครงสร้างกลาง:** แยก `frontend/`, `backend/`, `docs/` + กฎ 4 ไฟล์ (`docs/rules/00`–`03`) + ห้องกลาง `docs/agent-hub/` + แม่แบบสีแดงบน Desktop (`Doc CODE Agent hub`)
+- [x] **วางกติกา & โครงสร้างกลาง:** แยก `frontend/`, `backend/`, `docs/` + กฎ 4 ไฟล์ (`docs/rules/00`–`03`) + ห้องกลาง `docs/agent-hub/` + แม่แบบสีแดงบน Desktop (`Doc CODE Agent hub`) + ผูก GitHub `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git`
 - [x] **กำหนด Design System & Guardrails:** ล็อกชุดสี *Nordic Slate & Electric Cobalt*, WCAG 2.1 AA, Zero Glassmorphism, `0ms` Instant UI, Zero Heavy Libraries (ถอด `motion` + `recharts`), ชื่อระบบตัวหนังสือ `empeo` ล้วนไม่มีโลโก้
-- [x] **ร่าง UI ครบ 6 หน้าจอบน Google Stitch:** Login, Register, Super Admin, HR Admin 9-Box, Manager + Slide-Over Drawer, Employee Goals & Results
-- [x] **พัฒนา Backend API + Security/RBAC (Pure ESM `.js`):** Express 5, Prisma 6.19.3 (Supabase Dual-URL), Zod Validation, JWT Auth, Login ด้วยรหัสพนักงาน (`employeeCode`) + Password, Register (`PENDING_APPROVAL`), Super Admin Dynamic Permission Matrix (`requirePermission`), 9-Box & Bias Engine, Server-side Unpublished Lock — **ผ่านเทส 6/6 + `prisma validate`**
-- [x] **พัฒนา Frontend Working Prototype (Pure `.jsx`):** ครบทั้ง 4 Role + 9-Box Grid + Org Distribution & Bias Alerts + Overdue Exception Queue + Manager Slide-Over Drawer + Bilingual **EN ↔ ไทย (ธรรมชาติ)** — **ผ่าน `oxlint` (0 errors) + `vite build` (98 kB gzip)**
+- [x] **ร่าง UI ครบ 6 หน้าจอบน Google Stitch:** Login, Register, Super Admin, HR Admin 9-Box, Manager + Slide-Over Drawer, Employee OKRs & Results
+- [x] **พัฒนา Backend API + Security/RBAC (Pure ESM `.js`):** Express 5, Prisma 6.19.3 (Supabase Dual-URL), Zod Validation, JWT Auth, Login รหัสพนักงาน, 16-User 1-Office Demo, Job Leveling (`L1–L4`), OKR Co-Edit Weight/Multiplier, 3-Stage Due Dates, HRBP Advisor Comment, แนวทาง A (`HR Approve & Publish`), และ Strict 4-Role Activity Log (`GET /api/v1/activity-logs`)
+- [x] **พัฒนา Frontend Working Prototype (Pure `.jsx`):** Clean Login + Gold Bypass Demo (`คลิกเพื่อจำลองdemo`) → 2-Level Role/Person Picker + ครบทั้ง 4 Role + 9-Box Grid + แถบ 3-Stage Status พร้อมวันที่/Countdown/Early/Overdue + Bilingual **EN ↔ ไทย** + Browser QA (Gate 3)
 
-### B. สิ่งที่ต้องทำต่อเพื่อปิดงานส่งจริง (Remaining To-Do ⬜)
-- [ ] **UI Polish (15 นาที):** ถอดไอคอนโล่ข้างคำว่า `empeo` ในโค้ด React ให้ตรงกับ Stitch 100% + เติมแถบ KPI Cards ด้านบนให้หน้า **Super Admin** และ **Manager**
-- [ ] **QA & Browser Verification (Gate 3):** เปิดเว็บจริงตรวจทุก Flow บน Desktop (`1440px`), Tablet (`768px`), Mobile (`375px`) เช็ก Contrast / Overflow / Edge states และบันทึกผลใน `docs/agent-hub/04-qa-report.md`
-- [ ] **Deploy เป็นลิงก์ออนไลน์ที่กดเล่นได้จริง:** ผูก GitHub Repo ใหม่ (ไม่ใช่ repo โปรเจกต์อื่น) + Deploy หน้าบ้าน (Vercel/Netlify/Cloudflare Pages) ให้กรรมการคลิกทดสอบได้ทันทีใน `0ms`
-- [ ] **สรุปคำตอบ Part 2 (3 ข้อ) & ซ้อมพรีเซนต์ 5 นาที:** เกลาคำตอบ Q1–Q3 เป็นภาษาของคุณเองพร้อมซ้อมคลิกเดโมตามสคริปต์ในหัวข้อที่ 9
+### B. สิ่งที่กำลังทำต่อเพื่อปิดงานส่งจริง (Remaining To-Do ⬜)
+- [ ] **Full-Site Skill Audit Fixes (Phases B–D):** ปิดช่องโหว่ State Guard ฝั่ง Backend, Native `<dialog>`, แก้ Timezone +7d / Dynamic Overdue, แปลง Enum Badge เป็นภาษาคน EN/TH 100%, Segmented Status Track & Accessibility
+- [ ] **Deploy เป็นลิงก์ออนไลน์ที่กดเล่นได้จริง:** Deploy หน้าบ้านจาก `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git` (Vercel/Netlify/Cloudflare Pages)
+- [ ] **สรุปคำตอบ Part 2 (3 ข้อ) & ซ้อมพรีเซนต์ 5 นาที:** ใช้เคสจริงที่บันทึกใน `docs/note.md` และซ้อมคลิกเดโมตามสคริปต์ในหัวข้อที่ 9
 
 ---
 

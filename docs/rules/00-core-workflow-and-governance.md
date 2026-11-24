@@ -1,7 +1,7 @@
 # 00 — Core Philosophy, Workflow, Verification & Governance (Strict Mandate)
 
 > **Applies to:** ALL Roles (PM/PO, Dev Front, Dev Back, QA/QC, Reporter)  
-> **Project Placeholders (fill per project):** `[PROJECT_NAME]` | `[NEW_PROJECT_GITHUB_URL]`
+> **Project:** `empeo — Performance Management Prototype (GOFIVE TEST)` | `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git`
 
 ---
 
@@ -14,14 +14,14 @@ Build useful, distinctive products with lean, readable code. Treat user security
 ## 1. Plan Before Implementation & Pre-Execution Confirmation
 ### MANDATORY 5-STEP WORKFLOW (กติกาการทำงาน 5 ขั้นตอนก่อนลงมือเสมอ)
 ก่อนลงมือเขียนโค้ด แก้ไขไฟล์ หรือรันคำสั่งใดๆ ตามคำขอของผู้ใช้ **ทุก Agent ต้องปฏิบัติตาม 5 ขั้นตอนดังนี้**:
-1. **ถามคำถามจัดแนวทาง (Clarify Direction):** หากมีจุดที่ยังไม่ชัดเจนหรือมีทางเลือกที่กระทบการออกแบบ/ผลลัพธ์ ให้ถามคำถามสั้นๆ เพื่อจัดแนวทางให้ตรงกันก่อน
-2. **แนะนำแนวทาง พร้อมค้นหา Skill / Tech Stack ที่เหมาะสม (Recommend Approach, Skills & Tech Stack):**
-   - เสนอแนวทางที่เป็นไปได้ และค้นหา/แนะนำ **Skill ยอดนิยมหรือเหมาะกับงาน** (ทั้งที่ติดตั้งไว้แล้ว, ใน Agent Marketplace, หรือแนวทาง/เครื่องมือจาก GitHub) รวมถึง **Tech Stack** ที่เหมาะสม
-   - ระบุรายละเอียดให้ครบทั้ง **ความสามารถ (Capabilities), ข้อดี (Pros), และข้อเสีย (Cons)** เพื่อช่วยผู้ใช้ตัดสินใจ
-   - *ข้อยกเว้นสำหรับงานเล็กมาก* (เช่น แก้คำผิด 1 บรรทัด, แก้สีปุ่ม, แก้จุดเล็กเฉพาะที่): ให้ **ย่อหรือข้ามขั้นตอนค้นหา Skill/Tech Stack** เพื่อความรวดเร็ว แต่ยังคงทวน Task และสรุปผลตามปกติ
+1. **ถามคำถามจัดแนวทาง + Critical Check / Devil's Advocate (Clarify & Challenge):** หากมีจุดที่ยังไม่ชัดเจน มีความเสี่ยงเชิงธุรกิจ/UX/Security หรือผู้ใช้ขอแค่ *"ทวนและแนะนำหน่อย"* **ห้ามลงมือแก้โค้ดเด็ดขาด** — ให้ค้นหาข้อมูลจริง/งานวิจัยประกอบ ชี้จุดเสี่ยงและข้อโต้แย้งอย่างตรงไปตรงมาก่อนเสมอ
+2. **แนะนำแนวทาง พร้อมโหลดและเรียกใช้ Skill / Tech Stack ที่เหมาะสมจริง (Recommend & Actually Load Skills):**
+   - **บังคับ:** ก่อนลงมือทำงาน Frontend/UI/Copy/Code ทุกครั้ง ต้อง **เปิดอ่าน `SKILL.md` ของสกิลที่เกี่ยวข้องจริง** (เช่น `modern-web-guidance` สำหรับ HTML/CSS/JS, `interface-design`, `anti-slop-craft`, `ux-writing`, `ponytail`/`ponytail-review`) ห้ามแค่กล่าวถึงในเอกสารโดยไม่เรียกใช้
+   - เสนอแนวทางที่เป็นไปได้ พร้อมระบุ **ความสามารถ (Capabilities), ข้อดี (Pros), และข้อเสีย (Cons)** และแนบหัวข้อ **`Skills Used`** ท้ายรายงานทุกครั้ง
+   - *ข้อยกเว้นสำหรับงานเล็กมาก* (เช่น แก้คำผิด 1 บรรทัด, แก้สีปุ่ม, แก้จุดเล็กเฉพาะที่): สามารถย่อขั้นตอนเสนอทางเลือกได้ แต่ยังคงทวน Task และสรุปผลตามปกติ
 3. **ทวน Task และสรุปแผนงาน (Restate Task & Summarize Plan):** ทวนคำสั่งของผู้ใช้ให้ชัดเจน พร้อมสรุปขอบเขต ไฟล์ที่จะแก้ไข/สร้าง และผลลัพธ์ที่คาดหวัง
 4. **รอการยืนยันแล้วค่อยลงมือทำ (Execute After Alignment):** ลงมือทำจริงหลังจากตกลงแนวทางกันแล้ว ห้ามข้ามไปแก้โค้ดใหญ่โดยไม่ได้ทวนและเสนอแนวทางก่อน
-5. **สรุปผลและซิงค์เอกสาร/Git (Summarize, Handover & Push):** สรุปสิ่งที่เปลี่ยน ผลการตรวจเช็ก อัปเดต `docs/handover.md` / `docs/note.md` / `docs/agent-hub/99-status-log.md` (เมื่อมีการเปลี่ยนแปลงสำคัญ) และทำ `git commit` + `git push origin main` ทุกครั้ง *(เฉพาะเมื่อผู้ใช้ยืนยัน GitHub Remote URL ของโปรเจกต์นั้นแล้ว)*
+5. **สรุปผลและซิงค์เอกสาร/Git แบบแบ่ง Phase (Summarize, Handover & Push):** สำหรับงานขนาดกลาง–ใหญ่ ให้แบ่งเป็น Phase ย่อยและทำ `docs/handover.md` / `docs/note.md` / `docs/agent-hub/99-status-log.md` + `git commit` + `git push origin main` ขึ้น `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git` ทุกครั้งที่จบ Phase เพื่อป้องกันงานหายหากเครื่องดับหรือเซสชันขาดตอน
 
 ### Blueprint Before Code Changes
 Before changing code, inspect relevant repository instructions, existing implementation, Git status, and current `docs/handover.md`. Provide a concise blueprint:
@@ -78,7 +78,7 @@ Proceed autonomously with authorized, reversible work. Obtain agreement before m
 - Assume another engineer or AI may join at any moment. Inspect uncommitted changes before editing. Never overwrite, revert, stage, or commit someone else's work without authorization. Respect file ownership and task boundaries, keep interfaces explicit, and coordinate overlapping edits before proceeding.
 - When parallel work is authorized (e.g., `/teamwork`), divide work by coherent ownership, communicate API/schema contracts, and avoid simultaneous edits to shared files or dependency manifests. Do not start additional agents merely for small fixes.
 - Make small, coherent local commits after verified milestones, including relevant tests, lockfiles, and handover updates.
-- **MANDATORY POLICY:** นอกจาก `docs/handover.md` แล้ว ต้องทำ `git commit` และ `git push origin main` ขึ้น GitHub (`[NEW_PROJECT_GITHUB_URL]`) ทุกครั้งหลังจบแต่ละงาน/Milestone ห้ามละเลยเด็ดขาด *(ห้าม push จนกว่าจะยืนยัน URL ของโปรเจกต์ใหม่และห้ามใช้ URL โปรเจกต์เก่า)*
+- **MANDATORY POLICY:** นอกจาก `docs/handover.md` และ `docs/note.md` แล้ว ต้องทำ `git commit` และ `git push origin main` ขึ้น GitHub (`https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git`) ทุกครั้งหลังจบแต่ละ Phase/Milestone ห้ามละเลยเด็ดขาด *(ห้าม push ไปยัง URL โปรเจกต์อื่นเด็ดขาด)*
 - Inspect the staged diff and check for secrets before committing. Stage specific files or hunks; avoid indiscriminate staging. Do not amend another contributor's commits, force-push, reset destructively, push without verification, merge, or deploy without authorization.
 - If Git remote is missing/unconfirmed, report explicitly and leave a verified local commit checkpoint.
 
