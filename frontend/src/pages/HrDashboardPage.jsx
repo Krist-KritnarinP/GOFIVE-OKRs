@@ -34,6 +34,7 @@ export function HrDashboardPage({
   onEscalate,
   onPostHrbpAdvisorComment,
   onHrReturnToManager,
+  onDecideGoalAmendment,
   onPublishReady,
 }) {
   const [selectedReview, setSelectedReview] = useState(null);
@@ -229,6 +230,8 @@ export function HrDashboardPage({
         onOpenExtend={(rev) => setModalAction({ type: 'EXTEND', review: rev })}
         onOpenEscalate={(rev) => setModalAction({ type: 'ESCALATE', review: rev })}
         onOpenAdvisor={(rev) => setModalAction({ type: 'ADVISOR', review: rev })}
+        onOpenApproveAmendment={(rev) => setModalAction({ type: 'AMEND_APPROVE', review: rev })}
+        onOpenRejectAmendment={(rev) => setModalAction({ type: 'AMEND_REJECT', review: rev })}
       />
 
       {/* Scannable 6-Column Org Roster with Job Level Badges */}
@@ -470,7 +473,11 @@ export function HrDashboardPage({
               ? `${t.hrReturnMgrBtn} — ${modalAction.review.employee.name}`
               : modalAction?.type === 'ADVISOR'
                 ? `${t.hrbpAdviseModalTitle} — ${modalAction.review.employee.name}`
-                : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
+                : modalAction?.type === 'AMEND_APPROVE'
+                  ? `${t.amendApproveModalTitle} — ${modalAction.review.employee.name}`
+                  : modalAction?.type === 'AMEND_REJECT'
+                    ? `${t.amendRejectModalTitle} — ${modalAction.review.employee.name}`
+                    : `${t.escalateBtn} — ${modalAction?.review.employee.name || ''}`
         }
         confirmLabel={
           modalAction?.type === 'EXTEND'
@@ -479,7 +486,11 @@ export function HrDashboardPage({
               ? t.confirmReturnMgrBtn
               : modalAction?.type === 'ADVISOR'
                 ? t.confirmAdvisorBtn
-                : t.confirmEscalateBtn
+                : modalAction?.type === 'AMEND_APPROVE'
+                  ? t.amendApproveBtn
+                  : modalAction?.type === 'AMEND_REJECT'
+                    ? t.amendRejectBtn
+                    : t.confirmEscalateBtn
         }
         quickTemplateLabel={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateLabel : ''}
         quickTemplateText={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateText : ''}
@@ -494,6 +505,10 @@ export function HrDashboardPage({
             onHrReturnToManager(modalAction.review.id, reason);
           } else if (modalAction.type === 'ADVISOR') {
             onPostHrbpAdvisorComment(modalAction.review.id, reason);
+          } else if (modalAction.type === 'AMEND_APPROVE') {
+            onDecideGoalAmendment?.(modalAction.review.id, 'APPROVE', reason);
+          } else if (modalAction.type === 'AMEND_REJECT') {
+            onDecideGoalAmendment?.(modalAction.review.id, 'REJECT', reason);
           } else {
             onEscalate(modalAction.review.id, reason);
           }

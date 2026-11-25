@@ -21,6 +21,11 @@ const ACTION_TONE = {
   ADMIN_UPDATE_USER: 'indigo',
   UPDATE_ROLE_PERMISSION: 'indigo',
   USER_REGISTERED: 'warn',
+  USER_INVITED: 'track',
+  USER_ACTIVATED: 'high',
+  GOAL_AMENDMENT_REQUESTED: 'indigo',
+  GOAL_AMENDMENT_APPROVED: 'high',
+  GOAL_AMENDMENT_REJECTED: 'low',
 };
 
 const SCOPE_META = {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Bell, Building2, CheckCircle2, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, Bell, Building2, CheckCircle2, KeyRound, Search, Users, X } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
@@ -8,6 +8,7 @@ import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { NextActionBanner } from '../components/common/NextActionBanner.jsx';
 import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
+import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { EvaluationDrawer } from '../components/manager/EvaluationDrawer.jsx';
 import { GoalApprovalDrawer } from '../components/manager/GoalApprovalDrawer.jsx';
 
@@ -22,10 +23,12 @@ export function ManagerWorkspacePage({
   lang,
   onDecideGoals,
   onReturnToEmployee,
+  onRequestGoalAmendment,
   onSaveEvaluation,
 }) {
   const [evalReview, setEvalReview] = useState(null);
   const [goalReview, setGoalReview] = useState(null);
+  const [amendReview, setAmendReview] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -424,17 +427,41 @@ export function ManagerWorkspacePage({
                             {t.reviewGoalsBtn}
                           </button>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => setEvalReview(rev)}
-                            className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
-                              rev.status === 'SELF_REVIEW_SUBMITTED'
-                                ? 'bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-white'
-                                : 'border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary)'
-                            }`}
-                          >
-                            {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
-                          </button>
+                          <div className="inline-flex items-center justify-end gap-2 flex-wrap">
+                            {rev.goalAmendmentRequest?.status === 'PENDING' ? (
+                              <StatusBadge tone="indigo">{t.amendPendingBadge}</StatusBadge>
+                            ) : (
+                              onRequestGoalAmendment &&
+                              ['GOAL_APPROVED', 'SELF_REVIEW_SUBMITTED', 'REVIEW_REVISION_REQUIRED', 'MANAGER_APPROVED'].includes(
+                                rev.status
+                              ) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAmendReview(rev)}
+                                  className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
+                                  style={{
+                                    backgroundColor: 'var(--status-indigo-bg)',
+                                    color: 'var(--status-indigo-text)',
+                                    borderColor: 'var(--status-indigo-border)',
+                                  }}
+                                >
+                                  <KeyRound className="w-3.5 h-3.5" aria-hidden="true" />
+                                  <span>{t.requestAmendBtn}</span>
+                                </button>
+                              )
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setEvalReview(rev)}
+                              className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
+                                rev.status === 'SELF_REVIEW_SUBMITTED'
+                                  ? 'bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-white'
+                                  : 'border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary)'
+                              }`}
+                            >
+                              {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -471,6 +498,24 @@ export function ManagerWorkspacePage({
           onReturnToEmployee={onReturnToEmployee}
         />
       )}
+
+      <ReasonModal
+        isOpen={Boolean(amendReview)}
+        title={
+          amendReview
+            ? `${t.amendModalTitle} — ${lang === 'th' ? amendReview.employee.nameTh : amendReview.employee.name}`
+            : t.amendModalTitle
+        }
+        confirmLabel={t.amendConfirmBtn}
+        t={t}
+        onClose={() => setAmendReview(null)}
+        onConfirm={(reason) => {
+          if (amendReview && onRequestGoalAmendment) {
+            onRequestGoalAmendment(amendReview.id, reason);
+          }
+          setAmendReview(null);
+        }}
+      />
     </div>
   );
 }

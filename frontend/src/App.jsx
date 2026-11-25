@@ -110,6 +110,7 @@ export function App() {
           onEscalate={store.handleEscalate}
           onPostHrbpAdvisorComment={store.handlePostHrbpAdvisorComment}
           onHrReturnToManager={store.handleHrReturnToManager}
+          onDecideGoalAmendment={store.handleDecideGoalAmendment}
           onPublishReady={store.handlePublishReady}
           onSaveEvaluation={store.handleSaveManagerEvaluation}
         />
@@ -127,6 +128,7 @@ export function App() {
           lang={lang}
           onDecideGoals={store.handleDecideEmployeeGoals}
           onReturnToEmployee={store.handleReturnReviewToEmployee}
+          onRequestGoalAmendment={store.handleRequestGoalAmendment}
           onSaveEvaluation={store.handleSaveManagerEvaluation}
         />
       )}

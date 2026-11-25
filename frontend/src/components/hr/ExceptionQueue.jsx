@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Bell, CalendarPlus, MessageSquarePlus, ShieldAlert } from 'lucide-react';
+import { Bell, CalendarPlus, Check, KeyRound, MessageSquarePlus, ShieldAlert, X } from 'lucide-react';
 import { getHrbpInterventionClient } from '../../constants/initialData.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
@@ -58,7 +58,10 @@ export function ExceptionQueue({
   onOpenExtend,
   onOpenEscalate,
   onOpenAdvisor,
+  onOpenApproveAmendment,
+  onOpenRejectAmendment,
 }) {
+  const amendmentRequests = reviews.filter((r) => r.goalAmendmentRequest?.status === 'PENDING');
   const alertItems = reviews.filter((r) => {
     const intervention = getHrbpInterventionClient(r);
     return r.isOverdue || r.escalatedToSkipLevel || intervention.needed;
@@ -70,6 +73,80 @@ export function ExceptionQueue({
         <h2 id="hr-exceptions-heading" className="text-lg font-bold text-(--ink-primary)">{t.exceptionsTitle}</h2>
         <p className="text-sm text-(--ink-secondary)">{t.exceptionsSubtitle}</p>
       </div>
+
+      {/* Pending Manager -> HR OKR Amendment Unlock Requests */}
+      {amendmentRequests.length > 0 && (
+        <div
+          className="rounded-md border p-4 space-y-3"
+          style={{
+            backgroundColor: 'var(--status-indigo-bg)',
+            borderColor: 'var(--status-indigo-border)',
+          }}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <KeyRound className="w-4 h-4 shrink-0" style={{ color: 'var(--status-indigo-text)' }} aria-hidden="true" />
+              <h3 className="text-sm font-bold" style={{ color: 'var(--status-indigo-text)' }}>
+                {t.amendQueueTitle}
+              </h3>
+            </div>
+            <StatusBadge tone="indigo">{amendmentRequests.length}</StatusBadge>
+          </div>
+          <div className="space-y-2.5">
+            {amendmentRequests.map((rev) => (
+              <div
+                key={rev.id}
+                className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 rounded-md border border-(--border-subtle) bg-(--surface-card) p-3.5"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-bold text-(--ink-primary)">
+                      {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                    </span>
+                    <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
+                    <span className="text-xs text-(--ink-muted)">
+                      {rev.employee.department} · {t.colManager}:{' '}
+                      <strong className="text-(--ink-secondary)">
+                        {lang === 'th' ? rev.manager?.nameTh : rev.manager?.name}
+                      </strong>
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-(--ink-primary) rounded bg-(--surface-subtle) px-3 py-1.5">
+                    &ldquo;{rev.goalAmendmentRequest.reason}&rdquo;
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                  {onOpenRejectAmendment && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenRejectAmendment(rev)}
+                      className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
+                      style={{
+                        backgroundColor: 'var(--status-low-bg)',
+                        color: 'var(--status-low-text)',
+                        borderColor: 'var(--status-low-border)',
+                      }}
+                    >
+                      <X className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>{t.amendRejectBtn}</span>
+                    </button>
+                  )}
+                  {onOpenApproveAmendment && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenApproveAmendment(rev)}
+                      className="inline-flex items-center gap-1 min-h-10 px-3.5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-xs font-semibold text-white cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>{t.amendApproveBtn}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {alertItems.length === 0 ? (
         <p className="text-sm text-(--ink-secondary) py-4">{t.noExceptions}</p>

@@ -914,6 +914,110 @@ export function usePerformanceStore(t) {
     [reviews, appendLog, showToast, t.toastEscalated]
   );
 
+  const handleRequestGoalAmendment = useCallback(
+    (reviewId, reason) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target || target.status === 'PUBLISHED') return;
+      const nowIso = new Date().toISOString();
+      const mgrName = currentUser?.name || target.manager?.name || 'Manager';
+      const mgrNameTh = currentUser?.nameTh || target.manager?.nameTh || mgrName;
+      const entry = makeComment(target, {
+        phase: 'GOAL',
+        actorName: mgrName,
+        actorRole: 'MANAGER',
+        action: 'GOAL_AMENDMENT_REQUESTED',
+        comment: `Requested HR unlock to amend OKRs: ${reason}`,
+      });
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                goalAmendmentRequest: {
+                  status: 'PENDING',
+                  requestedBy: mgrName,
+                  requestedByTh: mgrNameTh,
+                  reason,
+                  requestedAt: nowIso,
+                },
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
+      );
+
+      appendLog({
+        action: 'GOAL_AMENDMENT_REQUESTED',
+        visibilityScope: 'TEAM_MANAGER',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        actorId: currentUser?.id || target.managerId,
+        actorName: mgrName,
+        recipientName: 'HR Admin',
+        reason: `Requested OKR unlock for ${target.employee.name}: ${reason}`,
+      });
+      showToast(t.toastAmendRequested, 'success');
+    },
+    [reviews, currentUser, appendLog, showToast, t.toastAmendRequested]
+  );
+
+  const handleDecideGoalAmendment = useCallback(
+    (reviewId, decision, comment) => {
+      const target = reviews.find((r) => r.id === reviewId);
+      if (!target || !target.goalAmendmentRequest) return;
+      const nowIso = new Date().toISOString();
+      const isApprove = decision === 'APPROVE';
+      const hrName = currentUser?.name || 'HR Admin';
+      const nextRound = isApprove ? (target.revisionRound || 1) + 1 : target.revisionRound || 1;
+      const entry = makeComment(
+        { ...target, revisionRound: nextRound },
+        {
+          phase: 'HR_REVIEW',
+          actorName: hrName,
+          actorRole: 'HR_ADMIN',
+          action: isApprove ? 'GOAL_AMENDMENT_APPROVED' : 'GOAL_AMENDMENT_REJECTED',
+          comment,
+        }
+      );
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id !== reviewId
+            ? r
+            : {
+                ...r,
+                status: isApprove ? 'GOAL_REVISION_REQUIRED' : r.status,
+                revisionRound: nextRound,
+                goalAmendmentRequest: {
+                  ...r.goalAmendmentRequest,
+                  status: isApprove ? 'APPROVED' : 'REJECTED',
+                  decidedBy: hrName,
+                  decisionNote: comment,
+                  decidedAt: nowIso,
+                },
+                commentHistory: [...(r.commentHistory || []), entry],
+              }
+        )
+      );
+
+      appendLog({
+        action: isApprove ? 'GOAL_AMENDMENT_APPROVED' : 'GOAL_AMENDMENT_REJECTED',
+        visibilityScope: isApprove ? 'PUBLIC_SELF' : 'TEAM_MANAGER',
+        targetEmployeeId: target.employeeId,
+        targetManagerId: target.managerId,
+        recipientName: isApprove
+          ? `${target.employee.name} & ${target.manager?.name || 'Manager'}`
+          : target.manager?.name || 'Manager',
+        reason: isApprove
+          ? `Approved OKR unlock for ${target.employee.name}: ${comment}`
+          : `Declined OKR unlock for ${target.employee.name}: ${comment}`,
+      });
+      showToast(isApprove ? t.toastAmendApproved : t.toastAmendRejected, isApprove ? 'success' : 'warning');
+    },
+    [reviews, currentUser, appendLog, showToast, t.toastAmendApproved, t.toastAmendRejected]
+  );
+
   return {
     cycle,
     reviews: enrichedReviews,
@@ -957,5 +1061,7 @@ export function usePerformanceStore(t) {
     handleNudge,
     handleExtendDeadline,
     handleEscalate,
+    handleRequestGoalAmendment,
+    handleDecideGoalAmendment,
   };
 }
