@@ -3,11 +3,9 @@ import { getHrbpInterventionClient } from '../../constants/initialData.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { TableRegion } from '../common/TableRegion.jsx';
-import { ActivityLogPanel } from '../common/ActivityLogPanel.jsx';
 
 export function ExceptionQueue({
   reviews,
-  auditLogs,
   t,
   lang,
   onNudge,
@@ -21,8 +19,7 @@ export function ExceptionQueue({
   });
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 min-w-0">
-      <section className="min-w-0 xl:col-span-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+    <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
         <div>
           <h2 id="hr-exceptions-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.exceptionsTitle}</h2>
           <p className="text-sm text-[var(--ink-secondary)]">{t.exceptionsSubtitle}</p>
@@ -130,9 +127,6 @@ export function ExceptionQueue({
             </table>
           </TableRegion>
         )}
-      </section>
-
-      <ActivityLogPanel logs={auditLogs} role="HR_ADMIN" t={t} />
-    </div>
+    </section>
   );
 }

@@ -1,5 +1,14 @@
 import { useId, useState } from 'react';
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Languages } from 'lucide-react';
+import { TieredSelect } from '../components/common/TieredSelect.jsx';
+
+const DEPARTMENT_OPTIONS = [
+  { value: 'Engineering', label: 'Engineering', tone: 'track' },
+  { value: 'Product', label: 'Product', tone: 'indigo' },
+  { value: 'Sales', label: 'Sales', tone: 'high' },
+  { value: 'Operations', label: 'Operations', tone: 'warn' },
+  { value: 'Human Resources', label: 'Human Resources', tone: 'neutral' },
+];
 
 export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin }) {
   const uid = useId();
@@ -131,19 +140,14 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
                     <label htmlFor={`${uid}-dept`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                       {t.departmentLabel}
                     </label>
-                    <select
+                    <TieredSelect
                       id={`${uid}-dept`}
                       name="department"
                       value={form.department}
                       onChange={(e) => setForm((p) => ({ ...p, department: e.target.value }))}
-                      className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
-                    >
-                      <option value="Engineering">Engineering</option>
-                      <option value="Product">Product</option>
-                      <option value="Sales">Sales</option>
-                      <option value="Operations">Operations</option>
-                      <option value="Human Resources">Human Resources</option>
-                    </select>
+                      className="w-full min-h-11"
+                      options={DEPARTMENT_OPTIONS}
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor={`${uid}-title`} className="block text-sm font-semibold text-[var(--ink-primary)]">

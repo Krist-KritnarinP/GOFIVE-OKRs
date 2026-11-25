@@ -4,6 +4,7 @@ import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { CommentHistoryPanel } from '../common/CommentHistoryPanel.jsx';
+import { TieredSelect } from '../common/TieredSelect.jsx';
 
 export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
   const uid = useId();
@@ -155,16 +156,17 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                       <label htmlFor={mId} className="block text-xs font-semibold text-[var(--ink-primary)]">
                         {t.goalMultiplierLabel}
                       </label>
-                      <select
+                      <TieredSelect
                         id={mId}
                         value={edit.multiplier}
                         onChange={(e) => updateEdit(g.id, { multiplier: Number(e.target.value) })}
-                        className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
-                      >
-                        <option value={1.0}>{t.multStandard}</option>
-                        <option value={1.1}>{t.multStretch}</option>
-                        <option value={1.2}>{t.multBreakthrough}</option>
-                      </select>
+                        className="w-full tabular-nums"
+                        options={[
+                          { value: 1.0, label: t.multStandard, tone: 'neutral' },
+                          { value: 1.1, label: t.multStretch, tone: 'track' },
+                          { value: 1.2, label: t.multBreakthrough, tone: 'indigo' },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { X } from 'lucide-react';
 import { ModalDialog } from '../common/ModalDialog.jsx';
+import { TieredSelect } from '../common/TieredSelect.jsx';
 
 export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
   const uid = useId();
@@ -77,16 +78,17 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               <label htmlFor={`${uid}-mtype`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalMetricTypeLabel}
               </label>
-              <select
+              <TieredSelect
                 id={`${uid}-mtype`}
                 name="metricType"
                 value={form.metricType}
                 onChange={(e) => setForm((p) => ({ ...p, metricType: e.target.value }))}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
-              >
-                <option value="QUANTITATIVE">{t.metricQuantitative}</option>
-                <option value="QUALITATIVE">{t.metricQualitative}</option>
-              </select>
+                className="w-full min-h-11"
+                options={[
+                  { value: 'QUANTITATIVE', label: t.metricQuantitative, tone: 'track' },
+                  { value: 'QUALITATIVE', label: t.metricQualitative, tone: 'indigo' },
+                ]}
+              />
             </div>
             <div className="space-y-1.5">
               <label htmlFor={`${uid}-due`} className="block text-sm font-semibold text-[var(--ink-primary)]">
@@ -159,17 +161,18 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               <label htmlFor={`${uid}-mult`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalMultiplierLabel}
               </label>
-              <select
+              <TieredSelect
                 id={`${uid}-mult`}
                 name="multiplier"
                 value={form.multiplier}
                 onChange={(e) => setForm((p) => ({ ...p, multiplier: Number(e.target.value) }))}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
-              >
-                <option value={1.0}>{t.multStandard}</option>
-                <option value={1.1}>{t.multStretch}</option>
-                <option value={1.2}>{t.multBreakthrough}</option>
-              </select>
+                className="w-full min-h-11 tabular-nums"
+                options={[
+                  { value: 1.0, label: t.multStandard, tone: 'neutral' },
+                  { value: 1.1, label: t.multStretch, tone: 'track' },
+                  { value: 1.2, label: t.multBreakthrough, tone: 'indigo' },
+                ]}
+              />
             </div>
           </div>
 

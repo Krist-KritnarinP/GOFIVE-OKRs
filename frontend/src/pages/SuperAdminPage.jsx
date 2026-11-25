@@ -4,8 +4,23 @@ import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
+import { TieredSelect } from '../components/common/TieredSelect.jsx';
 
 const ROLE_COLUMNS = [ROLES.SUPER_ADMIN, ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE];
+
+const ROLE_TONE = {
+  SUPER_ADMIN: 'low',
+  HR_ADMIN: 'indigo',
+  MANAGER: 'track',
+  EMPLOYEE: 'neutral',
+};
+
+const ROLE_TIER_PREFIX = {
+  SUPER_ADMIN: 'T4',
+  HR_ADMIN: 'T3',
+  MANAGER: 'T2',
+  EMPLOYEE: 'T1',
+};
 
 export function SuperAdminPage({
   users,
@@ -59,77 +74,70 @@ export function SuperAdminPage({
         </div>
       </div>
 
-      {/* Pending Registration Approvals + System Activity Log */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-w-0">
-        <section className="min-w-0 xl:col-span-7 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.pendingApprovalsTitle}</h2>
-            <StatusBadge tone={pendingUsers.length > 0 ? 'warn' : 'high'}>
-              {pendingUsers.length}
-            </StatusBadge>
-          </div>
-
-          {pendingUsers.length === 0 ? (
-            <p className="text-sm text-[var(--ink-secondary)]">{t.noPendingApprovals}</p>
-          ) : (
-            <div className="space-y-2.5">
-              {pendingUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md border border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] p-4"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-[var(--ink-primary)] tabular-nums">
-                      {user.employeeCode} · {lang === 'th' ? user.nameTh : user.name}
-                    </p>
-                    <p className="text-xs text-[var(--ink-secondary)]">
-                      {user.title} · {user.department}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <select
-                      aria-label="Assign job level"
-                      value={user.jobLevel || 'L1_JUNIOR'}
-                      onChange={(e) => onUpdateUser(user.id, { jobLevel: e.target.value })}
-                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)]"
-                    >
-                      {JOB_LEVELS.map((lvl) => (
-                        <option key={lvl.id} value={lvl.id}>
-                          {lvl.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      aria-label="Assign role"
-                      value={user.role}
-                      onChange={(e) => onUpdateUser(user.id, { role: e.target.value })}
-                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-xs font-semibold text-[var(--ink-primary)]"
-                    >
-                      {[ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE].map((role) => (
-                        <option key={role} value={role}>
-                          {t.roleLabels?.[role] || role}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => onUpdateUser(user.id, { accountStatus: 'ACTIVE' })}
-                      className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs sm:text-sm font-semibold text-white cursor-pointer"
-                    >
-                      <UserCheck className="w-4 h-4" aria-hidden="true" />
-                      {t.approveBtn}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <div className="min-w-0 xl:col-span-5">
-          <ActivityLogPanel logs={superLogs} role="SUPER_ADMIN" t={t} />
+      {/* Pending Registration Approvals (Full-Width) */}
+      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.pendingApprovalsTitle}</h2>
+          <StatusBadge tone={pendingUsers.length > 0 ? 'warn' : 'high'}>
+            {pendingUsers.length}
+          </StatusBadge>
         </div>
-      </div>
+
+        {pendingUsers.length === 0 ? (
+          <p className="text-sm text-[var(--ink-secondary)]">{t.noPendingApprovals}</p>
+        ) : (
+          <div className="space-y-2.5">
+            {pendingUsers.map((user) => (
+              <div
+                key={user.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md border border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] p-4"
+              >
+                <div>
+                  <p className="text-sm font-bold text-[var(--ink-primary)] tabular-nums">
+                    {user.employeeCode} · {lang === 'th' ? user.nameTh : user.name}
+                  </p>
+                  <p className="text-xs text-[var(--ink-secondary)]">
+                    {user.title} · {user.department}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <TieredSelect
+                    ariaLabel={`Assign job level for ${user.employeeCode}`}
+                    value={user.jobLevel || 'L1_JUNIOR'}
+                    onChange={(e) => onUpdateUser(user.id, { jobLevel: e.target.value })}
+                    className="min-w-[148px]"
+                    options={JOB_LEVELS.map((lvl) => ({
+                      value: lvl.id,
+                      label: lang === 'th' ? lvl.labelTh : lvl.label,
+                      tone: lvl.tone,
+                    }))}
+                  />
+                  <TieredSelect
+                    ariaLabel={`Assign role for ${user.employeeCode}`}
+                    value={user.role}
+                    onChange={(e) => onUpdateUser(user.id, { role: e.target.value })}
+                    className="min-w-[152px]"
+                    options={[ROLES.HR_ADMIN, ROLES.MANAGER, ROLES.EMPLOYEE].map((role) => ({
+                      value: role,
+                      prefix: ROLE_TIER_PREFIX[role],
+                      label: t.roleLabels?.[role] || role,
+                      tone: ROLE_TONE[role],
+                    }))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onUpdateUser(user.id, { accountStatus: 'ACTIVE' })}
+                    className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs sm:text-sm font-semibold text-white cursor-pointer"
+                  >
+                    <UserCheck className="w-4 h-4" aria-hidden="true" />
+                    {t.approveBtn}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Dynamic Role Permission Matrix */}
       <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
@@ -234,33 +242,32 @@ export function SuperAdminPage({
                   </td>
                   <td className="py-3 px-3 text-[var(--ink-secondary)]">{user.department}</td>
                   <td className="py-3 px-3">
-                    <select
-                      aria-label={`Job level for ${user.employeeCode}`}
+                    <TieredSelect
+                      ariaLabel={`Job level for ${user.employeeCode}`}
                       value={user.jobLevel || 'L2_MID'}
                       onChange={(e) => onUpdateUser(user.id, { jobLevel: e.target.value })}
-                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)]"
-                    >
-                      {JOB_LEVELS.map((lvl) => (
-                        <option key={lvl.id} value={lvl.id}>
-                          {lang === 'th' ? lvl.labelTh : lvl.label}
-                        </option>
-                      ))}
-                    </select>
+                      className="min-w-[152px]"
+                      options={JOB_LEVELS.map((lvl) => ({
+                        value: lvl.id,
+                        label: lang === 'th' ? lvl.labelTh : lvl.label,
+                        tone: lvl.tone,
+                      }))}
+                    />
                   </td>
                   <td className="py-3 px-3">
-                    <select
-                      aria-label={`Role for ${user.employeeCode}`}
+                    <TieredSelect
+                      ariaLabel={`Role for ${user.employeeCode}`}
                       value={user.role}
                       disabled={user.employeeCode === 'EMP-0001'}
                       onChange={(e) => onUpdateUser(user.id, { role: e.target.value })}
-                      className="min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2 text-xs font-semibold text-[var(--ink-primary)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)]"
-                    >
-                      {ROLE_COLUMNS.map((role) => (
-                        <option key={role} value={role}>
-                          {t.roleLabels?.[role] || role}
-                        </option>
-                      ))}
-                    </select>
+                      className="min-w-[164px]"
+                      options={ROLE_COLUMNS.map((role) => ({
+                        value: role,
+                        prefix: ROLE_TIER_PREFIX[role],
+                        label: t.roleLabels?.[role] || role,
+                        tone: ROLE_TONE[role],
+                      }))}
+                    />
                   </td>
                   <td className="py-3 px-3">
                     <StatusBadge
@@ -296,6 +303,9 @@ export function SuperAdminPage({
           </table>
         </TableRegion>
       </section>
+
+      {/* System Activity Log — Always Anchored at Bottom */}
+      <ActivityLogPanel logs={superLogs} role="SUPER_ADMIN" t={t} />
     </div>
   );
 }

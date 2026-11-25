@@ -158,10 +158,9 @@ export function ManagerWorkspacePage({
         </div>
       </section>
 
-      {/* Scannable Team Table + Team-Only Activity Log */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-w-0">
-        <section className="min-w-0 xl:col-span-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
-          <TableRegion label={t.mgrTitle}>
+      {/* Scannable Team Table (Full-Width) */}
+      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
+        <TableRegion label={t.mgrTitle}>
             <table className="w-full text-left border-collapse">
               <caption className="visually-hidden">{t.mgrTitle}</caption>
               <thead>
@@ -245,13 +244,11 @@ export function ManagerWorkspacePage({
                 })}
               </tbody>
             </table>
-          </TableRegion>
-        </section>
+        </TableRegion>
+      </section>
 
-        <div className="xl:col-span-4">
-          <ActivityLogPanel logs={managerLogs} role="MANAGER" t={t} />
-        </div>
-      </div>
+      {/* Team-Only Activity Log — Always Anchored at Bottom */}
+      <ActivityLogPanel logs={managerLogs} role="MANAGER" t={t} />
 
       {goalReview && (
         <GoalApprovalDrawer

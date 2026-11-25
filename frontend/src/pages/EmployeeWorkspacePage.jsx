@@ -8,7 +8,16 @@ import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { CommentHistoryPanel } from '../components/common/CommentHistoryPanel.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
+import { TieredSelect } from '../components/common/TieredSelect.jsx';
 import { GoalEditorModal } from '../components/employee/GoalEditorModal.jsx';
+
+const SCORE_TONE = {
+  1: 'low',
+  2: 'warn',
+  3: 'neutral',
+  4: 'track',
+  5: 'high',
+};
 
 const EMPLOYEE_SAFE_ACTIONS = new Set([
   'GOAL_SUBMITTED',
@@ -372,7 +381,8 @@ export function EmployeeWorkspacePage({
                               <label className="block text-xs font-semibold text-[var(--ink-primary)]">
                                 {t.selfScoreLabel}
                               </label>
-                              <select
+                              <TieredSelect
+                                ariaLabel={t.selfScoreLabel}
                                 value={input.selfScore}
                                 onChange={(e) =>
                                   setGoalInputs((p) => ({
@@ -380,14 +390,13 @@ export function EmployeeWorkspacePage({
                                     [goal.id]: { ...input, selfScore: Number(e.target.value) },
                                   }))
                                 }
-                                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
-                              >
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                  <option key={n} value={n}>
-                                    {n} / 5
-                                  </option>
-                                ))}
-                              </select>
+                                className="w-full tabular-nums"
+                                options={[1, 2, 3, 4, 5].map((n) => ({
+                                  value: n,
+                                  label: `${n} / 5`,
+                                  tone: SCORE_TONE[n],
+                                }))}
+                              />
                             </div>
                           </div>
 
@@ -540,10 +549,11 @@ export function EmployeeWorkspacePage({
               </div>
             )}
           </section>
-
-          <ActivityLogPanel logs={employeeLogs} role="EMPLOYEE" t={t} />
         </div>
       </div>
+
+      {/* Own-Review Private Activity Log — Always Anchored at Bottom */}
+      <ActivityLogPanel logs={employeeLogs} role="EMPLOYEE" t={t} />
 
       {goalModal.open && (
         <GoalEditorModal

@@ -5,6 +5,7 @@ import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { TableRegion } from '../components/common/TableRegion.jsx';
+import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { NineBoxGrid } from '../components/hr/NineBoxGrid.jsx';
 import { OrgDistributionBar } from '../components/hr/OrgDistributionBar.jsx';
@@ -155,10 +156,9 @@ export function HrDashboardPage({
         </div>
       </div>
 
-      {/* SLA Breach & HRBP Intervention Queue + Org-Scoped Activity Log */}
+      {/* SLA Breach & HRBP Intervention Queue (Full-Width) */}
       <ExceptionQueue
         reviews={reviews}
-        auditLogs={hrLogs}
         t={t}
         lang={lang}
         onNudge={onNudge}
@@ -255,6 +255,9 @@ export function HrDashboardPage({
           </table>
         </TableRegion>
       </section>
+
+      {/* Org-Scoped Activity Log — Always Anchored at Bottom */}
+      <ActivityLogPanel logs={hrLogs} role="HR_ADMIN" t={t} />
 
       {selectedReview && (
         <EvaluationDrawer
