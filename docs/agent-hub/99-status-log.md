@@ -5,14 +5,21 @@
 ---
 
 ## Current Phase & Gate Status
-- **Active Phase:** Phase 3.5 Complete — Ready for GitHub Remote Push & Public Deployment
+- **Active Phase:** Phase 4.0 Complete — Zero-Learning-Curve / Gen-Gap UX, Bottom Activity Log, Color-Coded TieredSelect, Return Cards & Accessible Toasts Shipped & Browser-Verified
 - **Gate 1 (Before Dev):** PASSED
 - **Gate 2 (Before QA):** PASSED
-- **Gate 3 (Before Release):** PASSED (`docs/agent-hub/04-qa-report.md` — 0 console errors, 8/8 backend tests including 4-role Activity Log privacy isolation, `oxlint` 0 errors across 30 files, `vite build` pass)
+- **Gate 3 (Before Release):** PASSED (`docs/agent-hub/04-qa-report.md` Rev 3 — 0 console errors, 9/9 backend tests, 5/5 `autoBalanceWeights` self-check, `oxlint` 0 errors across 36 files, `vite build` 360ms, Desktop 1440px + Mobile 375px Browser QA pass)
 
 ---
 
 ## Activity Log
+
+### 2026-11-25 — UI/UX Polish + Zero-Learning-Curve & Close Gen-Gap Sprint Complete (Phases 2–5 Pushed)
+- **Skills Loaded & Applied:** `modern-web-guidance` (`branded-select-styling`, `persistent-toast-notifications`, `accessible-error-announcement`), `interface-design`, `ux-writing`, `ponytail`, `anti-slop-craft`.
+- **Phase 2 (`caef65a`):** Anchored `ActivityLogPanel` full-width at the bottom of all 4 role pages (`SuperAdminPage`, `HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`) and created `TieredSelect.jsx` (color-coded semantic left accent + `appearance: base-select` progressive enhancement) for Role (`T1–T4`), Job Level (`L1–L4`), Multiplier (`1.0x–1.2x`), Measurement Mode, Self Score (`1–5`), and Department selects.
+- **Phase 3 (`3e06426`):** Added `ReturnFeedbackCard.jsx` (who returned, round, quoted comment, 3-step fix checklist, HRBP Advisor note), upgraded `ToastBar.jsx` (persistent pre-mounted notification/live regions, native `document.ariaNotify()` with fallback, pause auto-dismiss on hover/focus, 320px/375px safe layout), and rewrote EN/TH error messages to be specific & actionable (`aria-invalid="false"/"true"`, `:user-invalid`, exact OKR/character counts).
+- **Phase 4 (`3901521`):** Built 6-department 1-click Starter OKR Templates (`okrTemplates.js`) + `autoBalanceWeights` (exact `100%` sum), Quick Importance buttons (`50/30/20%`), 3 measurement modes (`Numeric` / `Milestone Checklist` / `Service Quality`), `NextActionBanner.jsx` on Employee & Manager workspaces, 3-Question Guided Evidence Prompt chips, `localStorage` Auto-Save badge, and Preview & Confirm Submit dialog.
+- **Phase 5 (Browser QA & Docs Sync):** Verified Desktop `1440x900` + Mobile `375x812` across all 4 roles; caught & fixed missing `showToast` export in `usePerformanceStore.js`; re-verified template & Auto-Balance toasts PASS; synced `handover.md`, `note.md`, `04-qa-report.md`, and `99-status-log.md`.
 
 ### 2026-11-24 — 4-Phase Full-Site Skill Audit & Hardening Complete (Phases A–D Pushed to `GOFIVE-OKRs.git`)
 - **Skills Loaded & Applied:** `modern-web-guidance` (`dialog`, `responsive-table`, `forms`, `accessibility`), `interface-design`, `ux-writing`, `ponytail-review`, `anti-slop-craft`, `ponytail`.

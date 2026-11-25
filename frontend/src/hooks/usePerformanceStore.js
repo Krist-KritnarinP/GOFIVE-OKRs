@@ -767,6 +767,7 @@ export function usePerformanceStore(t) {
     activeEmployeeId,
     setActiveEmployeeId,
     toast,
+    showToast,
     dismissToast,
     can,
     handleLogin,

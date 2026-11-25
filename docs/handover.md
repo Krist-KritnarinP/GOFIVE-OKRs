@@ -1,7 +1,7 @@
 # Project Handover — empeo Performance Management Prototype (`GOFIVE TEST`)
 
-**Last Updated:** 2026-11-24  
-**Current Milestone:** Phase 3.6 Complete — **Job Leveling, 3-Stage Due Dates (+ Countdown/Overdue/Early Chips), Manager OKR Co-Edit, HRBP Advisor Intervention, Approach A (`HR Approve & Publish`), Strict 4-Role Activity Log, GitHub Remote Sync, and Live Supabase PostgreSQL Persistence (Prisma Dual-URL)**  
+**Last Updated:** 2026-11-25  
+**Current Milestone:** Phase 4.0 Complete — **Activity Log Bottom Anchor, Color-Coded `TieredSelect`, `ReturnFeedbackCard` + Persistent Accessible `ToastBar` + Actionable EN/TH Errors, and Zero-Learning-Curve & Gen-Gap UX (Department Starter Templates, Auto-Balance 100%, 3 Measurement Modes, `NextActionBanner`, Guided Evidence Prompts, Auto-Save & Preview Submit)**  
 **Next Action:** Deploy public prototype link (Frontend + Backend with Supabase env vars) for Gofive PO Assignment submission and finalize Part 2 written answers.
 
 ---
@@ -36,9 +36,10 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
 | Backend unit, RBAC & Activity Log privacy tests | `npm test` | **PASS** (`9/9` passed — including 4-role Activity Log zero-leak test, OKR co-edit diff, HRBP Advisor Comment, Approach A Publish Gate, `409` Published State Guards, Dept Manager Mapping) |
 | Prisma schema validation & DB push | `npm --prefix backend run prisma:validate && prisma:push && prisma:seed` | **PASS** (All 6 tables synced to Supabase `ap-southeast-1` and seeded with 16 users, 12 goals, 6 reviews, 7 audit logs) |
 | Supabase live persistence across restart | `initStore()` → `updateCycle()` → `flushStore()` → `resetStore()` → `initStore()` | **PASS** (Changes persist to Supabase and reload accurately after simulated restart; `NODE_ENV=test` stays isolated in `memory-fallback`) |
-| Frontend linter | `npm run lint` | **PASS** (`oxlint`: 0 warnings, 0 errors across 30 files) |
-| Frontend production build | `npm run build` | **PASS** (`vite build`: `573ms`, `115.77 kB` gzip) |
-| Live Browser QA | Desktop `1440x900` + Mobile `375x812` | **PASS** (0 console errors, StrictMode duplicate-log bug fixed, HR Admin Mobile `375px` overflow fixed, EN/TH timing chips verified) |
+| Frontend linter | `npm run lint` | **PASS** (`oxlint`: 0 warnings, 0 errors across 36 files) |
+| Frontend production build | `npm run build` | **PASS** (`vite build`: `360ms`, `131.11 kB` gzip) |
+| `autoBalanceWeights` self-check | `node -e ...` | **PASS** (`5/5` uneven & zero-weight cases balance to exact `100%` with every goal `>= 5%`) |
+| Live Browser QA | Desktop `1440x900` + Mobile `375x812` | **PASS** (0 console errors; all 4 roles bottom Activity Log, `TieredSelect`, `ReturnFeedbackCard`, Starter Templates + Toast + `Auto-Balance 100%`, `NextActionBanner`, item-named evidence error, and `375px` mobile zero-overflow verified) |
 
 ---
 
@@ -59,8 +60,8 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
    - **Phase D (Zero Raw Enum Badges, 100% EN/TH Copy, 0-OKR Empty State, KPI Hierarchy, `>= 40px` Touch Targets):** DONE
 2. **Public Deployment:** Deploy frontend & backend preview link (set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` [32+ chars], `CORS_ORIGINS`, `NODE_ENV=production` on backend host, and `VITE_API_BASE_URL` on frontend host).
 3. **Part 2 Written Answers (`docs/plan.md` & `docs/note.md`):** Updated with all 3 real AI collaboration examples for Q3.
-4. **Next Session Pinned UI/UX Backlog (saved in `docs/note.md` §3 & `docs/fairness-transparency-and-zero-learning-curve.md` — wait for user go-ahead):**
-   - Move `ActivityLogPanel` to the bottom of all 4 role pages.
-   - Add clear category/tier color coding & hierarchy cues on key dropdowns (Role, Job Level, Multiplier, etc.).
-   - Audit all Return/Ping-Pong cards, Toasts, and Error messages (EN/TH) for clarity and immediate actionability + run post-Phase D Browser QA.
-   - **Zero-Learning-Curve & Close Gen-Gap Pass:** Department Starter OKR Templates, 1-click Auto-Balance 100% weight / plain priority selector, 3 measurement modes (Numeric / Milestone Checklist / Quality), "Your Turn" Next-Action Banner, 3-question evidence prompts, and Auto-Save indicator for fresh grads & non-IT senior staff.
+4. **UI/UX Polish & Zero-Learning-Curve / Gen-Gap Sprint (2026-11-25) — ALL COMPLETE & PUSHED:**
+   - **Activity Log at Bottom (`caef65a`):** Anchored full-width at the bottom of all 4 role pages (`SuperAdminPage`, `HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`).
+   - **Color-Coded Tiered Dropdowns (`caef65a`):** `TieredSelect.jsx` with `appearance: base-select` progressive enhancement (`modern-web-guidance: branded-select-styling`) across Role (`T1–T4`), Job Level (`L1–L4`), Difficulty Multiplier (`1.0x–1.2x`), Measurement Mode, Self Score (`1–5`), and Department.
+   - **Return Cards, Accessible Toast & Actionable Errors (`3e06426`):** `ReturnFeedbackCard.jsx` (who returned, round, quoted comment, 3-step fix guide, HRBP note), persistent pre-mounted `ToastBar.jsx` (`ariaNotify` + live region + hover/focus pause), and specific EN/TH validation errors naming exact missing OKRs/char counts.
+   - **Zero-Learning-Curve & Close Gen-Gap (`3901521` + `showToast` fix):** 6-department 1-click Starter OKR Templates (`okrTemplates.js`), Quick Importance buttons (`50/30/20%`) + 1-click `Auto-Balance 100%`, 3 measurement modes (`Numeric` / `Milestone Checklist` / `Service Quality`), `NextActionBanner.jsx`, 3-Question Evidence Prompt chips, `localStorage` Auto-Save badge, and Preview & Confirm Submit dialog.

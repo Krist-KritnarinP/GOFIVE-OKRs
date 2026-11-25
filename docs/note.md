@@ -3,7 +3,7 @@
 > **Purpose:** Central non-code notebook for product decisions, research evidence, open reminders, and concrete real-world examples for the **Gofive PO Exam (Part 2)** questions.
 
 **Repository:** `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git`  
-**Last Updated:** 2026-11-24
+**Last Updated:** 2026-11-25
 
 ---
 
@@ -43,18 +43,16 @@
 
 ---
 
-## 3. Next Session UI/UX Polish Backlog (Pinned by User — Do NOT Execute Until Confirmed)
-1. **Activity Log Placement:** Move `ActivityLogPanel` to the **very bottom** of every role page (`SuperAdminPage`, `HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`) so primary workflows stay top-of-page and logs sit cleanly at the footer.
-2. **Important Dropdowns — Category & Hierarchy Coloring:** Upgrade critical dropdown selectors (e.g., Role assignment, Job Level `L1–L4`, Difficulty Multiplier `1.0x/1.1x/1.2x`, Self Score `1–5`, Measurement Type) with clear visual category/tier color coding or hierarchy cues so users can tell seniority/impact levels apart at a glance.
-3. **Return Cards, Toast & Error Copy Audit (`ux-writing` + Live Check):** Review every **return/ping-pong card** (Manager returning OKRs/Self-Review, HR returning to Manager, HRBP Advisor Note), **Toast notification**, and **inline/form error message** (EN & TH) to verify:
-   - Is the returned reason immediately clear?
-   - Is every error explicit about *what failed*, *why*, and *the exact next step to fix it*?
-   - Can users act and resolve it effortlessly?
-4. **Post-Phase D Browser QA:** Run a quick Desktop (`1440px`) + Mobile (`375px`) visual verification after completing items 1–3 above.
-5. **Zero-Learning-Curve & Close Gen-Gap Vision (Full Analysis in `docs/fairness-transparency-and-zero-learning-curve.md`):**
-   - Goal: Ready-to-use for **every department, every job type, and every generation** (fresh grads to non-IT senior staff) in ~5 minutes, with **zero training representatives needed** and **no multi-layer mental math**.
-   - Key planned UX upgrades:
-     - **Department Starter OKR Templates** (1-click pick by dept: Sales, Ops/Admin/Accounting, CS/Support, Engineering/Product, HR — edit numbers only).
-     - **Auto-Balanced Weight & Plain Priority Picker** (`High / Standard / Supporting` + 1-click `Auto-Balance to 100%` so users never do manual `%` math back-and-forth).
-     - **3 Natural Measurement Modes:** Numeric target, Milestone/Checklist (for Ops/Admin/Support work that doesn't fit rigid formulas), and Service Quality standard.
-     - **Single "Your Turn / Next Action" Banner** at the top of Employee & Manager views + **3-Question Evidence Prompts** + **Auto-Save indicator** + 100% plain Thai everyday phrasing (zero HR/IT jargon).
+## 3. Completed UI/UX & Zero-Learning-Curve Sprint (2026-11-25 — All 5 Items Shipped & Verified)
+1. **[DONE] Activity Log Placement:** Moved `ActivityLogPanel` to the **very bottom** (full-width) of all 4 role pages (`SuperAdminPage`, `HrDashboardPage`, `ManagerWorkspacePage`, `EmployeeWorkspacePage`), freeing horizontal space for tables and exception queues.
+2. **[DONE] Important Dropdowns — Category & Hierarchy Coloring (`TieredSelect.jsx`):** Added color-coded semantic left-bar + tinted styling with progressive `appearance: base-select` (`modern-web-guidance: branded-select-styling`) and clean native fallback across Role (`T1–T4`), Job Level (`L1–L4`), Difficulty Multiplier (`1.0x/1.1x/1.2x`), Measurement Mode (`Numeric / Milestone / Service Quality`), Self Score (`1–5`), and Department selects.
+3. **[DONE] Return Cards, Toast & Actionable Error Audit:**
+   - Added `ReturnFeedbackCard.jsx` displaying who returned the review, round number, exact quoted comment, numbered 3-step fix instructions, and HRBP Advisor guidance.
+   - Upgraded `ToastBar.jsx` with persistent pre-mounted notification/live regions, native `document.ariaNotify()` when supported, hover/focus pause-on-dismiss, semantic icons, and 320px/375px safe responsive width.
+   - Rewrote EN/TH validation and auth errors to name exact missing fields/OKRs and character counts (`aria-invalid="false"` / `"true"` + `:user-invalid` + focus to first invalid field).
+4. **[DONE] Zero-Learning-Curve & Close Gen-Gap Upgrades:**
+   - Added 1-click **Department Starter OKR Templates** (`okrTemplates.js`) across 6 universal job families (Operations/Admin/Finance, Sales & Marketing, Customer Support, HR, Product & Design, Engineering & IT).
+   - Added **Quick Importance Buttons** (`50% / 30% / 20%`) + 1-click **`Auto-Balance 100%`** button in both Employee OKR Builder and Manager `GoalApprovalDrawer`.
+   - Added **3 Natural Measurement Modes** (`Numeric`, `Milestone Checklist`, `Service / Quality Standard`) with contextual 1-line tips.
+   - Added single plain-language **`NextActionBanner.jsx`** ("Your Turn Now" / "All Set — Waiting" / "Completed") on Employee & Manager views, **3-Question Guided Evidence Prompt Chips**, `localStorage` **Auto-Save** badge, and **Quick Preview & Confirm** dialog before OKR submission.
+5. **[DONE] Live Browser QA (Desktop `1440px` + Mobile `375px`):** Verified across all 4 roles, caught & fixed missing `showToast` export in `usePerformanceStore.js`, 0 console errors, 0 horizontal overflow on `375px` mobile.
