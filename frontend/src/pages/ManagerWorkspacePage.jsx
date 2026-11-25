@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Building2, CheckCircle2, Users } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
@@ -60,6 +60,26 @@ export function ManagerWorkspacePage({
             {t.mgrTitle}
           </h1>
           <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.mgrSubtitle}</p>
+          <div className="flex items-center gap-2 flex-wrap mt-2">
+            {teamReviews[0]?.employee?.department && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-xs font-semibold text-(--ink-secondary)">
+                <Building2 className="w-3.5 h-3.5 text-(--ink-muted)" aria-hidden="true" />
+                <span>{teamReviews[0].employee.department}</span>
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-(--border-subtle) bg-(--surface-card) text-xs font-semibold text-(--ink-primary) tabular-nums">
+              <Users className="w-3.5 h-3.5 text-(--brand-primary)" aria-hidden="true" />
+              <span className="text-(--ink-muted)">{t.directReportsLabel}:</span>
+              <span>
+                {teamReviews.length} {t.peopleUnit}
+              </span>
+              {teamReviews.length > 0 && (
+                <span className="text-(--ink-secondary) font-normal">
+                  ({teamReviews.map((r) => (lang === 'th' ? r.employee.nameTh : r.employee.name)).join(', ')})
+                </span>
+              )}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">

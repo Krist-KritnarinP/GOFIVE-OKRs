@@ -106,15 +106,15 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
   ];
 
   return (
-    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4 space-y-3">
-      {/* Compact Header + Diagonal Heat-Map Scale Legend */}
+    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
+      {/* Header + Diagonal Heat-Map Scale Legend */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-base font-bold text-(--ink-primary)">{t.nineBoxTitle}</h2>
-          <p className="text-xs text-(--ink-secondary)">{t.nineBoxSubtitle}</p>
+          <h2 className="text-lg font-bold text-(--ink-primary)">{t.nineBoxTitle}</h2>
+          <p className="text-sm text-(--ink-secondary)">{t.nineBoxSubtitle}</p>
         </div>
         <div
-          className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-(--ink-muted) shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-(--ink-muted) shrink-0"
           aria-hidden="true"
         >
           <span>{t.nineBoxYLow}</span>
@@ -122,7 +122,7 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
             {SPECTRUM_DOTS.map((color) => (
               <span
                 key={color}
-                className="w-2.5 h-2.5 rounded-xs"
+                className="w-3 h-3 rounded-xs"
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -132,34 +132,34 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
       </div>
 
       {/* Compact Mobile Scale Legend (< md) */}
-      <div className="md:hidden flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-(--ink-secondary)">
+      <div className="md:hidden flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--ink-secondary)">
         <span className="font-bold text-(--ink-primary)">↑ {t.nineBoxYAxis}</span>
         <span className="font-bold text-(--ink-primary)">→ {t.nineBoxXAxis}</span>
       </div>
 
-      {/* Compact Matrix + Sleek Borderless Color Rails */}
-      <div className="md:grid md:grid-cols-[16px_58px_1fr] md:gap-x-2.5 md:items-stretch">
+      {/* Spacious Matrix + Sleek Borderless Color Rails */}
+      <div className="md:grid md:grid-cols-[18px_66px_1fr] md:gap-x-3 md:items-stretch">
         {/* Vertical Rotated Y-Axis Title */}
         <div className="hidden md:flex items-center justify-center">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-(--ink-muted) whitespace-nowrap [writing-mode:vertical-rl] rotate-180 select-none">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-(--ink-muted) whitespace-nowrap [writing-mode:vertical-rl] rotate-180 select-none">
             {t.nineBoxYAxis} →
           </span>
         </div>
 
         {/* Left Borderless Y-Axis Color Rail */}
-        <div className="hidden md:grid md:grid-rows-3 gap-2">
+        <div className="hidden md:grid md:grid-rows-3 gap-2.5">
           {Y_TIERS.map((yTier) => (
-            <div key={yTier.key} className="flex items-center justify-end gap-2 py-0.5">
+            <div key={yTier.key} className="flex items-center justify-end gap-2 py-1">
               <div className="text-right leading-tight">
-                <p className="text-[11px] font-bold" style={{ color: yTier.text }}>
+                <p className="text-xs font-bold" style={{ color: yTier.text }}>
                   {t[yTier.labelKey]}
                 </p>
-                <p className="text-[10px] font-medium text-(--ink-muted) tabular-nums">
+                <p className="text-[11px] font-medium text-(--ink-muted) tabular-nums">
                   {t[yTier.rangeKey]}
                 </p>
               </div>
               <div
-                className="w-1 h-full rounded-full shrink-0"
+                className="w-1.5 h-full rounded-full shrink-0"
                 style={{ backgroundColor: yTier.solid }}
                 aria-hidden="true"
               />
@@ -167,10 +167,10 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
           ))}
         </div>
 
-        {/* Compact 3x3 Diagonal Heat-Map Grid */}
-        <div className="space-y-2">
+        {/* Spacious 3x3 Diagonal Heat-Map Grid */}
+        <div className="space-y-2.5">
           {rows.map((rowCells, rowIdx) => (
-            <div key={Y_TIERS[rowIdx].key} className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div key={Y_TIERS[rowIdx].key} className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
               {rowCells.map((cell) => {
                 const items = grouped.get(cell.id) || [];
                 const hm = CELL_HEATMAP[cell.id] || CELL_HEATMAP.CORE_PERFORMER;
@@ -178,7 +178,7 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                 return (
                   <div
                     key={cell.id}
-                    className="rounded-md border p-2.5 flex flex-col justify-between min-h-[84px] gap-2 transition-colors duration-150"
+                    className="rounded-md border p-3.5 flex flex-col justify-between min-h-[116px] gap-2.5 transition-colors duration-150"
                     style={{
                       backgroundColor: hm.bg,
                       borderColor: hasItems ? hm.activeBorder : hm.border,
@@ -186,22 +186,22 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                       borderTopColor: hm.accent,
                     }}
                   >
-                    <div className="flex items-start justify-between gap-1.5">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <h3
-                          className="text-xs font-bold leading-snug"
+                          className="text-sm font-bold leading-snug"
                           style={{ color: hm.text }}
                         >
                           {lang === 'th' ? cell.labelTh : cell.label}
                         </h3>
-                        <p className="text-[10px] text-(--ink-muted) mt-0.5 tabular-nums md:hidden">
+                        <p className="text-xs text-(--ink-muted) mt-0.5 tabular-nums md:hidden">
                           {lang === 'th' ? cell.xLabelTh : cell.xLabel} · {lang === 'th' ? cell.yLabelTh : cell.yLabel}
                         </p>
                       </div>
                       <span
-                        className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded text-[11px] font-bold tabular-nums shrink-0"
+                        className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded text-xs font-bold tabular-nums shrink-0"
                         style={{
-                          backgroundColor: hasItems ? hm.accent : 'rgba(255,255,255,0.75)',
+                          backgroundColor: hasItems ? hm.accent : 'rgba(255,255,255,0.8)',
                           color: hasItems ? '#FFFFFF' : hm.text,
                           border: hasItems ? 'none' : `1px solid ${hm.border}`,
                         }}
@@ -211,7 +211,7 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                     </div>
 
                     {hasItems && (
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {items.map((rev) => {
                           const lvl = JOB_LEVELS.find((l) => l.id === rev.employee.jobLevel)?.short || 'L2';
                           return (
@@ -219,12 +219,12 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                               key={rev.id}
                               type="button"
                               onClick={() => onSelectReview(rev)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-[11px] font-semibold text-(--ink-primary) shadow-2xs transition-colors duration-150 ease-out cursor-pointer tabular-nums"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) shadow-2xs transition-colors duration-150 ease-out cursor-pointer tabular-nums"
                             >
                               <span className="text-[10px] font-bold px-1 rounded bg-(--surface-subtle) text-(--ink-secondary)">
                                 {lvl}
                               </span>
-                              <span className="truncate max-w-28">{lang === 'th' ? rev.employee.nameTh : rev.employee.name}</span>
+                              <span>{lang === 'th' ? rev.employee.nameTh : rev.employee.name}</span>
                               <span className="text-(--ink-muted)">({rev.overallScore?.toFixed(1)})</span>
                             </button>
                           );
@@ -241,27 +241,27 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
         {/* Bottom Borderless X-Axis Color Rail */}
         <div className="hidden md:block" />
         <div className="hidden md:block" />
-        <div className="hidden md:block pt-2 space-y-1">
-          <div className="grid grid-cols-3 gap-2">
+        <div className="hidden md:block pt-2.5 space-y-1.5">
+          <div className="grid grid-cols-3 gap-2.5">
             {X_TIERS.map((xTier) => (
               <div key={xTier.key} className="space-y-1">
                 <div
-                  className="h-1 w-full rounded-full"
+                  className="h-1.5 w-full rounded-full"
                   style={{ backgroundColor: xTier.solid }}
                   aria-hidden="true"
                 />
-                <div className="flex items-baseline justify-center gap-1 text-center tabular-nums">
-                  <span className="text-[11px] font-bold" style={{ color: xTier.text }}>
+                <div className="flex items-baseline justify-center gap-1.5 text-center tabular-nums">
+                  <span className="text-xs font-bold" style={{ color: xTier.text }}>
                     {t[xTier.labelKey]}
                   </span>
-                  <span className="text-[10px] font-medium text-(--ink-muted)">
+                  <span className="text-[11px] font-medium text-(--ink-muted)">
                     {t[xTier.rangeKey]}
                   </span>
                 </div>
               </div>
             ))}
           </div>
-          <p className="text-center text-[10px] font-bold uppercase tracking-wider text-(--ink-muted) select-none">
+          <p className="text-center text-[11px] font-bold uppercase tracking-wider text-(--ink-muted) select-none">
             {t.nineBoxXAxis} →
           </p>
         </div>

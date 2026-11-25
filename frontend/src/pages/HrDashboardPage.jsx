@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { Clock, Lock, RotateCcw, Send, X } from 'lucide-react';
-import { filterActivityLogsForRole, getHrbpInterventionClient } from '../constants/initialData.js';
+import { Building2, Clock, Lock, RotateCcw, Send, X } from 'lucide-react';
+import {
+  computeAnalytics,
+  filterActivityLogsForRole,
+  getHrbpInterventionClient,
+} from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
@@ -35,20 +39,35 @@ export function HrDashboardPage({
   const [selectedReview, setSelectedReview] = useState(null);
   const [modalAction, setModalAction] = useState(null);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [hrScope, setHrScope] = useState('ALL');
 
   const canConfigure = can ? can('cycle:configure') : true;
   const canPublish = can ? can('review:publish') : true;
+
+  const assignedDepts = Array.isArray(currentUser?.assignedDepartments)
+    ? currentUser.assignedDepartments
+    : [];
+  const hasHrbpScope = assignedDepts.length > 0;
+  const scopedReviews =
+    hrScope === 'MY_TEAMS' && hasHrbpScope
+      ? reviews.filter((r) => assignedDepts.includes(r.employee?.department))
+      : reviews;
+  const scopedAnalytics =
+    hrScope === 'MY_TEAMS' && hasHrbpScope ? computeAnalytics(scopedReviews) : analytics;
 
   const hrLogs = filterActivityLogsForRole(auditLogs, {
     role: 'HR_ADMIN',
     userId: currentUser?.id,
   });
 
-  const completed = reviews.filter((r) =>
+  const completed = scopedReviews.filter((r) =>
     ['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status)
   ).length;
-  const completionPct = reviews.length > 0 ? Math.round((completed / reviews.length) * 100) : 0;
-  const alertCount = reviews.filter((r) => r.isOverdue || getHrbpInterventionClient(r).needed).length;
+  const completionPct =
+    scopedReviews.length > 0 ? Math.round((completed / scopedReviews.length) * 100) : 0;
+  const alertCount = scopedReviews.filter(
+    (r) => r.isOverdue || getHrbpInterventionClient(r).needed
+  ).length;
   const readyToPublishReviews = reviews.filter((r) => r.status === 'MANAGER_APPROVED');
   const readyToPublishCount = readyToPublishReviews.length;
   const inProgressReviews = reviews.filter(
@@ -64,6 +83,46 @@ export function HrDashboardPage({
             {t.hrTitle}
           </h1>
           <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.hrSubtitle}</p>
+          {hasHrbpScope && (
+            <div className="flex items-center gap-2 flex-wrap mt-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-xs font-semibold text-(--ink-secondary)">
+                <Building2 className="w-3.5 h-3.5 text-(--brand-primary)" aria-hidden="true" />
+                <span>{t.hrbpScopeLabel}:</span>
+                <span className="text-(--ink-primary)">{assignedDepts.join(', ')}</span>
+              </span>
+              <div
+                role="group"
+                aria-label={t.hrbpScopeLabel}
+                className="inline-flex rounded-md border border-(--border-strong) bg-(--surface-card) p-0.5"
+              >
+                <button
+                  type="button"
+                  onClick={() => setHrScope('ALL')}
+                  aria-pressed={hrScope === 'ALL'}
+                  className={`min-h-8 px-2.5 rounded text-xs font-semibold transition-colors duration-150 cursor-pointer tabular-nums ${
+                    hrScope === 'ALL'
+                      ? 'bg-(--brand-primary) text-white'
+                      : 'text-(--ink-secondary) hover:bg-(--surface-hover)'
+                  }`}
+                >
+                  {t.hrScopeAll} ({reviews.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHrScope('MY_TEAMS')}
+                  aria-pressed={hrScope === 'MY_TEAMS'}
+                  className={`min-h-8 px-2.5 rounded text-xs font-semibold transition-colors duration-150 cursor-pointer tabular-nums ${
+                    hrScope === 'MY_TEAMS'
+                      ? 'bg-(--brand-primary) text-white'
+                      : 'text-(--ink-secondary) hover:bg-(--surface-hover)'
+                  }`}
+                >
+                  {t.hrScopeMyTeams} (
+                  {reviews.filter((r) => assignedDepts.includes(r.employee?.department)).length})
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -105,7 +164,7 @@ export function HrDashboardPage({
       <StageStatusBar
         mode="cycle"
         cycle={cycle}
-        reviews={reviews}
+        reviews={scopedReviews}
         editable={canConfigure}
         onSaveDeadlines={onUpdateStageDeadlines}
         t={t}
@@ -117,7 +176,7 @@ export function HrDashboardPage({
         <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiCompletion}</p>
           <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">
-            {completionPct}% <span className="text-sm font-medium text-(--ink-muted)">({completed}/{reviews.length})</span>
+            {completionPct}% <span className="text-sm font-medium text-(--ink-muted)">({completed}/{scopedReviews.length})</span>
           </p>
         </div>
         <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
@@ -132,29 +191,29 @@ export function HrDashboardPage({
         <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiOrgAvg}</p>
           <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">
-            {analytics.orgAverageScore.toFixed(2)} <span className="text-sm font-medium text-(--ink-muted)">/ 5.0</span>
+            {scopedAnalytics.orgAverageScore.toFixed(2)} <span className="text-sm font-medium text-(--ink-muted)">/ 5.0</span>
           </p>
         </div>
         <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiBiasAlerts}</p>
           <p
             className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
-            style={{ color: analytics.biasAlerts.length > 0 ? 'var(--status-low-text)' : 'var(--status-high-text)' }}
+            style={{ color: scopedAnalytics.biasAlerts.length > 0 ? 'var(--status-low-text)' : 'var(--status-high-text)' }}
           >
-            {analytics.biasAlerts.length}
+            {scopedAnalytics.biasAlerts.length}
           </p>
         </div>
       </div>
 
-      {/* 9-Box Grid + Distribution & Bias Alerts */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-7">
-          <NineBoxGrid reviews={reviews} t={t} lang={lang} onSelectReview={setSelectedReview} />
+      {/* 9-Box Grid (Spacious 8/12) + Compact Distribution & Bias Alerts (4/12) */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        <div className="xl:col-span-8">
+          <NineBoxGrid reviews={scopedReviews} t={t} lang={lang} onSelectReview={setSelectedReview} />
         </div>
-        <div className="xl:col-span-5">
+        <div className="xl:col-span-4">
           <OrgDistributionBar
-            distribution={analytics.distribution}
-            biasAlerts={analytics.biasAlerts}
+            distribution={scopedAnalytics.distribution}
+            biasAlerts={scopedAnalytics.biasAlerts}
             t={t}
             lang={lang}
           />
@@ -163,7 +222,7 @@ export function HrDashboardPage({
 
       {/* SLA Breach & HRBP Intervention Queue (Full-Width) */}
       <ExceptionQueue
-        reviews={reviews}
+        reviews={scopedReviews}
         t={t}
         lang={lang}
         onNudge={onNudge}
@@ -194,7 +253,7 @@ export function HrDashboardPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-(--border-subtle) text-sm">
-              {reviews.map((rev) => (
+              {scopedReviews.map((rev) => (
                 <tr key={rev.id} className="hover:bg-(--surface-hover) transition-colors duration-150">
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2 flex-wrap">

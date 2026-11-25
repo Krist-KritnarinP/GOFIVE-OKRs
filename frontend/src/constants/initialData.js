@@ -638,8 +638,8 @@ export function createInitialClientState() {
   // Exact 16-User 1-Office-Unit Roster with Job Leveling:
   const users = [
     { id: 'usr-super', employeeCode: 'EMP-0001', name: 'Kritnarin P.', nameTh: 'กฤตนรินทร์ พ.', title: 'System Super Administrator', department: 'IT & Governance', jobLevel: 'L4_LEAD', role: 'SUPER_ADMIN', accountStatus: 'ACTIVE' },
-    { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', jobLevel: 'L4_LEAD', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
-    { id: 'usr-hr-2', employeeCode: 'EMP-1002', name: 'Siriporn Kamol', nameTh: 'ศิริพร กมล', title: 'HR Business Partner', department: 'Human Resources', jobLevel: 'L3_SENIOR', role: 'HR_ADMIN', accountStatus: 'ACTIVE' },
+    { id: 'usr-hr', employeeCode: 'EMP-1001', name: 'Pluem Srisuk', nameTh: 'ปลื้ม ศรีสุข', title: 'People Operations Lead', department: 'Human Resources', jobLevel: 'L4_LEAD', role: 'HR_ADMIN', accountStatus: 'ACTIVE', assignedDepartments: ['Engineering', 'Product'] },
+    { id: 'usr-hr-2', employeeCode: 'EMP-1002', name: 'Siriporn Kamol', nameTh: 'ศิริพร กมล', title: 'HR Business Partner', department: 'Human Resources', jobLevel: 'L3_SENIOR', role: 'HR_ADMIN', accountStatus: 'ACTIVE', assignedDepartments: ['Sales', 'Operations'] },
     { id: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', title: 'Engineering Manager', department: 'Engineering', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },
     { id: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', title: 'Enterprise Sales Director', department: 'Sales', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },
     { id: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', title: 'Head of Product', department: 'Product', jobLevel: 'L4_LEAD', role: 'MANAGER', accountStatus: 'ACTIVE' },

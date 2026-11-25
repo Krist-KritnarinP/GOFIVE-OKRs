@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import {
   AlertCircle,
+  Building2,
   CheckCircle2,
   Lock,
   Pencil,
@@ -8,6 +9,7 @@ import {
   Scale,
   Sparkles,
   Trash2,
+  UserCheck,
   Users,
 } from 'lucide-react';
 import { EMPLOYEE_DEMO_SWITCHES } from '../constants/roles.js';
@@ -298,6 +300,19 @@ export function EmployeeWorkspacePage({
             <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
           </div>
           <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.empSubtitle}</p>
+          <div className="flex items-center gap-2 flex-wrap mt-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-xs font-semibold text-(--ink-secondary)">
+              <Building2 className="w-3.5 h-3.5 text-(--ink-muted)" aria-hidden="true" />
+              <span>{review.employee.department}</span>
+            </span>
+            {review.manager && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-(--border-subtle) bg-(--surface-card) text-xs font-semibold text-(--ink-primary)">
+                <UserCheck className="w-3.5 h-3.5 text-(--brand-primary)" aria-hidden="true" />
+                <span className="text-(--ink-muted)">{t.reportingManagerLabel}:</span>
+                <span>{lang === 'th' ? review.manager.nameTh : review.manager.name}</span>
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Employee Persona Switcher */}
