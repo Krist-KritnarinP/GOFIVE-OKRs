@@ -483,11 +483,13 @@ export function HrDashboardPage({
         }
         quickTemplateLabel={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateLabel : ''}
         quickTemplateText={modalAction?.type === 'ADVISOR' ? t.hrbpQuickTemplateText : ''}
+        showExtendDays={modalAction?.type === 'EXTEND'}
+        defaultExtendDays={5}
         t={t}
         onClose={() => setModalAction(null)}
-        onConfirm={(reason) => {
+        onConfirm={(reason, extraDays) => {
           if (modalAction.type === 'EXTEND') {
-            onExtendDeadline(modalAction.review.id, reason);
+            onExtendDeadline(modalAction.review.id, reason, extraDays);
           } else if (modalAction.type === 'HR_RETURN') {
             onHrReturnToManager(modalAction.review.id, reason);
           } else if (modalAction.type === 'ADVISOR') {

@@ -62,6 +62,7 @@ export function usePerformanceStore(t) {
       targetManagerId = null,
       actorId = null,
       actorName = null,
+      recipientName = null,
     }) => {
       setAuditLogs((prev) => [
         {
@@ -69,6 +70,7 @@ export function usePerformanceStore(t) {
           action,
           actorId: actorId || currentUser?.id || 'system',
           actorName: actorName || currentUser?.name || 'System',
+          recipientName,
           visibilityScope,
           targetEmployeeId,
           targetManagerId,
@@ -120,7 +122,15 @@ export function usePerformanceStore(t) {
       if (users.some((u) => u.employeeCode.toUpperCase() === code)) {
         return { ok: false, error: t.authErrDuplicate };
       }
-      const inviteCode = String(Math.floor(100000 + Math.random() * 900000));
+      let inviteCode;
+      if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
+        const buf = new Uint32Array(1);
+        window.crypto.getRandomValues(buf);
+        inviteCode = String(100000 + (buf[0] % 900000));
+      } else {
+        inviteCode = String(Math.floor(100000 + Math.random() * 900000));
+      }
+      const inviteExpiresAt = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
       const newUser = {
         id: `usr-inv-${Date.now()}`,
         employeeCode: code,
@@ -133,6 +143,7 @@ export function usePerformanceStore(t) {
         managerId: role === ROLES.EMPLOYEE ? managerId || null : null,
         accountStatus: 'INVITED',
         inviteCode,
+        inviteExpiresAt,
       };
       setUsers((prev) => [newUser, ...prev]);
       appendLog({
@@ -503,6 +514,7 @@ export function usePerformanceStore(t) {
         targetManagerId: target.managerId,
         actorId: currentUser?.id || target.managerId,
         actorName: currentUser?.name || target.manager?.name || 'Manager',
+        recipientName: target.employee.name,
         reason: `${target.employee.name}: ${finalComment}`,
       });
       showToast(
@@ -679,6 +691,9 @@ export function usePerformanceStore(t) {
         visibilityScope: 'PUBLIC_SELF',
         targetEmployeeId: target.employeeId,
         targetManagerId: target.managerId,
+        recipientName: target.manager?.name
+          ? `${target.employee.name} & ${target.manager.name}`
+          : target.employee.name,
         reason: `HRBP Advisor on ${target.employee.name}: ${comment}`,
       });
       showToast(t.toastAdvisorPosted, 'success');
@@ -720,7 +735,8 @@ export function usePerformanceStore(t) {
         visibilityScope: 'TEAM_MANAGER',
         targetEmployeeId: target.employeeId,
         targetManagerId: target.managerId,
-        reason: `HR returned ${target.employee.name} to manager: ${comment}`,
+        recipientName: target.manager?.name || 'Manager',
+        reason: `HR returned ${target.employee.name} to ${target.manager?.name || 'manager'}: ${comment}`,
       });
       showToast(t.toastHrReturned, 'warning');
     },
@@ -850,6 +866,9 @@ export function usePerformanceStore(t) {
         visibilityScope: isEmpStage ? 'PUBLIC_SELF' : 'TEAM_MANAGER',
         targetEmployeeId: rev?.employeeId || null,
         targetManagerId: rev?.managerId || null,
+        recipientName: isEmpStage
+          ? rev?.employee?.name || null
+          : rev?.manager?.name || null,
         reason: `Sent overdue SLA reminder for ${rev?.employee?.name || reviewId} (${isEmpStage ? 'Employee' : 'Manager'} pending).`,
       });
       showToast(t.toastNudged, 'success');
@@ -858,8 +877,9 @@ export function usePerformanceStore(t) {
   );
 
   const handleExtendDeadline = useCallback(
-    (reviewId, reason) => {
-      const extended = new Date(Date.now() + 5 * 86400000).toISOString();
+    (reviewId, reason, extraDays = 5) => {
+      const days = Math.min(30, Math.max(1, Number(extraDays) || 5));
+      const extended = new Date(Date.now() + days * 86400000).toISOString();
       const rev = reviews.find((r) => r.id === reviewId);
       setReviews((prev) =>
         prev.map((r) => (r.id === reviewId ? { ...r, extendedDeadline: extended, isOverdue: false, daysOverdue: 0 } : r))
@@ -869,9 +889,10 @@ export function usePerformanceStore(t) {
         visibilityScope: 'PUBLIC_SELF',
         targetEmployeeId: rev?.employeeId || null,
         targetManagerId: rev?.managerId || null,
-        reason: `${reason} (+5 days for ${rev?.employee?.name || reviewId})`,
+        recipientName: rev?.employee?.name || null,
+        reason: `${reason} (+${days} days for ${rev?.employee?.name || reviewId})`,
       });
-      showToast(t.toastExtended, 'success');
+      showToast((t.toastExtended || 'Deadline extended by {d} days.').replace('{d}', String(days)), 'success');
     },
     [reviews, appendLog, showToast, t.toastExtended]
   );
@@ -885,6 +906,7 @@ export function usePerformanceStore(t) {
         visibilityScope: 'HR_INTERNAL',
         targetEmployeeId: rev?.employeeId || null,
         targetManagerId: rev?.managerId || null,
+        recipientName: rev?.employee?.department ? `Skip-Level (${rev.employee.department})` : 'Skip-Level Leader',
         reason: `Internal Escalation (${rev?.employee?.name || reviewId}): ${reason}`,
       });
       showToast(t.toastEscalated, 'warning');

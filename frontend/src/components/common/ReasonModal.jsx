@@ -1,6 +1,8 @@
 import { useId, useRef, useState } from 'react';
-import { AlertCircle, Sparkles, X } from 'lucide-react';
+import { AlertCircle, CalendarPlus, Sparkles, X } from 'lucide-react';
 import { ModalDialog } from './ModalDialog.jsx';
+
+const EXTEND_PRESETS = [2, 5, 7];
 
 export function ReasonModal({
   isOpen,
@@ -9,6 +11,8 @@ export function ReasonModal({
   confirmLabel = '',
   quickTemplateLabel = '',
   quickTemplateText = '',
+  showExtendDays = false,
+  defaultExtendDays = 5,
   t,
   onClose,
   onConfirm,
@@ -16,19 +20,27 @@ export function ReasonModal({
   const uid = useId();
   const titleId = `${uid}-title`;
   const inputId = `${uid}-reason`;
+  const daysId = `${uid}-days`;
   const errorId = `${uid}-error`;
   const textareaRef = useRef(null);
   const [reason, setReason] = useState('');
+  const [extraDays, setExtraDays] = useState(defaultExtendDays);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
   const trimmedLen = reason.trim().length;
+  const clampedDays = Math.min(30, Math.max(1, Number(extraDays) || 1));
+  const previewDate = new Date(Date.now() + clampedDays * 86400000).toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (trimmedLen < 5) {
-      const msg = (t.errReasonTooShort || 'Please write at least 5 characters ({n}/5) so the next action is clear.').replace(
+      const msg = (t.errReasonTooShort || 'Enter at least 5 characters ({n}/5).').replace(
         '{n}',
         String(trimmedLen)
       );
@@ -36,8 +48,9 @@ export function ReasonModal({
       textareaRef.current?.focus();
       return;
     }
-    onConfirm(reason.trim());
+    onConfirm(reason.trim(), clampedDays);
     setReason('');
+    setExtraDays(defaultExtendDays);
     setError('');
   };
 
@@ -87,6 +100,52 @@ export function ReasonModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {showExtendDays && (
+            <div className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <label htmlFor={daysId} className="inline-flex items-center gap-1.5 text-sm font-semibold text-(--ink-primary)">
+                  <CalendarPlus className="w-4 h-4 text-(--brand-primary)" aria-hidden="true" />
+                  <span>{t.extendDaysLabel}</span>
+                </label>
+                <span className="text-xs font-semibold text-(--ink-secondary) tabular-nums">
+                  {t.newDuePreviewLabel}: <strong className="text-(--ink-primary)">{previewDate}</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {EXTEND_PRESETS.map((d) => {
+                  const active = clampedDays === d;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setExtraDays(d)}
+                      aria-pressed={active}
+                      className={`min-h-9 px-3 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer tabular-nums ${
+                        active
+                          ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                          : 'bg-(--surface-card) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
+                      }`}
+                    >
+                      +{d} {t.daysUnit}
+                    </button>
+                  );
+                })}
+                <div className="inline-flex items-center gap-1.5 ml-auto">
+                  <input
+                    id={daysId}
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={extraDays}
+                    onChange={(e) => setExtraDays(e.target.value)}
+                    className="w-20 min-h-9 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm font-semibold text-(--ink-primary) tabular-nums"
+                  />
+                  <span className="text-xs font-semibold text-(--ink-secondary)">{t.daysUnit}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <label htmlFor={inputId} className="block text-sm font-semibold text-(--ink-primary)">

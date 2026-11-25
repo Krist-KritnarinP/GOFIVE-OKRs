@@ -320,7 +320,8 @@ export function ManagerWorkspacePage({
               aria-hidden="true"
             />
             <input
-              type="search"
+              type="text"
+              role="searchbox"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t.mgrSearchPlaceholder}

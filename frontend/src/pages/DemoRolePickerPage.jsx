@@ -90,8 +90,8 @@ export function DemoRolePickerPage({
             <span className="text-xl font-extrabold tracking-tight text-(--ink-primary)">
               {t.appName}
             </span>
-            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-secondary)">
-              {t.demoPickerBadge}
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-secondary) tabular-nums">
+              {String(t.demoPickerBadge || '').replace('16', String(users.length))}
             </span>
           </div>
 

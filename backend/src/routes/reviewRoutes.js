@@ -43,7 +43,7 @@ router.post(
 router.put(
   '/:reviewId/manager-review',
   requireAuth,
-  requireRole('MANAGER', 'HR_ADMIN', 'SUPER_ADMIN'),
+  requireRole('MANAGER'),
   validateBody(managerReviewSchema),
   saveManagerReview
 );

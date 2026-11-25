@@ -155,6 +155,16 @@ export async function login(req, res) {
 }
 
 export function demoSwitch(req, res) {
+  if (env.NODE_ENV === 'production' && !env.ENABLE_DEMO_MODE) {
+    return res.status(403).json({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Demo account switching is disabled in production.',
+      },
+    });
+  }
+
   const { userId } = req.validatedBody;
   const user = getUserById(userId);
 

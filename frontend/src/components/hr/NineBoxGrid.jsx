@@ -181,7 +181,9 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                     className="rounded-md border p-3.5 flex flex-col justify-between min-h-[116px] gap-2.5 transition-colors duration-150"
                     style={{
                       backgroundColor: hm.bg,
-                      borderColor: hasItems ? hm.activeBorder : hm.border,
+                      borderLeftColor: hasItems ? hm.activeBorder : hm.border,
+                      borderRightColor: hasItems ? hm.activeBorder : hm.border,
+                      borderBottomColor: hasItems ? hm.activeBorder : hm.border,
                       borderTopWidth: '3px',
                       borderTopColor: hm.accent,
                     }}

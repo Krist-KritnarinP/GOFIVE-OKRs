@@ -135,6 +135,12 @@ export function EvaluationDrawer({
             </div>
             <p className="text-sm text-(--ink-secondary)">
               {review.employee.title} · {review.employee.department}
+              {review.manager && (
+                <>
+                  {' '}· <span className="font-semibold text-(--ink-primary)">{t.reportingManagerLabel}:</span>{' '}
+                  {lang === 'th' ? review.manager.nameTh : review.manager.name}
+                </>
+              )}
             </p>
           </div>
           <button
