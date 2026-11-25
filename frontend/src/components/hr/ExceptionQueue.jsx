@@ -19,42 +19,42 @@ export function ExceptionQueue({
   });
 
   return (
-    <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+    <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
         <div>
-          <h2 id="hr-exceptions-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.exceptionsTitle}</h2>
-          <p className="text-sm text-[var(--ink-secondary)]">{t.exceptionsSubtitle}</p>
+          <h2 id="hr-exceptions-heading" className="text-lg font-bold text-(--ink-primary)">{t.exceptionsTitle}</h2>
+          <p className="text-sm text-(--ink-secondary)">{t.exceptionsSubtitle}</p>
         </div>
 
         {alertItems.length === 0 ? (
-          <p className="text-sm text-[var(--ink-secondary)] py-4">{t.noExceptions}</p>
+          <p className="text-sm text-(--ink-secondary) py-4">{t.noExceptions}</p>
         ) : (
           <TableRegion labelledBy="hr-exceptions-heading">
             <table className="w-full text-left border-collapse">
               <caption className="visually-hidden">{t.exceptionsTitle}</caption>
               <thead>
-                <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
+                <tr className="border-b border-(--border-subtle) bg-(--surface-subtle) text-xs font-bold uppercase text-(--ink-secondary)">
                   <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
                   <th scope="col" className="py-2.5 px-3">{t.colManager}</th>
                   <th scope="col" className="py-2.5 px-3">{t.colStatus}</th>
                   <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+              <tbody className="divide-y divide-(--border-subtle) text-sm">
                 {alertItems.map((rev) => {
                   const intervention = getHrbpInterventionClient(rev);
                   const isPingPongStall = intervention.reasons.includes('PING_PONG_LIMIT');
                   return (
-                    <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                    <tr key={rev.id} className="hover:bg-(--surface-hover) transition-colors duration-150">
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-[var(--ink-primary)]">
+                          <span className="font-semibold text-(--ink-primary)">
                             {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
                           </span>
                           <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
                         </div>
-                        <div className="text-xs text-[var(--ink-muted)]">{rev.employee.department}</div>
+                        <div className="text-xs text-(--ink-muted)">{rev.employee.department}</div>
                       </td>
-                      <td className="py-3 px-3 text-[var(--ink-secondary)]">
+                      <td className="py-3 px-3 text-(--ink-secondary)">
                         {lang === 'th' ? rev.manager?.nameTh : rev.manager?.name}
                       </td>
                       <td className="py-3 px-3">
@@ -79,7 +79,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenAdvisor(rev)}
-                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-[0.98] text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-98 text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
                             style={{
                               backgroundColor: 'var(--status-indigo-bg)',
                               color: 'var(--status-indigo-text)',
@@ -92,7 +92,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onNudge(rev.id)}
-                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-xs font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) active:scale-98 text-xs font-semibold text-(--ink-primary) transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             <Bell className="w-3.5 h-3.5" aria-hidden="true" />
                             {t.nudgeBtn}
@@ -100,7 +100,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenExtend(rev)}
-                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-xs font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) active:scale-98 text-xs font-semibold text-(--ink-primary) transition-[background-color,transform] duration-150 cursor-pointer"
                           >
                             <CalendarPlus className="w-3.5 h-3.5" aria-hidden="true" />
                             {t.extendBtn}
@@ -108,7 +108,7 @@ export function ExceptionQueue({
                           <button
                             type="button"
                             onClick={() => onOpenEscalate(rev)}
-                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-[0.98] text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
+                            className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border active:scale-98 text-xs font-semibold transition-[background-color,transform] duration-150 cursor-pointer"
                             style={{
                               backgroundColor: 'var(--status-low-bg)',
                               color: 'var(--status-low-text)',

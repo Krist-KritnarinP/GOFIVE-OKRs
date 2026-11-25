@@ -64,7 +64,7 @@ export function NextActionBanner({
           <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: style.text }}>
             {badgeLabel}
           </p>
-          <p className="text-sm sm:text-base font-semibold text-[var(--ink-primary)] leading-snug">
+          <p className="text-sm sm:text-base font-semibold text-(--ink-primary) leading-snug">
             {message}
           </p>
         </div>
@@ -74,7 +74,7 @@ export function NextActionBanner({
         <button
           type="button"
           onClick={onCta}
-          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 min-h-11 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) active:scale-98 text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer shrink-0"
         >
           <span>{ctaLabel}</span>
           <ArrowRight className="w-4 h-4" aria-hidden="true" />

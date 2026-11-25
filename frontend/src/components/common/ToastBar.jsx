@@ -68,7 +68,7 @@ export function ToastBar({ toast, onDismiss, t }) {
         >
           <div className="flex items-start gap-2.5 min-w-0">
             <Icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: meta.bar }} aria-hidden="true" />
-            <span className="leading-snug break-words">{toast.message}</span>
+            <span className="leading-snug wrap-break-word">{toast.message}</span>
           </div>
           <button
             type="button"

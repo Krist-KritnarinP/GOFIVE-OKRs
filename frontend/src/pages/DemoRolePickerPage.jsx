@@ -82,15 +82,15 @@ export function DemoRolePickerPage({
   const superAdminUser = users.find((u) => u.role === ROLES.SUPER_ADMIN && u.accountStatus === 'ACTIVE');
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
+    <div className="min-h-screen w-full flex flex-col bg-(--surface-page) text-(--ink-primary)">
       {/* Static Header — Text-only empeo wordmark */}
-      <header className="w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
+      <header className="w-full border-b border-(--border-subtle) bg-(--surface-card)">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl font-extrabold tracking-tight text-[var(--ink-primary)]">
+            <span className="text-xl font-extrabold tracking-tight text-(--ink-primary)">
               {t.appName}
             </span>
-            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-secondary)">
               {t.demoPickerBadge}
             </span>
           </div>
@@ -99,7 +99,7 @@ export function DemoRolePickerPage({
             <button
               type="button"
               onClick={onBackToLogin}
-              className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               <span>{t.backToLogin}</span>
@@ -107,9 +107,9 @@ export function DemoRolePickerPage({
             <button
               type="button"
               onClick={onToggleLanguage}
-              className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer"
             >
-              <Languages className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
+              <Languages className="w-4 h-4 text-(--ink-secondary)" aria-hidden="true" />
               <span>{t.switchLanguage}</span>
             </button>
           </div>
@@ -119,18 +119,18 @@ export function DemoRolePickerPage({
       <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="w-full max-w-5xl mx-auto space-y-6">
           {/* Breadcrumb / Step Indicator */}
-          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ink-secondary)]">
+          <div className="flex items-center gap-2 text-sm font-semibold text-(--ink-secondary)">
             <button
               type="button"
               onClick={() => setSelectedGroupId(null)}
               className={`cursor-pointer hover:underline ${
-                !selectedGroup ? 'text-[var(--brand-primary)]' : 'text-[var(--ink-secondary)]'
+                !selectedGroup ? 'text-(--brand-primary)' : 'text-(--ink-secondary)'
               }`}
             >
               1. {t.demoStep1Role}
             </button>
-            <ChevronRight className="w-4 h-4 text-[var(--ink-muted)]" aria-hidden="true" />
-            <span className={selectedGroup ? 'text-[var(--brand-primary)]' : 'text-[var(--ink-muted)]'}>
+            <ChevronRight className="w-4 h-4 text-(--ink-muted)" aria-hidden="true" />
+            <span className={selectedGroup ? 'text-(--brand-primary)' : 'text-(--ink-muted)'}>
               2. {selectedGroup ? (lang === 'th' ? selectedGroup.labelTh : selectedGroup.labelEn) : t.demoStep2Person}
             </span>
           </div>
@@ -139,10 +139,10 @@ export function DemoRolePickerPage({
             /* LEVEL 1: Select Role Group */
             <div className="space-y-5">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+                <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
                   {t.demoPickerTitle}
                 </h1>
-                <p className="mt-1 text-sm sm:text-base text-[var(--ink-secondary)]">
+                <p className="mt-1 text-sm sm:text-base text-(--ink-secondary)">
                   {t.demoPickerSubtitle}
                 </p>
               </div>
@@ -156,11 +156,11 @@ export function DemoRolePickerPage({
                       key={group.id}
                       type="button"
                       onClick={() => setSelectedGroupId(group.id)}
-                      className="text-left rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] hover:border-[var(--brand-primary)] hover:bg-[var(--surface-hover)] p-5 flex flex-col justify-between gap-4 transition-colors duration-150 cursor-pointer"
+                      className="text-left rounded-lg border border-(--border-subtle) bg-(--surface-card) hover:border-(--brand-primary) hover:bg-(--surface-hover) p-5 flex flex-col justify-between gap-4 transition-colors duration-150 cursor-pointer"
                     >
                       <div className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-primary)]">
+                          <span className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-primary)">
                             <Icon className="w-5 h-5" aria-hidden="true" />
                           </span>
                           <StatusBadge tone={group.tone}>
@@ -168,16 +168,16 @@ export function DemoRolePickerPage({
                           </StatusBadge>
                         </div>
                         <div>
-                          <h2 className="text-base font-bold text-[var(--ink-primary)]">
+                          <h2 className="text-base font-bold text-(--ink-primary)">
                             {lang === 'th' ? group.labelTh : group.labelEn}
                           </h2>
-                          <p className="mt-1 text-sm text-[var(--ink-secondary)]">
+                          <p className="mt-1 text-sm text-(--ink-secondary)">
                             {lang === 'th' ? group.descTh : group.descEn}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-[var(--border-subtle)] text-sm font-semibold text-[var(--brand-primary)]">
+                      <div className="flex items-center justify-between pt-3 border-t border-(--border-subtle) text-sm font-semibold text-(--brand-primary)">
                         <span>{t.demoSelectRoleCta}</span>
                         <ChevronRight className="w-4 h-4" aria-hidden="true" />
                       </div>
@@ -191,10 +191,10 @@ export function DemoRolePickerPage({
             <div className="space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+                  <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
                     {lang === 'th' ? selectedGroup.labelTh : selectedGroup.labelEn}
                   </h1>
-                  <p className="mt-1 text-sm sm:text-base text-[var(--ink-secondary)]">
+                  <p className="mt-1 text-sm sm:text-base text-(--ink-secondary)">
                     {selectedGroup.id === 'PENDING_NEW'
                       ? t.demoPendingHint
                       : t.demoSelectPersonSubtitle}
@@ -204,7 +204,7 @@ export function DemoRolePickerPage({
                 <button
                   type="button"
                   onClick={() => setSelectedGroupId(null)}
-                  className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer self-start"
+                  className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer self-start"
                 >
                   <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                   <span>{t.demoBackToRoles}</span>
@@ -224,7 +224,7 @@ export function DemoRolePickerPage({
                   <button
                     type="button"
                     onClick={() => onEnterAsUser(superAdminUser)}
-                    className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white transition-colors duration-150 cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white transition-colors duration-150 cursor-pointer shrink-0"
                   >
                     <UserCheck className="w-4 h-4" aria-hidden="true" />
                     <span>{t.demoGoSuperAdminBtn}</span>
@@ -244,11 +244,11 @@ export function DemoRolePickerPage({
                   return (
                     <div
                       key={person.id}
-                      className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 flex flex-col justify-between gap-4"
+                      className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 flex flex-col justify-between gap-4"
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <span className="text-xs font-bold uppercase tracking-wide text-[var(--ink-muted)] tabular-nums">
+                          <span className="text-xs font-bold uppercase tracking-wide text-(--ink-muted) tabular-nums">
                             {slotLabel} · {person.employeeCode}
                           </span>
                           {isPending ? (
@@ -277,16 +277,16 @@ export function DemoRolePickerPage({
                         </div>
 
                         <div>
-                          <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+                          <h2 className="text-lg font-bold text-(--ink-primary)">
                             {lang === 'th' ? person.nameTh : person.name}
                           </h2>
-                          <p className="text-sm text-[var(--ink-secondary)]">
+                          <p className="text-sm text-(--ink-secondary)">
                             {person.title} · {person.department}
                           </p>
                         </div>
 
                         {isPending && (
-                          <p className="text-xs text-[var(--ink-muted)]">
+                          <p className="text-xs text-(--ink-muted)">
                             {t.demoSuggestedRole}: <strong>{t.roleLabels?.[person.role] || person.role}</strong>
                           </p>
                         )}
@@ -296,7 +296,7 @@ export function DemoRolePickerPage({
                         <button
                           type="button"
                           onClick={() => onEnterAsUser(person)}
-                          className="w-full min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white inline-flex items-center justify-center gap-2 transition-colors duration-150 cursor-pointer"
+                          className="w-full min-h-11 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white inline-flex items-center justify-center gap-2 transition-colors duration-150 cursor-pointer"
                         >
                           <span>{t.demoEnterDashboardBtn}</span>
                           <ChevronRight className="w-4 h-4" aria-hidden="true" />
@@ -305,7 +305,7 @@ export function DemoRolePickerPage({
                         <button
                           type="button"
                           onClick={() => superAdminUser && onEnterAsUser(superAdminUser)}
-                          className="w-full min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] inline-flex items-center justify-center gap-2 transition-colors duration-150 cursor-pointer"
+                          className="w-full min-h-11 px-4 rounded-md border border-(--border-strong) bg-(--surface-subtle) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) inline-flex items-center justify-center gap-2 transition-colors duration-150 cursor-pointer"
                         >
                           <span>{t.demoApproveAsSuperBtn}</span>
                           <ChevronRight className="w-4 h-4" aria-hidden="true" />

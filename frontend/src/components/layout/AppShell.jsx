@@ -15,27 +15,27 @@ export function AppShell({
   children,
 }) {
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col bg-(--surface-page) text-(--ink-primary)">
       {/* Skip link for keyboard navigation (modern-web-guidance: accessibility §1) */}
       <a
         href="#main-content"
-        className="visually-hidden fixed top-2 left-2 z-50 rounded-md bg-[var(--brand-primary)] px-4 py-2 text-sm font-bold text-white"
+        className="visually-hidden fixed top-2 left-2 z-50 rounded-md bg-(--brand-primary) px-4 py-2 text-sm font-bold text-white"
       >
         {t.skipToMain || 'Skip to main content'}
       </a>
 
-      <header className="sticky top-0 z-30 w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
+      <header className="sticky top-0 z-30 w-full border-b border-(--border-subtle) bg-(--surface-card)">
         <div className="w-full px-4 sm:px-6 lg:px-8 min-h-16 py-2 flex flex-wrap items-center justify-between gap-3">
           {/* Left: Text-only Wordmark, Cycle & Logged-in Employee Code */}
           <div className="flex items-center gap-3 min-w-0 flex-wrap">
-            <span className="text-xl font-extrabold tracking-tight text-[var(--ink-primary)]">
+            <span className="text-xl font-extrabold tracking-tight text-(--ink-primary)">
               {t.appName}
             </span>
-            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-secondary)">
               {t.moduleBadge}
             </span>
             {currentUser && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-primary)] tabular-nums">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-primary) tabular-nums">
                 {currentUser.employeeCode} · {lang === 'th' ? currentUser.nameTh : currentUser.name}
               </span>
             )}
@@ -54,7 +54,7 @@ export function AppShell({
           <div className="flex items-center gap-2 flex-wrap">
             <nav
               aria-label={t.roleSwitcherLabel}
-              className="inline-flex items-center rounded-md border border-[var(--border-strong)] bg-[var(--surface-subtle)] p-0.5 flex-wrap"
+              className="inline-flex items-center rounded-md border border-(--border-strong) bg-(--surface-subtle) p-0.5 flex-wrap"
             >
               {DEMO_PERSONAS.map((persona) => {
                 const isActive = activeRole === persona.role;
@@ -66,8 +66,8 @@ export function AppShell({
                     onClick={() => onSelectRole(persona.role)}
                     className={`min-h-10 px-2.5 rounded text-xs sm:text-sm font-semibold transition-colors duration-150 ease-out cursor-pointer ${
                       isActive
-                        ? 'bg-[var(--brand-primary)] text-white'
-                        : 'bg-transparent text-[var(--ink-secondary)] hover:bg-[var(--surface-card)] hover:text-[var(--ink-primary)]'
+                        ? 'bg-(--brand-primary) text-white'
+                        : 'bg-transparent text-(--ink-secondary) hover:bg-(--surface-card) hover:text-(--ink-primary)'
                     }`}
                   >
                     {lang === 'th' ? persona.labelTh : persona.label}
@@ -94,18 +94,18 @@ export function AppShell({
               type="button"
               onClick={onToggleLanguage}
               aria-label={lang === 'en' ? 'Switch to Thai' : 'Switch to English'}
-              className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs sm:text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs sm:text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer"
             >
-              <Languages className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
+              <Languages className="w-4 h-4 text-(--ink-secondary)" aria-hidden="true" />
               <span>{t.switchLanguage}</span>
             </button>
 
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs sm:text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs sm:text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer"
             >
-              <LogOut className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
+              <LogOut className="w-4 h-4 text-(--ink-secondary)" aria-hidden="true" />
               <span>{t.logoutBtn}</span>
             </button>
           </div>

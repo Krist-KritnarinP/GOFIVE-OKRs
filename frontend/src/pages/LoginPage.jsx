@@ -23,40 +23,40 @@ export function LoginPage({
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[var(--surface-page)] text-[var(--ink-primary)]">
-      <header className="w-full border-b border-[var(--border-subtle)] bg-[var(--surface-card)]">
+    <div className="min-h-screen w-full flex flex-col bg-(--surface-page) text-(--ink-primary)">
+      <header className="w-full border-b border-(--border-subtle) bg-(--surface-card)">
         <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl font-extrabold tracking-tight text-[var(--ink-primary)]">
+            <span className="text-xl font-extrabold tracking-tight text-(--ink-primary)">
               {t.appName}
             </span>
-            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-md border border-(--border-subtle) bg-(--surface-subtle) text-(--ink-secondary)">
               {t.moduleBadge}
             </span>
           </div>
           <button
             type="button"
             onClick={onToggleLanguage}
-            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) transition-colors duration-150 cursor-pointer"
           >
-            <Languages className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
+            <Languages className="w-4 h-4 text-(--ink-secondary)" aria-hidden="true" />
             <span>{t.switchLanguage}</span>
           </button>
         </div>
       </header>
 
       <main className="flex-1 w-full px-4 sm:px-6 py-8 flex items-center justify-center">
-        <section className="w-full max-w-md rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-6 sm:p-8 space-y-6">
+        <section className="w-full max-w-md rounded-lg border border-(--border-subtle) bg-(--surface-card) p-6 sm:p-8 space-y-6">
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+            <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
               {t.loginTitle}
             </h1>
-            <p className="text-sm sm:text-base text-[var(--ink-secondary)]">{t.loginSubtitle}</p>
+            <p className="text-sm sm:text-base text-(--ink-secondary)">{t.loginSubtitle}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="login-emp-code" className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor="login-emp-code" className="block text-sm font-semibold text-(--ink-primary)">
                 {t.empCodeLabel}
               </label>
               <input
@@ -73,12 +73,12 @@ export function LoginPage({
                 value={employeeCode}
                 onChange={(e) => setEmployeeCode(e.target.value)}
                 placeholder={t.empCodePlaceholder}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3.5 text-base text-[var(--ink-primary)] uppercase tabular-nums"
+                className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3.5 text-base text-(--ink-primary) uppercase tabular-nums"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="login-password" className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor="login-password" className="block text-sm font-semibold text-(--ink-primary)">
                 {t.passwordLabel}
               </label>
               <div className="relative flex items-center">
@@ -93,14 +93,14 @@ export function LoginPage({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t.passwordPlaceholder}
-                  className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] pl-3.5 pr-12 text-base text-[var(--ink-primary)]"
+                  className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) pl-3.5 pr-12 text-base text-(--ink-primary)"
                 />
                 <button
                   type="button"
                   aria-pressed={showPassword}
                   aria-label={showPassword ? (t.hidePasswordLabel || 'Hide password') : (t.showPasswordLabel || 'Show password')}
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-1 inline-flex items-center justify-center w-10 h-10 rounded-md text-[var(--ink-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer"
+                  className="absolute right-1 inline-flex items-center justify-center w-10 h-10 rounded-md text-(--ink-secondary) hover:bg-(--surface-hover) cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
@@ -124,33 +124,33 @@ export function LoginPage({
 
             <button
               type="submit"
-              className="w-full min-h-11 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm sm:text-base font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
+              className="w-full min-h-11 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) active:scale-98 text-sm sm:text-base font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
             >
               {t.signInBtn}
             </button>
           </form>
 
           {/* Gold Bypass Demo Section — CSS Token Powered */}
-          <div className="pt-5 border-t border-[var(--border-subtle)] space-y-3">
+          <div className="pt-5 border-t border-(--border-subtle) space-y-3">
             <button
               type="button"
               onClick={onBypassDemo}
-              className="demo-gold-btn w-full min-h-12 px-4 rounded-md inline-flex items-center justify-center gap-2 text-base font-extrabold tracking-tight active:scale-[0.98] transition-[background-color,transform] duration-150 cursor-pointer"
+              className="demo-gold-btn w-full min-h-12 px-4 rounded-md inline-flex items-center justify-center gap-2 text-base font-extrabold tracking-tight active:scale-98 transition-[background-color,transform] duration-150 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{t.bypassDemoBtn}</span>
             </button>
-            <p className="text-xs text-center font-medium text-[var(--ink-secondary)]">
+            <p className="text-xs text-center font-medium text-(--ink-secondary)">
               {t.bypassDemoSub}
             </p>
           </div>
 
-          <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2 text-sm">
-            <span className="text-[var(--ink-secondary)]">{t.noAccountText}</span>
+          <div className="pt-4 border-t border-(--border-subtle) flex items-center justify-between gap-2 text-sm">
+            <span className="text-(--ink-secondary)">{t.noAccountText}</span>
             <button
               type="button"
               onClick={onGoRegister}
-              className="min-h-10 px-2 font-semibold text-[var(--brand-primary)] hover:underline cursor-pointer"
+              className="min-h-10 px-2 font-semibold text-(--brand-primary) hover:underline cursor-pointer"
             >
               {t.goToRegister}
             </button>

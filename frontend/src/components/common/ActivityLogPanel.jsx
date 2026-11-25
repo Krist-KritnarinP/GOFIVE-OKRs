@@ -34,12 +34,12 @@ export function ActivityLogPanel({ logs = [], role = 'HR_ADMIN', t }) {
   const scopeInfo = SCOPE_META[role] || SCOPE_META.HR_ADMIN;
 
   return (
-    <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-3.5">
+    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-3.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
-          <h2 className="text-base font-bold text-[var(--ink-primary)]">{t.activityLogTitle}</h2>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--surface-subtle)] text-[var(--ink-secondary)] tabular-nums">
+          <Activity className="w-4 h-4 text-(--brand-primary)" aria-hidden="true" />
+          <h2 className="text-base font-bold text-(--ink-primary)">{t.activityLogTitle}</h2>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-(--surface-subtle) text-(--ink-secondary) tabular-nums">
             {logs.length}
           </span>
         </div>
@@ -51,22 +51,22 @@ export function ActivityLogPanel({ logs = [], role = 'HR_ADMIN', t }) {
       </div>
 
       {logs.length === 0 ? (
-        <p className="text-sm text-[var(--ink-muted)] py-3">{t.noActivityLogs}</p>
+        <p className="text-sm text-(--ink-muted) py-3">{t.noActivityLogs}</p>
       ) : (
         <ul className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {logs.map((log) => (
             <li
               key={log.id}
-              className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3 text-xs space-y-1.5"
+              className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) p-3 text-xs space-y-1.5"
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <StatusBadge tone={ACTION_TONE[log.action] || 'neutral'}>
                     {t.actionLabels?.[log.action] || log.action}
                   </StatusBadge>
-                  <span className="font-bold text-[var(--ink-primary)]">{log.actorName}</span>
+                  <span className="font-bold text-(--ink-primary)">{log.actorName}</span>
                 </div>
-                <span className="text-[var(--ink-muted)] tabular-nums">
+                <span className="text-(--ink-muted) tabular-nums">
                   {new Date(log.createdAt).toLocaleString([], {
                     month: 'short',
                     day: 'numeric',
@@ -75,7 +75,7 @@ export function ActivityLogPanel({ logs = [], role = 'HR_ADMIN', t }) {
                   })}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[var(--ink-secondary)] leading-relaxed">
+              <p className="text-xs sm:text-sm text-(--ink-secondary) leading-relaxed">
                 {log.reason}
               </p>
             </li>

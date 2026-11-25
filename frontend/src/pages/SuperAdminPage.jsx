@@ -43,20 +43,20 @@ export function SuperAdminPage({
   return (
     <div className="w-full max-w-full min-w-0 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+        <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
           {t.superTitle}
         </h1>
-        <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.superSubtitle}</p>
+        <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.superSubtitle}</p>
       </div>
 
       {/* 4 Governance KPI Summary Cards — Decided Hierarchy */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiActiveAccounts}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{activeCount}</p>
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiActiveAccounts}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">{activeCount}</p>
         </div>
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiPendingApprovals}</p>
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiPendingApprovals}</p>
           <p
             className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: pendingUsers.length > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
@@ -64,39 +64,39 @@ export function SuperAdminPage({
             {pendingUsers.length}
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiSuspendedAccounts}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{suspendedCount}</p>
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiSuspendedAccounts}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">{suspendedCount}</p>
         </div>
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiAuditEvents}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">{superLogs.length}</p>
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiAuditEvents}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">{superLogs.length}</p>
         </div>
       </div>
 
       {/* Pending Registration Approvals (Full-Width) */}
-      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.pendingApprovalsTitle}</h2>
+          <h2 className="text-lg font-bold text-(--ink-primary)">{t.pendingApprovalsTitle}</h2>
           <StatusBadge tone={pendingUsers.length > 0 ? 'warn' : 'high'}>
             {pendingUsers.length}
           </StatusBadge>
         </div>
 
         {pendingUsers.length === 0 ? (
-          <p className="text-sm text-[var(--ink-secondary)]">{t.noPendingApprovals}</p>
+          <p className="text-sm text-(--ink-secondary)">{t.noPendingApprovals}</p>
         ) : (
           <div className="space-y-2.5">
             {pendingUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md border border-[var(--status-warn-border)] bg-[var(--status-warn-bg)] p-4"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md border border-(--status-warn-border) bg-(--status-warn-bg) p-4"
               >
                 <div>
-                  <p className="text-sm font-bold text-[var(--ink-primary)] tabular-nums">
+                  <p className="text-sm font-bold text-(--ink-primary) tabular-nums">
                     {user.employeeCode} · {lang === 'th' ? user.nameTh : user.name}
                   </p>
-                  <p className="text-xs text-[var(--ink-secondary)]">
+                  <p className="text-xs text-(--ink-secondary)">
                     {user.title} · {user.department}
                   </p>
                 </div>
@@ -127,7 +127,7 @@ export function SuperAdminPage({
                   <button
                     type="button"
                     onClick={() => onUpdateUser(user.id, { accountStatus: 'ACTIVE' })}
-                    className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs sm:text-sm font-semibold text-white cursor-pointer"
+                    className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-xs sm:text-sm font-semibold text-white cursor-pointer"
                   >
                     <UserCheck className="w-4 h-4" aria-hidden="true" />
                     {t.approveBtn}
@@ -140,17 +140,17 @@ export function SuperAdminPage({
       </section>
 
       {/* Dynamic Role Permission Matrix */}
-      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
         <div>
-          <h2 id="super-perm-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.permMatrixTitle}</h2>
-          <p className="text-sm text-[var(--ink-secondary)]">{t.permMatrixSubtitle}</p>
+          <h2 id="super-perm-heading" className="text-lg font-bold text-(--ink-primary)">{t.permMatrixTitle}</h2>
+          <p className="text-sm text-(--ink-secondary)">{t.permMatrixSubtitle}</p>
         </div>
 
         <TableRegion labelledBy="super-perm-heading">
           <table className="w-full text-left border-collapse">
             <caption className="visually-hidden">{t.permMatrixTitle}</caption>
             <thead>
-              <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
+              <tr className="border-b border-(--border-subtle) bg-(--surface-subtle) text-xs font-bold uppercase text-(--ink-secondary)">
                 <th scope="col" className="py-3 px-3">{t.colPermission || 'Permission'}</th>
                 {ROLE_COLUMNS.map((role) => (
                   <th scope="col" key={role} className="py-3 px-3 text-center">
@@ -159,14 +159,14 @@ export function SuperAdminPage({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+            <tbody className="divide-y divide-(--border-subtle) text-sm">
               {PERMISSION_CATALOG.map((perm) => (
-                <tr key={perm.key} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                <tr key={perm.key} className="hover:bg-(--surface-hover) transition-colors duration-150">
                   <td className="py-3 px-3">
-                    <p className="font-semibold text-[var(--ink-primary)]">
+                    <p className="font-semibold text-(--ink-primary)">
                       {lang === 'th' ? perm.labelTh : perm.label}
                     </p>
-                    <code className="text-xs text-[var(--ink-muted)]">{perm.key}</code>
+                    <code className="text-xs text-(--ink-muted)">{perm.key}</code>
                   </td>
                   {ROLE_COLUMNS.map((role) => {
                     const allowed = Boolean(rolePermissions[role]?.[perm.key]);
@@ -214,13 +214,13 @@ export function SuperAdminPage({
       </section>
 
       {/* Organization User Directory with Role + Job Level */}
-      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
-        <h2 id="super-users-heading" className="text-lg font-bold text-[var(--ink-primary)]">{t.usersTableTitle}</h2>
+      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
+        <h2 id="super-users-heading" className="text-lg font-bold text-(--ink-primary)">{t.usersTableTitle}</h2>
         <TableRegion labelledBy="super-users-heading">
           <table className="w-full text-left border-collapse">
             <caption className="visually-hidden">{t.usersTableTitle}</caption>
             <thead>
-              <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
+              <tr className="border-b border-(--border-subtle) bg-(--surface-subtle) text-xs font-bold uppercase text-(--ink-secondary)">
                 <th scope="col" className="py-2.5 px-3">{t.colEmpCode}</th>
                 <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
                 <th scope="col" className="py-2.5 px-3">{t.colDepartment}</th>
@@ -230,17 +230,17 @@ export function SuperAdminPage({
                 <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+            <tbody className="divide-y divide-(--border-subtle) text-sm">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
-                  <td className="py-3 px-3 font-mono font-bold text-xs text-[var(--ink-primary)] tabular-nums">
+                <tr key={user.id} className="hover:bg-(--surface-hover) transition-colors duration-150">
+                  <td className="py-3 px-3 font-mono font-bold text-xs text-(--ink-primary) tabular-nums">
                     {user.employeeCode}
                   </td>
-                  <td className="py-3 px-3 font-semibold text-[var(--ink-primary)]">
+                  <td className="py-3 px-3 font-semibold text-(--ink-primary)">
                     {lang === 'th' ? user.nameTh : user.name}
-                    <div className="text-xs font-normal text-[var(--ink-muted)]">{user.title}</div>
+                    <div className="text-xs font-normal text-(--ink-muted)">{user.title}</div>
                   </td>
-                  <td className="py-3 px-3 text-[var(--ink-secondary)]">{user.department}</td>
+                  <td className="py-3 px-3 text-(--ink-secondary)">{user.department}</td>
                   <td className="py-3 px-3">
                     <TieredSelect
                       ariaLabel={`Job level for ${user.employeeCode}`}
@@ -291,7 +291,7 @@ export function SuperAdminPage({
                             accountStatus: user.accountStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE',
                           })
                         }
-                        className="min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                        className="min-h-10 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) cursor-pointer"
                       >
                         {user.accountStatus === 'ACTIVE' ? t.suspendBtn : t.activateBtn}
                       </button>

@@ -84,14 +84,14 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
     <ModalDialog isOpen={isOpen} labelledBy={titleId} variant="center" maxWidthClass="max-w-xl" onClose={onClose}>
       <div className="p-6 space-y-5">
         <div className="flex items-center justify-between gap-4">
-          <h1 id={titleId} className="text-lg font-bold text-[var(--ink-primary)]">
+          <h1 id={titleId} className="text-lg font-bold text-(--ink-primary)">
             {initialGoal ? t.goalModalEditTitle : t.goalModalAddTitle}
           </h1>
           <button
             type="button"
             onClick={onClose}
             aria-label={t.cancelBtn}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)] cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary) cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -99,7 +99,7 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor={`${uid}-gtitle`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+            <label htmlFor={`${uid}-gtitle`} className="block text-sm font-semibold text-(--ink-primary)">
               {t.goalTitleLabel}
             </label>
             <input
@@ -116,14 +116,14 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 if (error) setError('');
               }}
               placeholder={t.goalTitlePlaceholder || 'e.g. Ship WCAG AA Audit across 5 core HR screens'}
-              className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)]"
+              className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3 text-base text-(--ink-primary)"
             />
           </div>
 
           {/* 3 Natural Measurement Modes with 1-line Contextual Tip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-mtype`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-mtype`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalMetricTypeLabel}
               </label>
               <TieredSelect
@@ -140,7 +140,7 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-due`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-due`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalDueDateLabel}
               </label>
               <input
@@ -150,21 +150,21 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 required
                 value={form.dueDate}
                 onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3 text-sm text-(--ink-primary) tabular-nums"
               />
             </div>
           </div>
 
           {modeTip && (
-            <p className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3 py-2 flex items-start gap-2 text-xs text-[var(--ink-secondary)]">
-              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--brand-primary)]" aria-hidden="true" />
+            <p className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) px-3 py-2 flex items-start gap-2 text-xs text-(--ink-secondary)">
+              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-(--brand-primary)" aria-hidden="true" />
               <span>{modeTip}</span>
             </p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-target`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-target`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalTargetLabel}
               </label>
               <input
@@ -180,11 +180,11 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                   if (error) setError('');
                 }}
                 placeholder={modeMeta.targetPlaceholder}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3 text-sm text-(--ink-primary) tabular-nums"
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-unit`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-unit`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalUnitLabel}
               </label>
               <input
@@ -195,14 +195,14 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 value={form.unit}
                 onChange={(e) => setForm((p) => ({ ...p, unit: e.target.value }))}
                 placeholder={modeMeta.unitPlaceholder}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
+                className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3 text-sm text-(--ink-primary)"
               />
             </div>
           </div>
 
           {/* Zero-Math Quick Importance Buttons */}
           <div className="space-y-1.5">
-            <span className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+            <span className="block text-xs font-bold uppercase tracking-wider text-(--ink-muted)">
               {t.priorityQuickLabel}
             </span>
             <div className="grid grid-cols-3 gap-2">
@@ -215,8 +215,8 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                     onClick={() => setForm((p) => ({ ...p, weight: choice.value }))}
                     className={`min-h-10 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                       active
-                        ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
-                        : 'bg-[var(--surface-subtle)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                        ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                        : 'bg-(--surface-subtle) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
                     }`}
                   >
                     {choice.label}
@@ -228,7 +228,7 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-weight`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-weight`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalWeightLabel}
               </label>
               <input
@@ -241,11 +241,11 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 required
                 value={form.weight}
                 onChange={(e) => setForm((p) => ({ ...p, weight: e.target.value }))}
-                className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-11 rounded-md border border-(--border-strong) bg-(--surface-card) px-3 text-sm text-(--ink-primary) tabular-nums"
               />
             </div>
             <div className="space-y-1.5">
-              <label htmlFor={`${uid}-mult`} className="block text-sm font-semibold text-[var(--ink-primary)]">
+              <label htmlFor={`${uid}-mult`} className="block text-sm font-semibold text-(--ink-primary)">
                 {t.goalMultiplierLabel}
               </label>
               <TieredSelect
@@ -278,17 +278,17 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-subtle)]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--border-subtle)">
             <button
               type="button"
               onClick={onClose}
-              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-sm font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
+              className="min-h-11 px-4 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) active:scale-98 text-sm font-semibold text-(--ink-primary) transition-[background-color,transform] duration-150 cursor-pointer"
             >
               {t.cancelBtn}
             </button>
             <button
               type="submit"
-              className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
+              className="min-h-11 px-5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) active:scale-98 text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
             >
               {t.saveOkrBtn || t.confirmBtn}
             </button>

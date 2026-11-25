@@ -292,17 +292,17 @@ export function EmployeeWorkspacePage({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+            <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
               {t.empTitle}
             </h1>
             <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
           </div>
-          <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.empSubtitle}</p>
+          <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.empSubtitle}</p>
         </div>
 
         {/* Employee Persona Switcher */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold uppercase text-[var(--ink-muted)]">
+          <span className="text-xs font-bold uppercase text-(--ink-muted)">
             {t.empSwitchLabel}:
           </span>
           {EMPLOYEE_DEMO_SWITCHES.map((emp) => {
@@ -314,8 +314,8 @@ export function EmployeeWorkspacePage({
                 onClick={() => onSelectEmployee(emp.userId)}
                 className={`min-h-10 px-3 rounded-md border text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                   active
-                    ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
-                    : 'bg-[var(--surface-card)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                    ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                    : 'bg-(--surface-card) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
                 }`}
               >
                 {lang === 'th' ? emp.nameTh : emp.name} · {lang === 'th' ? emp.tagTh : emp.tag}
@@ -340,10 +340,10 @@ export function EmployeeWorkspacePage({
         <div className="xl:col-span-7 space-y-5">
           <ReturnFeedbackCard review={review} mode="employee" t={t} />
 
-          <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+          <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.empGoalsTitle}</h2>
+                <h2 className="text-lg font-bold text-(--ink-primary)">{t.empGoalsTitle}</h2>
                 <StatusBadge
                   tone={
                     review.status === 'PUBLISHED'
@@ -358,7 +358,7 @@ export function EmployeeWorkspacePage({
                   {t.status[review.status]}
                 </StatusBadge>
                 {autoSavedAt && (canEditGoals || canFillSelfReview) && (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--status-high-text)]">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-(--status-high-text)">
                     <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
                     {t.autoSavedLabel}
                   </span>
@@ -371,7 +371,7 @@ export function EmployeeWorkspacePage({
                     type="button"
                     onClick={() => setShowTemplates((v) => !v)}
                     aria-expanded={showTemplates}
-                    className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-xs sm:text-sm font-semibold text-[var(--status-indigo-text)] hover:brightness-95 cursor-pointer"
+                    className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--status-indigo-border) bg-(--status-indigo-bg) text-xs sm:text-sm font-semibold text-(--status-indigo-text) hover:brightness-95 cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4" aria-hidden="true" />
                     <span>{t.okrTemplatesBtn}</span>
@@ -379,7 +379,7 @@ export function EmployeeWorkspacePage({
                   <button
                     type="button"
                     onClick={() => setGoalModal({ open: true, goal: null })}
-                    className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+                    className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer"
                   >
                     <Plus className="w-4 h-4" aria-hidden="true" />
                     <span>{t.addGoalBtn}</span>
@@ -390,12 +390,12 @@ export function EmployeeWorkspacePage({
 
             {/* 1-Click Department Starter Templates Panel (Zero-Learning-Curve for Every Dept) */}
             {canEditGoals && showTemplates && (
-              <div className="rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] p-4 space-y-3">
+              <div className="rounded-md border border-(--status-indigo-border) bg-(--status-indigo-bg) p-4 space-y-3">
                 <div>
                   <h3 className="text-sm font-bold" style={{ color: 'var(--status-indigo-text)' }}>
                     {t.starterTemplatesTitle}
                   </h3>
-                  <p className="text-xs text-[var(--ink-secondary)] mt-0.5">{t.starterTemplatesSub}</p>
+                  <p className="text-xs text-(--ink-secondary) mt-0.5">{t.starterTemplatesSub}</p>
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -408,8 +408,8 @@ export function EmployeeWorkspacePage({
                         onClick={() => setStarterDeptId(dept.id)}
                         className={`min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                           active
-                            ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
-                            : 'bg-[var(--surface-card)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                            ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                            : 'bg-(--surface-card) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
                         }`}
                       >
                         {lang === 'th' ? dept.labelTh : dept.label}
@@ -422,13 +422,13 @@ export function EmployeeWorkspacePage({
                   {activeStarterDept.templates.map((tpl, idx) => (
                     <div
                       key={`${activeStarterDept.id}-${idx}`}
-                      className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-card)] px-3 py-2.5 flex items-center justify-between gap-3"
+                      className="rounded-md border border-(--border-subtle) bg-(--surface-card) px-3 py-2.5 flex items-center justify-between gap-3"
                     >
                       <div className="min-w-0 space-y-0.5">
-                        <p className="text-xs sm:text-sm font-semibold text-[var(--ink-primary)]">
+                        <p className="text-xs sm:text-sm font-semibold text-(--ink-primary)">
                           {lang === 'th' ? tpl.titleTh : tpl.title}
                         </p>
-                        <p className="text-xs text-[var(--ink-muted)] tabular-nums">
+                        <p className="text-xs text-(--ink-muted) tabular-nums">
                           {t.metricTypes?.[tpl.metricType] || tpl.metricType} · {t.targetLabel}:{' '}
                           {tpl.targetValue} {lang === 'th' ? tpl.unitTh : tpl.unit} · {tpl.weight}%
                         </p>
@@ -436,7 +436,7 @@ export function EmployeeWorkspacePage({
                       <button
                         type="button"
                         onClick={() => handleAddStarterTemplate(tpl)}
-                        className="min-h-9 px-3 rounded-md border border-[var(--brand-primary)] bg-[var(--status-track-bg)] hover:bg-[var(--brand-primary)] hover:text-white text-xs font-bold text-[var(--status-track-text)] transition-colors duration-150 cursor-pointer shrink-0"
+                        className="min-h-9 px-3 rounded-md border border-(--brand-primary) bg-(--status-track-bg) hover:bg-(--brand-primary) hover:text-white text-xs font-bold text-(--status-track-text) transition-colors duration-150 cursor-pointer shrink-0"
                       >
                         {t.starterAddBtn}
                       </button>
@@ -497,7 +497,7 @@ export function EmployeeWorkspacePage({
                   <button
                     type="button"
                     onClick={handleAutoBalance}
-                    className="inline-flex items-center gap-1.5 min-h-9 px-3 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs font-bold text-white cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 min-h-9 px-3 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-xs font-bold text-white cursor-pointer shrink-0"
                   >
                     <Scale className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>{t.autoBalanceBtn}</span>
@@ -509,15 +509,15 @@ export function EmployeeWorkspacePage({
             {/* OKR Cards or Welcoming 0-OKR Empty State */}
             <form onSubmit={handleSubmitSelf} className="space-y-4">
               {displayedGoals.length === 0 ? (
-                <div className="rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-subtle)] p-6 text-center space-y-3">
-                  <p className="text-base font-bold text-[var(--ink-primary)]">{t.emptyOkrsTitle}</p>
-                  <p className="text-sm text-[var(--ink-secondary)] max-w-md mx-auto">{t.emptyOkrsDesc}</p>
+                <div className="rounded-md border border-dashed border-(--border-strong) bg-(--surface-subtle) p-6 text-center space-y-3">
+                  <p className="text-base font-bold text-(--ink-primary)">{t.emptyOkrsTitle}</p>
+                  <p className="text-sm text-(--ink-secondary) max-w-md mx-auto">{t.emptyOkrsDesc}</p>
                   {canEditGoals && (
                     <div className="flex items-center justify-center gap-2.5 flex-wrap">
                       <button
                         type="button"
                         onClick={() => setShowTemplates(true)}
-                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-sm font-semibold text-[var(--status-indigo-text)] cursor-pointer"
+                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border border-(--status-indigo-border) bg-(--status-indigo-bg) text-sm font-semibold text-(--status-indigo-text) cursor-pointer"
                       >
                         <Sparkles className="w-4 h-4" aria-hidden="true" />
                         <span>{t.okrTemplatesBtn}</span>
@@ -525,7 +525,7 @@ export function EmployeeWorkspacePage({
                       <button
                         type="button"
                         onClick={() => setGoalModal({ open: true, goal: null })}
-                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) active:scale-98 text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
                       >
                         <Plus className="w-4 h-4" aria-hidden="true" />
                         <span>{t.addGoalBtn}</span>
@@ -547,15 +547,15 @@ export function EmployeeWorkspacePage({
                     return (
                       <div
                         key={goal.id}
-                        className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 space-y-3"
+                        className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) p-4 space-y-3"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <p className="text-sm font-bold text-[var(--ink-primary)]">
+                            <p className="text-sm font-bold text-(--ink-primary)">
                               {lang === 'th' ? goal.titleTh : goal.title}
                             </p>
-                            <div className="flex flex-wrap gap-2 text-xs text-[var(--ink-secondary)] tabular-nums">
-                              <span className="px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] font-semibold">
+                            <div className="flex flex-wrap gap-2 text-xs text-(--ink-secondary) tabular-nums">
+                              <span className="px-2 py-0.5 rounded bg-(--surface-card) border border-(--border-subtle) font-semibold">
                                 {metricLabel}
                               </span>
                               <span>
@@ -572,7 +572,7 @@ export function EmployeeWorkspacePage({
                               <button
                                 type="button"
                                 onClick={() => setGoalModal({ open: true, goal })}
-                                className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                                className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) cursor-pointer"
                               >
                                 <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                                 {t.editGoalBtn}
@@ -592,14 +592,14 @@ export function EmployeeWorkspacePage({
                               </button>
                             </div>
                           ) : (
-                            <span className="text-sm font-bold text-[var(--ink-primary)] tabular-nums shrink-0">
+                            <span className="text-sm font-bold text-(--ink-primary) tabular-nums shrink-0">
                               {goal.progressPct}%
                             </span>
                           )}
                         </div>
 
                         {!canEditGoals && (
-                          <div className="h-2 w-full rounded bg-[var(--border-subtle)] overflow-hidden">
+                          <div className="h-2 w-full rounded bg-(--border-subtle) overflow-hidden">
                             <div
                               className="h-full"
                               style={{ width: `${goal.progressPct}%`, backgroundColor: 'var(--brand-primary)' }}
@@ -608,10 +608,10 @@ export function EmployeeWorkspacePage({
                         )}
 
                         {canFillSelfReview ? (
-                          <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
+                          <div className="pt-2 border-t border-(--border-subtle) space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                <label className="block text-xs font-semibold text-(--ink-primary)">
                                   {t.actualAchievedLabel}
                                 </label>
                                 <input
@@ -625,11 +625,11 @@ export function EmployeeWorkspacePage({
                                     }))
                                   }
                                   placeholder="e.g. 92%"
-                                  className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)]"
+                                  className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm text-(--ink-primary)"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                <label className="block text-xs font-semibold text-(--ink-primary)">
                                   {t.progressPctLabel}
                                 </label>
                                 <input
@@ -644,11 +644,11 @@ export function EmployeeWorkspacePage({
                                       [goal.id]: { ...input, progressPct: e.target.value },
                                     }))
                                   }
-                                  className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)] tabular-nums"
+                                  className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm text-(--ink-primary) tabular-nums"
                                 />
                               </div>
                               <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                <label className="block text-xs font-semibold text-(--ink-primary)">
                                   {t.selfScoreLabel}
                                 </label>
                                 <TieredSelect
@@ -673,7 +673,7 @@ export function EmployeeWorkspacePage({
                             {/* 3-Question Guided Evidence Prompt Chips */}
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-xs font-medium text-[var(--ink-muted)]">
+                                <span className="text-xs font-medium text-(--ink-muted)">
                                   {t.evidencePromptsLabel}
                                 </span>
                                 {evidencePrompts.map((chip, idx) => (
@@ -681,7 +681,7 @@ export function EmployeeWorkspacePage({
                                     key={idx}
                                     type="button"
                                     onClick={() => handleInsertEvidencePrompt(goal.id, chip.text)}
-                                    className="px-2 py-1 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--brand-primary)] cursor-pointer"
+                                    className="px-2 py-1 rounded border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--brand-primary) cursor-pointer"
                                   >
                                     {chip.label}
                                   </button>
@@ -698,13 +698,13 @@ export function EmployeeWorkspacePage({
                                   }))
                                 }
                                 placeholder={t.drawerEvidenceLabel}
-                                className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+                                className="w-full rounded-md border border-(--border-strong) bg-(--surface-card) px-3 py-2 text-sm text-(--ink-primary)"
                               />
                             </div>
                           </div>
                         ) : (
                           input.selfEvidence && (
-                            <p className="text-xs text-[var(--ink-secondary)]">
+                            <p className="text-xs text-(--ink-secondary)">
                               {goal.actualValue && <strong>{t.actualLabel}: {goal.actualValue} · </strong>}
                               &ldquo;{input.selfEvidence}&rdquo;
                             </p>
@@ -717,20 +717,20 @@ export function EmployeeWorkspacePage({
               )}
 
               {canEditGoals && (
-                <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">
+                <div className="pt-3 border-t border-(--border-subtle) space-y-3">
                   <textarea
                     rows={2}
                     value={goalNote}
                     onChange={(e) => setGoalNote(e.target.value)}
                     placeholder={t.goalNotePlaceholder}
-                    className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+                    className="w-full rounded-md border border-(--border-strong) bg-(--surface-card) px-3 py-2 text-sm text-(--ink-primary)"
                   />
                   <div className="flex justify-end">
                     <button
                       type="button"
                       disabled={totalWeight !== 100 || draftGoals.length === 0}
                       onClick={() => setShowSubmitPreview(true)}
-                      className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-white cursor-pointer disabled:cursor-not-allowed"
+                      className="min-h-11 px-5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) disabled:bg-(--surface-hover) disabled:text-(--ink-muted) text-sm font-semibold text-white cursor-pointer disabled:cursor-not-allowed"
                     >
                       {review.status === 'GOAL_REVISION_REQUIRED' ? t.resubmitGoalsBtn : t.submitGoalsBtn}
                     </button>
@@ -739,9 +739,9 @@ export function EmployeeWorkspacePage({
               )}
 
               {canFillSelfReview && (
-                <div className="pt-3 border-t border-[var(--border-subtle)] space-y-3">
+                <div className="pt-3 border-t border-(--border-subtle) space-y-3">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-semibold text-[var(--ink-primary)]">
+                    <label className="block text-sm font-semibold text-(--ink-primary)">
                       {t.empReflectionLabel}
                     </label>
                     <textarea
@@ -749,13 +749,13 @@ export function EmployeeWorkspacePage({
                       required
                       value={reflection}
                       onChange={(e) => setReflection(e.target.value)}
-                      className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+                      className="w-full rounded-md border border-(--border-strong) bg-(--surface-card) px-3 py-2 text-sm text-(--ink-primary)"
                     />
                   </div>
                   <div className="flex justify-end">
                     <button
                       type="submit"
-                      className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+                      className="min-h-11 px-5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer"
                     >
                       {t.empSubmitSelf}
                     </button>
@@ -770,27 +770,27 @@ export function EmployeeWorkspacePage({
 
         {/* Right (5 cols): Locked vs Published Result */}
         <div className="xl:col-span-5 space-y-5">
-          <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+          <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
             {review.status !== 'PUBLISHED' ? (
               <div className="flex flex-col items-start justify-center space-y-3 py-4">
-                <span className="inline-flex items-center justify-center w-11 h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-subtle)] text-[var(--ink-primary)]">
+                <span className="inline-flex items-center justify-center w-11 h-11 rounded-md border border-(--border-strong) bg-(--surface-subtle) text-(--ink-primary)">
                   <Lock className="w-5 h-5" aria-hidden="true" />
                 </span>
-                <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+                <h2 className="text-lg font-bold text-(--ink-primary)">
                   {t.empResultsLockedTitle}
                 </h2>
-                <p className="text-sm text-[var(--ink-secondary)]">{t.empResultsLockedDesc}</p>
+                <p className="text-sm text-(--ink-secondary)">{t.empResultsLockedDesc}</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <h2 className="text-lg font-bold text-[var(--ink-primary)]">
+                <h2 className="text-lg font-bold text-(--ink-primary)">
                   {t.empResultsPublishedTitle}
                 </h2>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-3.5">
-                    <p className="text-xs font-semibold text-[var(--ink-secondary)]">{t.empOverallScore}</p>
-                    <p className="mt-1 text-2xl font-bold text-[var(--ink-primary)] tabular-nums">
+                  <div className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) p-3.5">
+                    <p className="text-xs font-semibold text-(--ink-secondary)">{t.empOverallScore}</p>
+                    <p className="mt-1 text-2xl font-bold text-(--ink-primary) tabular-nums">
                       {review.overallScore?.toFixed(2)} / 5.0
                     </p>
                   </div>
@@ -807,30 +807,30 @@ export function EmployeeWorkspacePage({
                       {cellInfo ? (lang === 'th' ? cellInfo.labelTh : cellInfo.label) : '—'}
                     </p>
                   </div>
-                  <div className="rounded-md border border-[var(--border-subtle)] p-3">
-                    <p className="text-xs text-[var(--ink-secondary)]">{t.empWhatScore}</p>
-                    <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
+                  <div className="rounded-md border border-(--border-subtle) p-3">
+                    <p className="text-xs text-(--ink-secondary)">{t.empWhatScore}</p>
+                    <p className="mt-0.5 text-lg font-bold text-(--ink-primary) tabular-nums">
                       {review.whatPct?.toFixed(0)}% ({review.whatScore?.toFixed(1)}/5)
                     </p>
                   </div>
-                  <div className="rounded-md border border-[var(--border-subtle)] p-3">
-                    <p className="text-xs text-[var(--ink-secondary)]">{t.empHowScore}</p>
-                    <p className="mt-0.5 text-lg font-bold text-[var(--ink-primary)] tabular-nums">
+                  <div className="rounded-md border border-(--border-subtle) p-3">
+                    <p className="text-xs text-(--ink-secondary)">{t.empHowScore}</p>
+                    <p className="mt-0.5 text-lg font-bold text-(--ink-primary) tabular-nums">
                       {review.howScore?.toFixed(2)} / 5.0
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
-                  <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empManagerFeedback}</h3>
-                  <p className="text-sm text-[var(--ink-secondary)]">
+                <div className="space-y-1.5 pt-2 border-t border-(--border-subtle)">
+                  <h3 className="text-sm font-bold text-(--ink-primary)">{t.empManagerFeedback}</h3>
+                  <p className="text-sm text-(--ink-secondary)">
                     {review.managerPayload?.managerSummary}
                   </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.empDevFocus}</h3>
-                  <p className="text-sm text-[var(--ink-secondary)]">
+                  <h3 className="text-sm font-bold text-(--ink-primary)">{t.empDevFocus}</h3>
+                  <p className="text-sm text-(--ink-secondary)">
                     {review.managerPayload?.developmentFocus}
                   </p>
                 </div>
@@ -864,10 +864,10 @@ export function EmployeeWorkspacePage({
       >
         <div className="p-6 space-y-4">
           <div className="space-y-1">
-            <h1 id={`${uid}-preview-title`} className="text-lg font-bold text-[var(--ink-primary)]">
+            <h1 id={`${uid}-preview-title`} className="text-lg font-bold text-(--ink-primary)">
               {t.previewSubmitTitle}
             </h1>
-            <p className="text-sm text-[var(--ink-secondary)]">
+            <p className="text-sm text-(--ink-secondary)">
               {t.previewSubmitSub.replace('{n}', String(draftGoals.length))}
             </p>
           </div>
@@ -876,30 +876,30 @@ export function EmployeeWorkspacePage({
             {draftGoals.map((g, i) => (
               <li
                 key={g.id}
-                className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3 py-2.5 flex items-center justify-between gap-3 text-sm"
+                className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) px-3 py-2.5 flex items-center justify-between gap-3 text-sm"
               >
-                <span className="font-semibold text-[var(--ink-primary)]">
+                <span className="font-semibold text-(--ink-primary)">
                   {i + 1}. {lang === 'th' ? g.titleTh : g.title}
                 </span>
-                <span className="font-bold text-[var(--brand-primary)] tabular-nums shrink-0">
+                <span className="font-bold text-(--brand-primary) tabular-nums shrink-0">
                   {g.weight}%
                 </span>
               </li>
             ))}
           </ul>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-subtle)]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-(--border-subtle)">
             <button
               type="button"
               onClick={() => setShowSubmitPreview(false)}
-              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] cursor-pointer"
+              className="min-h-11 px-4 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) cursor-pointer"
             >
               {t.previewBackEditBtn}
             </button>
             <button
               type="button"
               onClick={handleConfirmSubmitGoals}
-              className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+              className="min-h-11 px-5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer"
             >
               {t.previewConfirmSendBtn}
             </button>

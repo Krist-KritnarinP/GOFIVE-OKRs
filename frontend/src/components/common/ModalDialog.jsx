@@ -54,8 +54,8 @@ export function ModalDialog({
 
   const dialogClass =
     variant === 'drawer'
-      ? `m-0 ml-auto h-dvh w-full ${maxWidthClass} border-l border-[var(--border-strong)] bg-[var(--surface-card)] p-0 text-[var(--ink-primary)]`
-      : `m-auto w-[calc(100%-2rem)] ${maxWidthClass} rounded-lg border border-[var(--border-strong)] bg-[var(--surface-card)] p-0 text-[var(--ink-primary)]`;
+      ? `m-0 ml-auto h-dvh w-full ${maxWidthClass} border-l border-(--border-strong) bg-(--surface-card) p-0 text-(--ink-primary)`
+      : `m-auto w-[calc(100%-2rem)] ${maxWidthClass} rounded-lg border border-(--border-strong) bg-(--surface-card) p-0 text-(--ink-primary)`;
 
   return (
     <dialog

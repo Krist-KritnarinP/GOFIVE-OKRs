@@ -15,19 +15,19 @@ const ACTION_TONE = {
 
 export function CommentHistoryPanel({ history = [], t }) {
   return (
-    <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4 space-y-3">
+    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-[var(--ink-secondary)]" aria-hidden="true" />
-          <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.commentHistoryTitle}</h3>
+          <MessageSquare className="w-4 h-4 text-(--ink-secondary)" aria-hidden="true" />
+          <h3 className="text-sm font-bold text-(--ink-primary)">{t.commentHistoryTitle}</h3>
         </div>
-        <span className="text-xs font-semibold text-[var(--ink-muted)] tabular-nums">
+        <span className="text-xs font-semibold text-(--ink-muted) tabular-nums">
           {history.length}
         </span>
       </div>
 
       {history.length === 0 ? (
-        <p className="text-sm text-[var(--ink-muted)]">{t.noCommentHistory}</p>
+        <p className="text-sm text-(--ink-muted)">{t.noCommentHistory}</p>
       ) : (
         <ol className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
           {[...history].reverse().map((item) => {
@@ -50,14 +50,14 @@ export function CommentHistoryPanel({ history = [], t }) {
               >
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--ink-primary)] tabular-nums">
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-(--surface-card) border border-(--border-subtle) text-(--ink-primary) tabular-nums">
                       R{item.round || 1}
                     </span>
                     {isAdvisor && (
                       <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--status-indigo-text)' }} aria-hidden="true" />
                     )}
-                    <span className="font-bold text-[var(--ink-primary)]">{item.actorName}</span>
-                    <span className="text-xs text-[var(--ink-muted)]">
+                    <span className="font-bold text-(--ink-primary)">{item.actorName}</span>
+                    <span className="text-xs text-(--ink-muted)">
                       ({t.roleLabels?.[item.actorRole] || item.actorRole})
                     </span>
                   </div>
@@ -65,8 +65,8 @@ export function CommentHistoryPanel({ history = [], t }) {
                     {t.actionLabels?.[item.action] || item.action}
                   </StatusBadge>
                 </div>
-                <p className="text-sm text-[var(--ink-secondary)]">{item.comment}</p>
-                <p className="text-xs text-[var(--ink-muted)] tabular-nums">
+                <p className="text-sm text-(--ink-secondary)">{item.comment}</p>
+                <p className="text-xs text-(--ink-muted) tabular-nums">
                   {new Date(item.createdAt).toLocaleString()}
                 </p>
               </li>

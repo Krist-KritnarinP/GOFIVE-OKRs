@@ -33,11 +33,11 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
   }
 
   return (
-    <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
+    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h2 className="text-lg font-bold text-[var(--ink-primary)]">{t.nineBoxTitle}</h2>
-          <p className="text-sm text-[var(--ink-secondary)]">{t.nineBoxSubtitle}</p>
+          <h2 className="text-lg font-bold text-(--ink-primary)">{t.nineBoxTitle}</h2>
+          <p className="text-sm text-(--ink-secondary)">{t.nineBoxSubtitle}</p>
         </div>
       </div>
 
@@ -62,12 +62,12 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                   >
                     {lang === 'th' ? cell.labelTh : cell.label}
                   </h3>
-                  <p className="text-xs text-[var(--ink-muted)] mt-0.5 tabular-nums">
+                  <p className="text-xs text-(--ink-muted) mt-0.5 tabular-nums">
                     {lang === 'th' ? cell.xLabelTh : cell.xLabel} · {lang === 'th' ? cell.yLabelTh : cell.yLabel}
                   </p>
                 </div>
                 <span
-                  className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-md border text-sm font-bold tabular-nums bg-[var(--surface-card)]"
+                  className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-md border text-sm font-bold tabular-nums bg-(--surface-card)"
                   style={{ borderColor: palette.border, color: palette.text }}
                 >
                   {items.length}
@@ -82,13 +82,13 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                       key={rev.id}
                       type="button"
                       onClick={() => onSelectReview(rev)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] transition-colors duration-150 ease-out cursor-pointer tabular-nums"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) transition-colors duration-150 ease-out cursor-pointer tabular-nums"
                     >
-                      <span className="text-[10px] font-bold px-1 rounded bg-[var(--surface-subtle)] text-[var(--ink-secondary)]">
+                      <span className="text-[10px] font-bold px-1 rounded bg-(--surface-subtle) text-(--ink-secondary)">
                         {lvl}
                       </span>
                       <span>{lang === 'th' ? rev.employee.nameTh : rev.employee.name}</span>
-                      <span className="text-[var(--ink-muted)]">({rev.overallScore?.toFixed(1)})</span>
+                      <span className="text-(--ink-muted)">({rev.overallScore?.toFixed(1)})</span>
                     </button>
                   );
                 })}
@@ -98,7 +98,7 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
         })}
       </div>
 
-      <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] pt-1 border-t border-[var(--border-subtle)]">
+      <div className="flex items-center justify-between text-xs font-semibold text-(--ink-muted) pt-1 border-t border-(--border-subtle)">
         <span>← {t.nineBoxXAxis}: {t.nineBoxLow}</span>
         <span>{t.nineBoxMid}</span>
         <span>{t.nineBoxHigh} →</span>

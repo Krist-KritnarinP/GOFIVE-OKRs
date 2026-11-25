@@ -266,7 +266,7 @@ export function StageStatusBar({
   };
 
   return (
-    <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] overflow-hidden">
+    <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) overflow-hidden">
       {/* Data-Driven Segmented Status Track (1 segment per stage colored by actual status) */}
       <div className="grid gap-1 px-4 pt-3" style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))` }} aria-hidden="true">
         {stages.map((stage) => {
@@ -295,14 +295,14 @@ export function StageStatusBar({
       <div className="p-4 space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[var(--brand-primary)]" aria-hidden="true" />
-            <h2 className="text-sm font-bold text-[var(--ink-primary)]">
+            <Calendar className="w-4 h-4 text-(--brand-primary)" aria-hidden="true" />
+            <h2 className="text-sm font-bold text-(--ink-primary)">
               {mode === 'review' ? t.reviewProgressBarTitle : t.stageTimelineTitle}
             </h2>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-[var(--ink-muted)] tabular-nums">
+            <span className="text-xs font-semibold text-(--ink-muted) tabular-nums">
               {completedCount}/{stages.length} {t.stagesCompletedSuffix}
             </span>
             {editable && !editing && (
@@ -314,7 +314,7 @@ export function StageStatusBar({
                   setD3(toInputDate(cycle?.stage3HrAuditDeadline));
                   setEditing(true);
                 }}
-                className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] active:scale-[0.98] text-xs font-semibold text-[var(--ink-primary)] transition-[background-color,transform] duration-150 cursor-pointer"
+                className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) active:scale-98 text-xs font-semibold text-(--ink-primary) transition-[background-color,transform] duration-150 cursor-pointer"
               >
                 <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
                 {t.editStageDatesBtn}
@@ -327,10 +327,10 @@ export function StageStatusBar({
         {editable && editing && (
           <form
             onSubmit={handleSave}
-            className="rounded-md border border-[var(--status-track-border)] bg-[var(--status-track-bg)] p-3.5 grid grid-cols-1 md:grid-cols-4 gap-3 items-end"
+            className="rounded-md border border-(--status-track-border) bg-(--status-track-bg) p-3.5 grid grid-cols-1 md:grid-cols-4 gap-3 items-end"
           >
             <div className="space-y-1">
-              <label htmlFor={`${baseId}-s1`} className="block text-xs font-bold text-[var(--ink-primary)]">
+              <label htmlFor={`${baseId}-s1`} className="block text-xs font-bold text-(--ink-primary)">
                 {t.stage1Label}
               </label>
               <input
@@ -339,11 +339,11 @@ export function StageStatusBar({
                 required
                 value={d1}
                 onChange={(e) => setD1(e.target.value)}
-                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm font-semibold text-(--ink-primary) tabular-nums"
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor={`${baseId}-s2`} className="block text-xs font-bold text-[var(--ink-primary)]">
+              <label htmlFor={`${baseId}-s2`} className="block text-xs font-bold text-(--ink-primary)">
                 {t.stage2Label}
               </label>
               <input
@@ -352,11 +352,11 @@ export function StageStatusBar({
                 required
                 value={d2}
                 onChange={(e) => setD2(e.target.value)}
-                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm font-semibold text-(--ink-primary) tabular-nums"
               />
             </div>
             <div className="space-y-1">
-              <label htmlFor={`${baseId}-s3`} className="block text-xs font-bold text-[var(--ink-primary)]">
+              <label htmlFor={`${baseId}-s3`} className="block text-xs font-bold text-(--ink-primary)">
                 {t.stage3Label}
               </label>
               <input
@@ -365,20 +365,20 @@ export function StageStatusBar({
                 required
                 value={d3}
                 onChange={(e) => setD3(e.target.value)}
-                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
+                className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm font-semibold text-(--ink-primary) tabular-nums"
               />
             </div>
             <div className="flex items-center gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="min-h-10 px-3.5 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                className="min-h-10 px-3.5 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) cursor-pointer"
               >
                 {t.cancelBtn}
               </button>
               <button
                 type="submit"
-                className="min-h-10 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs font-semibold text-white cursor-pointer"
+                className="min-h-10 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-xs font-semibold text-white cursor-pointer"
               >
                 {t.saveDatesBtn}
               </button>
@@ -454,9 +454,9 @@ export function StageStatusBar({
                         aria-hidden="true"
                       />
                     ) : (
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-[var(--border-strong)]" aria-hidden="true" />
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-(--border-strong)" aria-hidden="true" />
                     )}
-                    <span className="text-xs sm:text-sm font-bold text-[var(--ink-primary)] truncate">
+                    <span className="text-xs sm:text-sm font-bold text-(--ink-primary) truncate">
                       {idx + 1}. {stage.label}
                     </span>
                   </div>
@@ -476,11 +476,11 @@ export function StageStatusBar({
                 </div>
 
                 {stage.sub && (
-                  <p className="text-xs text-[var(--ink-secondary)] leading-snug">{stage.sub}</p>
+                  <p className="text-xs text-(--ink-secondary) leading-snug">{stage.sub}</p>
                 )}
 
-                <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-[var(--border-subtle)]/70">
-                  <span className="text-xs font-semibold text-[var(--ink-secondary)] tabular-nums">
+                <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-(--border-subtle)/70">
+                  <span className="text-xs font-semibold text-(--ink-secondary) tabular-nums">
                     {t.dueLabel}: {formatShortDate(stage.date, lang)}
                   </span>
                   <TimingChip

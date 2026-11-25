@@ -56,14 +56,14 @@ export function ManagerWorkspacePage({
     <div className="w-full space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--ink-primary)]">
+          <h1 className="text-2xl font-bold tracking-tight text-(--ink-primary)">
             {t.mgrTitle}
           </h1>
-          <p className="text-sm sm:text-base text-[var(--ink-secondary)] mt-0.5">{t.mgrSubtitle}</p>
+          <p className="text-sm sm:text-base text-(--ink-secondary) mt-0.5">{t.mgrSubtitle}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold uppercase text-[var(--ink-muted)]">
+          <span className="text-xs font-bold uppercase text-(--ink-muted)">
             {t.mgrSwitchLabel}:
           </span>
           {MANAGER_DEMO_SWITCHES.map((mgr) => {
@@ -75,8 +75,8 @@ export function ManagerWorkspacePage({
                 onClick={() => onSelectManager(mgr.userId)}
                 className={`min-h-10 px-3 rounded-md border text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                   active
-                    ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
-                    : 'bg-[var(--surface-card)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                    ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                    : 'bg-(--surface-card) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
                 }`}
               >
                 {lang === 'th' ? mgr.nameTh : mgr.name} ({lang === 'th' ? mgr.tagTh : mgr.tag})
@@ -113,17 +113,17 @@ export function ManagerWorkspacePage({
 
       {/* 3 Team KPI Summary Cards — Decided Hierarchy */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamCompletion}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiTeamCompletion}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">
             {teamCompletionPct}%{' '}
-            <span className="text-sm font-medium text-[var(--ink-muted)]">
+            <span className="text-sm font-medium text-(--ink-muted)">
               ({completedTeam}/{teamReviews.length})
             </span>
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamPending}</p>
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiTeamPending}</p>
           <p
             className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums"
             style={{ color: pendingTeamCount > 0 ? 'var(--status-warn-text)' : 'var(--status-high-text)' }}
@@ -131,11 +131,11 @@ export function ManagerWorkspacePage({
             {pendingTeamCount}
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">{t.kpiTeamVsOrg}</p>
-          <p className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--ink-primary)] tabular-nums">
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-(--ink-muted)">{t.kpiTeamVsOrg}</p>
+          <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--ink-primary) tabular-nums">
             {teamAvg !== null ? teamAvg.toFixed(2) : '—'}{' '}
-            <span className="text-sm font-medium text-[var(--ink-muted)]">
+            <span className="text-sm font-medium text-(--ink-muted)">
               vs {analytics.orgAverageScore.toFixed(2)}
             </span>
           </p>
@@ -143,19 +143,19 @@ export function ManagerWorkspacePage({
       </div>
 
       {/* Live Fairness / Bias Guardrail Card */}
-      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section className="rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-base font-bold text-[var(--ink-primary)]">{t.mgrBenchmarkTitle}</h2>
+          <h2 className="text-base font-bold text-(--ink-primary)">{t.mgrBenchmarkTitle}</h2>
           <div className="flex items-center gap-6 text-sm tabular-nums">
             <span>
               {t.mgrTeamAvg}:{' '}
-              <strong className="text-[var(--ink-primary)]">
+              <strong className="text-(--ink-primary)">
                 {teamAvg !== null ? teamAvg.toFixed(2) : '—'}
               </strong>
             </span>
             <span>
               {t.mgrOrgAvg}:{' '}
-              <strong className="text-[var(--ink-primary)]">
+              <strong className="text-(--ink-primary)">
                 {analytics.orgAverageScore.toFixed(2)}
               </strong>
             </span>
@@ -188,31 +188,31 @@ export function ManagerWorkspacePage({
       </section>
 
       {/* Scannable Team Table (Full-Width) */}
-      <section className="min-w-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5">
+      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5">
         <TableRegion label={t.mgrTitle}>
             <table className="w-full text-left border-collapse">
               <caption className="visually-hidden">{t.mgrTitle}</caption>
               <thead>
-                <tr className="border-b border-[var(--border-subtle)] bg-[var(--surface-subtle)] text-xs font-bold uppercase text-[var(--ink-secondary)]">
+                <tr className="border-b border-(--border-subtle) bg-(--surface-subtle) text-xs font-bold uppercase text-(--ink-secondary)">
                   <th scope="col" className="py-2.5 px-3">{t.colEmployee}</th>
                   <th scope="col" className="py-2.5 px-3">{t.colStatus}</th>
                   <th scope="col" className="py-2.5 px-3">{t.colScore}</th>
                   <th scope="col" className="py-2.5 px-3 text-right">{t.colAction}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
+              <tbody className="divide-y divide-(--border-subtle) text-sm">
                 {teamReviews.map((rev) => {
                   const isGoalStage = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(rev.status);
                   return (
-                    <tr key={rev.id} className="hover:bg-[var(--surface-hover)] transition-colors duration-150">
+                    <tr key={rev.id} className="hover:bg-(--surface-hover) transition-colors duration-150">
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-[var(--ink-primary)]">
+                          <span className="font-semibold text-(--ink-primary)">
                             {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
                           </span>
                           <JobLevelBadge level={rev.employee.jobLevel} compact lang={lang} />
                         </div>
-                        <p className="text-xs text-[var(--ink-muted)] mt-0.5">{rev.employee.title}</p>
+                        <p className="text-xs text-(--ink-muted) mt-0.5">{rev.employee.title}</p>
                       </td>
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -236,7 +236,7 @@ export function ManagerWorkspacePage({
                           )}
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 font-semibold text-[var(--ink-primary)] tabular-nums">
+                      <td className="py-3.5 px-3 font-semibold text-(--ink-primary) tabular-nums">
                         {rev.overallScore != null
                           ? `${rev.overallScore.toFixed(2)} (${rev.whatPct?.toFixed(0)}% / ${rev.howScore?.toFixed(1)})`
                           : '—'}
@@ -248,8 +248,8 @@ export function ManagerWorkspacePage({
                             onClick={() => setGoalReview(rev)}
                             className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                               rev.status === 'GOAL_PENDING_APPROVAL'
-                                ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
-                                : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                                ? 'bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-white'
+                                : 'border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary)'
                             }`}
                           >
                             {t.reviewGoalsBtn}
@@ -260,8 +260,8 @@ export function ManagerWorkspacePage({
                             onClick={() => setEvalReview(rev)}
                             className={`min-h-10 px-4 rounded-md text-xs sm:text-sm font-semibold transition-colors duration-150 cursor-pointer ${
                               rev.status === 'SELF_REVIEW_SUBMITTED'
-                                ? 'bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-white'
-                                : 'border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)]'
+                                ? 'bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-white'
+                                : 'border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary)'
                             }`}
                           >
                             {rev.status === 'PUBLISHED' ? t.viewBtn : t.evaluateBtn}

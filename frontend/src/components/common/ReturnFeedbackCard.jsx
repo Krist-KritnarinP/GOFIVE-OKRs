@@ -68,7 +68,7 @@ export function ReturnFeedbackCard({ review, mode = 'employee', t }) {
                 <h2 className="text-sm sm:text-base font-bold" style={{ color: 'var(--status-warn-text)' }}>
                   {heading}
                 </h2>
-                <p className="text-xs font-medium text-[var(--ink-secondary)]">
+                <p className="text-xs font-medium text-(--ink-secondary)">
                   {t.returnFromLabel}: <strong>{latestReturn.actorName}</strong> (
                   {t.roleLabels?.[latestReturn.actorRole] || latestReturn.actorRole})
                 </p>
@@ -80,7 +80,7 @@ export function ReturnFeedbackCard({ review, mode = 'employee', t }) {
             </StatusBadge>
           </div>
 
-          <blockquote className="rounded-md border border-[var(--status-warn-border)] bg-[var(--surface-card)] px-3.5 py-2.5 text-sm text-[var(--ink-primary)] leading-relaxed">
+          <blockquote className="rounded-md border border-(--status-warn-border) bg-(--surface-card) px-3.5 py-2.5 text-sm text-(--ink-primary) leading-relaxed">
             &ldquo;{latestReturn.comment}&rdquo;
           </blockquote>
 
@@ -88,7 +88,7 @@ export function ReturnFeedbackCard({ review, mode = 'employee', t }) {
             <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--status-warn-text)' }}>
               {t.returnHowToFixTitle}
             </p>
-            <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm text-[var(--ink-primary)]">
+            <ol className="list-decimal list-inside space-y-1 text-xs sm:text-sm text-(--ink-primary)">
               {steps.filter(Boolean).map((step, i) => (
                 <li key={i}>{step}</li>
               ))}
@@ -115,7 +115,7 @@ export function ReturnFeedbackCard({ review, mode = 'employee', t }) {
             </div>
             <StatusBadge tone="indigo">{t.actionLabels?.HRBP_ADVISOR_COMMENT || 'HRBP Advisor'}</StatusBadge>
           </div>
-          <p className="text-sm text-[var(--ink-primary)] leading-relaxed">
+          <p className="text-sm text-(--ink-primary) leading-relaxed">
             {latestAdvisor.comment}
           </p>
         </section>

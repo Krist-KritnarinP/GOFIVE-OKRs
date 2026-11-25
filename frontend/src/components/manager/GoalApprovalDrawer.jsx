@@ -59,17 +59,17 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
 
   return (
     <ModalDialog isOpen labelledBy={titleId} variant="drawer" maxWidthClass="max-w-2xl" onClose={onClose}>
-      <div className="h-full flex flex-col bg-[var(--surface-card)]">
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4">
+      <div className="h-full flex flex-col bg-(--surface-card)">
+        <div className="px-6 py-4 border-b border-(--border-subtle) flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 id={titleId} className="text-lg font-bold text-[var(--ink-primary)]">
+              <h1 id={titleId} className="text-lg font-bold text-(--ink-primary)">
                 {t.goalDrawerTitle}
               </h1>
               <JobLevelBadge level={review.employee.jobLevel} lang={lang} />
               <StatusBadge tone="warn">{t.status[review.status]}</StatusBadge>
             </div>
-            <p className="text-sm text-[var(--ink-secondary)] mt-0.5">
+            <p className="text-sm text-(--ink-secondary) mt-0.5">
               {lang === 'th' ? review.employee.nameTh : review.employee.name} · {review.employee.title}
             </p>
           </div>
@@ -77,7 +77,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
             type="button"
             onClick={onClose}
             aria-label={t.drawerCancel}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-[var(--ink-primary)] cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary) cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -100,14 +100,14 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
             </div>
           )}
 
-          <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3.5 py-2.5 flex items-start gap-2 text-xs text-[var(--ink-secondary)]">
-            <Info className="w-4 h-4 mt-0.5 shrink-0 text-[var(--brand-primary)]" aria-hidden="true" />
+          <div className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) px-3.5 py-2.5 flex items-start gap-2 text-xs text-(--ink-secondary)">
+            <Info className="w-4 h-4 mt-0.5 shrink-0 text-(--brand-primary)" aria-hidden="true" />
             <span>{t.managerCoEditHint}</span>
           </div>
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-bold text-[var(--ink-primary)]">
+              <h2 className="text-sm font-bold text-(--ink-primary)">
                 OKRs ({review.goals.length})
               </h2>
               <div className="flex items-center gap-2 flex-wrap">
@@ -118,7 +118,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                       setEdits((prev) => autoBalanceWeights(prev));
                       setError('');
                     }}
-                    className="inline-flex items-center gap-1 min-h-9 px-3 rounded-md border border-[var(--brand-primary)] bg-[var(--status-track-bg)] hover:bg-[var(--surface-hover)] text-xs font-bold text-[var(--status-track-text)] cursor-pointer"
+                    className="inline-flex items-center gap-1 min-h-9 px-3 rounded-md border border-(--brand-primary) bg-(--status-track-bg) hover:bg-(--surface-hover) text-xs font-bold text-(--status-track-text) cursor-pointer"
                   >
                     <Scale className="w-3.5 h-3.5" aria-hidden="true" />
                     <span>{t.autoBalanceBtn}</span>
@@ -152,20 +152,20 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                   }}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-bold text-[var(--ink-primary)]">
+                    <p className="text-sm font-bold text-(--ink-primary)">
                       {idx + 1}. {lang === 'th' ? g.titleTh : g.title}
                     </p>
                     {changed && <StatusBadge tone="track">{t.coEditedBadge || 'Co-edited'}</StatusBadge>}
                   </div>
-                  <div className="flex flex-wrap gap-3 text-xs text-[var(--ink-secondary)] tabular-nums">
+                  <div className="flex flex-wrap gap-3 text-xs text-(--ink-secondary) tabular-nums">
                     <span>{t.typeLabel || 'Type'}: <strong>{metricLabel}</strong></span>
                     <span>{t.targetLabel || 'Target'}: <strong>{g.targetValue} {g.unit}</strong></span>
                     <span>{t.hitDateLabel || 'Target Date'}: <strong>{g.dueDate || '—'}</strong></span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border-subtle)]">
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-(--border-subtle)">
                     <div className="space-y-1">
-                      <label htmlFor={wId} className="block text-xs font-semibold text-[var(--ink-primary)]">
+                      <label htmlFor={wId} className="block text-xs font-semibold text-(--ink-primary)">
                         {t.goalWeightLabel}
                       </label>
                       <input
@@ -176,11 +176,11 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                         step={5}
                         value={edit.weight}
                         onChange={(e) => updateEdit(g.id, { weight: Number(e.target.value) })}
-                        className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm font-semibold text-[var(--ink-primary)] tabular-nums"
+                        className="w-full min-h-10 rounded-md border border-(--border-strong) bg-(--surface-card) px-2.5 text-sm font-semibold text-(--ink-primary) tabular-nums"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor={mId} className="block text-xs font-semibold text-[var(--ink-primary)]">
+                      <label htmlFor={mId} className="block text-xs font-semibold text-(--ink-primary)">
                         {t.goalMultiplierLabel}
                       </label>
                       <TieredSelect
@@ -204,7 +204,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
           <CommentHistoryPanel history={review.commentHistory || []} t={t} />
 
           <div className="space-y-1.5">
-            <label htmlFor={commentId} className="block text-sm font-semibold text-[var(--ink-primary)]">
+            <label htmlFor={commentId} className="block text-sm font-semibold text-(--ink-primary)">
               {t.revisionCommentLabel}
             </label>
             <textarea
@@ -219,7 +219,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                 if (error) setError('');
               }}
               placeholder={t.revisionCommentPlaceholder}
-              className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+              className="w-full rounded-md border border-(--border-strong) bg-(--surface-card) px-3 py-2 text-sm text-(--ink-primary)"
             />
             {error && (
               <div
@@ -239,11 +239,11 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-card)] flex items-center justify-between gap-3 flex-wrap">
+        <div className="px-6 py-4 border-t border-(--border-subtle) bg-(--surface-card) flex items-center justify-between gap-3 flex-wrap">
           <button
             type="button"
             onClick={handleReturn}
-            className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border active:scale-[0.98] text-sm font-semibold transition-transform duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border active:scale-98 text-sm font-semibold transition-transform duration-150 cursor-pointer"
             style={{
               backgroundColor: 'var(--status-warn-bg)',
               color: 'var(--status-warn-text)',
@@ -258,7 +258,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
             type="button"
             disabled={totalWeight !== 100}
             onClick={handleApprove}
-            className="inline-flex items-center gap-1.5 min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 min-h-11 px-5 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) active:scale-98 disabled:bg-(--surface-hover) disabled:text-(--ink-muted) text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer disabled:cursor-not-allowed"
           >
             <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
             <span>{t.approveGoalsBtn}</span>
