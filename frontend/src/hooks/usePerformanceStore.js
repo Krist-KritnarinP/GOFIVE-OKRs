@@ -92,6 +92,9 @@ export function usePerformanceStore(t) {
       const user = users.find((u) => u.employeeCode.toUpperCase() === code);
       const expectedPassword = passwords[code];
 
+      if (user?.accountStatus === 'INVITED') {
+        return { ok: false, error: t.authErrInvited };
+      }
       if (!user || !expectedPassword || password !== expectedPassword) {
         return { ok: false, error: t.authErrInvalid };
       }
@@ -108,7 +111,125 @@ export function usePerformanceStore(t) {
       if (user.role === ROLES.EMPLOYEE) setActiveEmployeeId(user.id);
       return { ok: true, user };
     },
-    [users, passwords, t.authErrInvalid, t.authErrPending, t.authErrSuspended]
+    [users, passwords, t.authErrInvited, t.authErrInvalid, t.authErrPending, t.authErrSuspended]
+  );
+
+  const handleInviteUser = useCallback(
+    ({ employeeCode, name, department, title, role, jobLevel, managerId }) => {
+      const code = String(employeeCode || '').trim().toUpperCase();
+      if (users.some((u) => u.employeeCode.toUpperCase() === code)) {
+        return { ok: false, error: t.authErrDuplicate };
+      }
+      const inviteCode = String(Math.floor(100000 + Math.random() * 900000));
+      const newUser = {
+        id: `usr-inv-${Date.now()}`,
+        employeeCode: code,
+        name: name.trim(),
+        nameTh: name.trim(),
+        title: title.trim(),
+        department: department.trim(),
+        jobLevel: jobLevel || 'L1_JUNIOR',
+        role: role || ROLES.EMPLOYEE,
+        managerId: role === ROLES.EMPLOYEE ? managerId || null : null,
+        accountStatus: 'INVITED',
+        inviteCode,
+      };
+      setUsers((prev) => [newUser, ...prev]);
+      appendLog({
+        action: 'USER_INVITED',
+        visibilityScope: 'ADMIN_SECURITY',
+        targetEmployeeId: newUser.id,
+        reason: `Invited ${code} (${newUser.name}) as ${newUser.role} (${newUser.jobLevel}) in ${newUser.department} with 6-digit activation code.`,
+      });
+      showToast(t.toastUserInvited, 'success');
+      return { ok: true, user: newUser };
+    },
+    [users, appendLog, showToast, t.authErrDuplicate, t.toastUserInvited]
+  );
+
+  const handleActivateInvite = useCallback(
+    ({ employeeCode, inviteCode, password }) => {
+      const code = String(employeeCode || '').trim().toUpperCase();
+      const pin = String(inviteCode || '').trim();
+      const target = users.find(
+        (u) =>
+          u.employeeCode.toUpperCase() === code &&
+          u.accountStatus === 'INVITED' &&
+          u.inviteCode === pin
+      );
+      if (!target) {
+        return { ok: false, error: t.authErrInviteInvalid };
+      }
+
+      const activated = { ...target, accountStatus: 'ACTIVE', inviteCode: null };
+      setUsers((prev) => prev.map((u) => (u.id === target.id ? activated : u)));
+      setPasswords((prev) => ({ ...prev, [code]: password }));
+
+      if (activated.role === ROLES.EMPLOYEE) {
+        const assignedManager =
+          (activated.managerId && users.find((u) => u.id === activated.managerId)) ||
+          defaultManagerForDepartmentClient(activated.department, users);
+        setReviews((prev) => {
+          if (prev.some((r) => r.employeeId === activated.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: `rev-${activated.id}`,
+              employeeId: activated.id,
+              managerId: assignedManager.id,
+              employee: {
+                id: activated.id,
+                name: activated.name,
+                nameTh: activated.nameTh,
+                title: activated.title,
+                department: activated.department,
+                jobLevel: activated.jobLevel || 'L1_JUNIOR',
+              },
+              manager: {
+                id: assignedManager.id,
+                name: assignedManager.name,
+                nameTh: assignedManager.nameTh,
+                department: assignedManager.department,
+                jobLevel: assignedManager.jobLevel || 'L4_LEAD',
+              },
+              status: 'GOAL_DRAFT',
+              revisionRound: 1,
+              goalsSubmittedAt: null,
+              goalsApprovedAt: null,
+              selfSubmittedAt: null,
+              managerSubmittedAt: null,
+              publishedAt: null,
+              commentHistory: [],
+              isOverdue: false,
+              daysOverdue: 0,
+              escalatedToSkipLevel: false,
+              lastNudgedAt: null,
+              extendedDeadline: null,
+              goals: [],
+              selfPayload: null,
+              managerPayload: null,
+              whatPct: null,
+              whatScore: null,
+              howScore: null,
+              overallScore: null,
+              nineBoxCell: null,
+            },
+          ];
+        });
+      }
+
+      appendLog({
+        action: 'USER_ACTIVATED',
+        visibilityScope: 'ADMIN_SECURITY',
+        targetEmployeeId: activated.id,
+        actorId: activated.id,
+        actorName: activated.name,
+        reason: `${code} (${activated.name}) activated invited account and set personal password.`,
+      });
+      showToast(t.toastAccountActivated, 'success');
+      return { ok: true, user: activated };
+    },
+    [users, appendLog, showToast, t.authErrInviteInvalid, t.toastAccountActivated]
   );
 
   const handleRegister = useCallback(
@@ -702,17 +823,38 @@ export function usePerformanceStore(t) {
     (reviewId) => {
       const nowIso = new Date().toISOString();
       const rev = reviews.find((r) => r.id === reviewId);
-      setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, lastNudgedAt: nowIso } : r)));
+      const isEmpStage = [
+        'GOAL_DRAFT',
+        'GOAL_REVISION_REQUIRED',
+        'GOAL_APPROVED',
+        'REVIEW_REVISION_REQUIRED',
+      ].includes(rev?.status);
+      const hrName = currentUser?.name || 'Pluem Srisuk';
+      const hrNameTh = currentUser?.nameTh || hrName;
+
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                lastNudgedAt: nowIso,
+                lastNudgedBy: hrName,
+                lastNudgedByTh: hrNameTh,
+                lastNudgedTarget: isEmpStage ? 'EMPLOYEE' : 'MANAGER',
+              }
+            : r
+        )
+      );
       appendLog({
         action: 'NUDGE',
-        visibilityScope: 'TEAM_MANAGER',
+        visibilityScope: isEmpStage ? 'PUBLIC_SELF' : 'TEAM_MANAGER',
         targetEmployeeId: rev?.employeeId || null,
         targetManagerId: rev?.managerId || null,
-        reason: `Sent overdue SLA reminder nudge for ${rev?.employee?.name || reviewId}.`,
+        reason: `Sent overdue SLA reminder for ${rev?.employee?.name || reviewId} (${isEmpStage ? 'Employee' : 'Manager'} pending).`,
       });
       showToast(t.toastNudged, 'success');
     },
-    [reviews, appendLog, showToast, t.toastNudged]
+    [reviews, currentUser, appendLog, showToast, t.toastNudged]
   );
 
   const handleExtendDeadline = useCallback(
@@ -772,6 +914,8 @@ export function usePerformanceStore(t) {
     can,
     handleLogin,
     handleRegister,
+    handleInviteUser,
+    handleActivateInvite,
     handleLogout,
     handleBypassDemo,
     handleEnterAsUser,

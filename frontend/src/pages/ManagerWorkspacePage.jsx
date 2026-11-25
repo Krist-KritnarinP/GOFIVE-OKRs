@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Building2, CheckCircle2, Search, Users, X } from 'lucide-react';
+import { AlertTriangle, Bell, Building2, CheckCircle2, Search, Users, X } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
@@ -52,6 +52,10 @@ export function ManagerWorkspacePage({
   const waitingEvals = teamReviews.filter((r) => r.status === 'SELF_REVIEW_SUBMITTED');
   const overdueTeam = teamReviews.filter((r) => r.isOverdue);
   const doneTeam = teamReviews.filter((r) => ['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status));
+  const nudgedTeam = teamReviews
+    .filter((r) => r.lastNudgedAt && r.status !== 'PUBLISHED')
+    .sort((a, b) => new Date(b.lastNudgedAt) - new Date(a.lastNudgedAt));
+  const latestNudged = nudgedTeam[0] || null;
   const firstWaitingGoal = waitingGoals[0] || null;
   const firstWaitingEval = waitingEvals[0] || null;
   const hasWaitingAction = Boolean(firstWaitingGoal || firstWaitingEval);
@@ -147,6 +151,63 @@ export function ManagerWorkspacePage({
             : null
         }
       />
+
+      {/* Live HR Reminder Banner (appears immediately when HR sends a reminder for a direct report) */}
+      {latestNudged && (
+        <div
+          role="status"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border px-4 py-3 text-sm"
+          style={{
+            backgroundColor: 'var(--status-warn-bg)',
+            borderColor: 'var(--status-warn-border)',
+            color: 'var(--status-warn-text)',
+          }}
+        >
+          <div className="flex items-start gap-2.5 min-w-0">
+            <Bell className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <span className="inline-block text-[11px] font-bold uppercase tracking-wider mr-2">
+                {t.hrReminderBadge}
+              </span>
+              <span className="font-medium text-(--ink-primary)">
+                {(t.hrReminderMgrText || '{hr} sent a reminder on {time} for: {names}.')
+                  .replace(
+                    '{hr}',
+                    lang === 'th'
+                      ? latestNudged.lastNudgedByTh || latestNudged.lastNudgedBy || 'HR'
+                      : latestNudged.lastNudgedBy || 'HR'
+                  )
+                  .replace(
+                    '{time}',
+                    new Date(latestNudged.lastNudgedAt).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  )
+                  .replace(
+                    '{names}',
+                    nudgedTeam.map((r) => (lang === 'th' ? r.employee.nameTh : r.employee.name)).join(', ')
+                  )}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const isGoal = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(
+                latestNudged.status
+              );
+              if (isGoal) setGoalReview(latestNudged);
+              else setEvalReview(latestNudged);
+            }}
+            className="min-h-9 px-3.5 rounded-md bg-(--surface-card) hover:bg-(--surface-hover) border border-(--status-warn-border) text-xs font-semibold text-(--ink-primary) cursor-pointer shrink-0"
+          >
+            {t.hrReminderOpenBtn}
+          </button>
+        </div>
+      )}
 
       {/* 3-Stage Cycle SLA Status Bar */}
       <StageStatusBar mode="cycle" cycle={cycle} reviews={teamReviews} editable={false} t={t} lang={lang} />

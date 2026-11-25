@@ -52,6 +52,7 @@ export function App() {
       <RegisterPage
         t={t}
         onToggleLanguage={toggleLanguage}
+        onActivateInvite={store.handleActivateInvite}
         onRegister={store.handleRegister}
         onBackToLogin={() => store.setAuthScreen('login')}
       />
@@ -85,6 +86,7 @@ export function App() {
           auditLogs={store.auditLogs}
           t={t}
           lang={lang}
+          onInviteUser={store.handleInviteUser}
           onUpdateUser={store.handleUpdateUser}
           onTogglePermission={store.handleTogglePermission}
         />

@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import {
   AlertCircle,
+  Bell,
   Building2,
   CheckCircle2,
   Lock,
@@ -346,6 +347,39 @@ export function EmployeeWorkspacePage({
         badgeLabel={bannerConfig.badge}
         message={bannerConfig.message}
       />
+
+      {/* Live HR Reminder Banner (appears immediately when HR clicks Send Reminder) */}
+      {review.lastNudgedAt && review.status !== 'PUBLISHED' && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm"
+          style={{
+            backgroundColor: 'var(--status-warn-bg)',
+            borderColor: 'var(--status-warn-border)',
+            color: 'var(--status-warn-text)',
+          }}
+        >
+          <Bell className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-wider mr-2">
+              {t.hrReminderBadge}
+            </span>
+            <span className="font-medium text-(--ink-primary)">
+              {(t.hrReminderEmpText || '{hr} sent a reminder on {time}.')
+                .replace('{hr}', lang === 'th' ? review.lastNudgedByTh || review.lastNudgedBy || 'HR' : review.lastNudgedBy || 'HR')
+                .replace(
+                  '{time}',
+                  new Date(review.lastNudgedAt).toLocaleString(lang === 'th' ? 'th-TH' : 'en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                )}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 4-Stage Status Bar with Dates + Countdown / Overdue / Done Early Chips */}
       <StageStatusBar mode="review" cycle={cycle} review={review} t={t} lang={lang} />
