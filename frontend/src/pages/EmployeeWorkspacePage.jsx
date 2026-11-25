@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import { EMPLOYEE_DEMO_SWITCHES } from '../constants/roles.js';
-import { COMPETENCIES, NINE_BOX_CELLS } from '../constants/rubric.js';
+import { COMPETENCIES, NINE_BOX_CELLS, RUBRIC_LEVELS } from '../constants/rubric.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import {
   STARTER_DEPARTMENTS,
@@ -113,6 +113,22 @@ export function EmployeeWorkspacePage({
     return canFillSelfReview && savedDraft?.goalInputs ? { ...base, ...savedDraft.goalInputs } : base;
   });
 
+  const [compInputs, setCompInputs] = useState(() => {
+    const base = Object.fromEntries(
+      COMPETENCIES.map((c) => {
+        const existing = review.selfPayload?.competencyAssessments?.find((a) => a.competencyId === c.id);
+        return [
+          c.id,
+          {
+            selfScore: existing?.selfScore ?? 3,
+            selfNote: existing?.selfNote ?? '',
+          },
+        ];
+      })
+    );
+    return canFillSelfReview && savedDraft?.compInputs ? { ...base, ...savedDraft.compInputs } : base;
+  });
+
   // Auto-save active draft to localStorage so closing the tab never wipes work
   useEffect(() => {
     if (!canEditGoals && !canFillSelfReview) return;
@@ -120,7 +136,7 @@ export function EmployeeWorkspacePage({
       try {
         window.localStorage.setItem(
           `empeo-draft-${review.id}`,
-          JSON.stringify({ draftGoals, goalNote, goalInputs, reflection })
+          JSON.stringify({ draftGoals, goalNote, goalInputs, compInputs, reflection })
         );
         setAutoSavedAt(new Date());
       } catch {
@@ -128,7 +144,7 @@ export function EmployeeWorkspacePage({
       }
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [review.id, canEditGoals, canFillSelfReview, draftGoals, goalNote, goalInputs, reflection]);
+  }, [review.id, canEditGoals, canFillSelfReview, draftGoals, goalNote, goalInputs, compInputs, reflection]);
 
   const clearSavedDraft = () => {
     try {
@@ -275,8 +291,8 @@ export function EmployeeWorkspacePage({
         })),
         competencyAssessments: COMPETENCIES.map((c) => ({
           competencyId: c.id,
-          selfScore: 3,
-          selfNote: '',
+          selfScore: Number(compInputs[c.id]?.selfScore ?? 3),
+          selfNote: compInputs[c.id]?.selfNote ?? '',
         })),
         reflection,
       },
@@ -788,7 +804,76 @@ export function EmployeeWorkspacePage({
               )}
 
               {canFillSelfReview && (
-                <div className="pt-3 border-t border-(--border-subtle) space-y-3">
+                <div className="pt-4 border-t border-(--border-subtle) space-y-5">
+                  {/* Core Competencies (How) Employee Self-Assessment */}
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-base font-bold text-(--ink-primary)">{t.empCompSelfTitle}</h3>
+                      <p className="text-xs text-(--ink-secondary) mt-0.5">{t.empCompSelfSub}</p>
+                    </div>
+                    <div className="space-y-3">
+                      {COMPETENCIES.map((comp) => {
+                        const cInput = compInputs[comp.id] || { selfScore: 3, selfNote: '' };
+                        const rubric = RUBRIC_LEVELS[(cInput.selfScore || 3) - 1] || RUBRIC_LEVELS[2];
+                        return (
+                          <div
+                            key={comp.id}
+                            className="rounded-md border border-(--border-subtle) bg-(--surface-subtle) p-3.5 space-y-2.5"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <p className="text-sm font-bold text-(--ink-primary)">
+                                {lang === 'th' ? comp.nameTh : comp.name}
+                              </p>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {[1, 2, 3, 4, 5].map((lvl) => {
+                                  const active = Number(cInput.selfScore) === lvl;
+                                  return (
+                                    <button
+                                      key={lvl}
+                                      type="button"
+                                      onClick={() =>
+                                        setCompInputs((prev) => ({
+                                          ...prev,
+                                          [comp.id]: { ...cInput, selfScore: lvl },
+                                        }))
+                                      }
+                                      aria-pressed={active}
+                                      className={`min-w-9 min-h-9 px-2.5 rounded-md border text-xs font-bold tabular-nums transition-colors duration-150 cursor-pointer ${
+                                        active
+                                          ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                                          : 'bg-(--surface-card) border-(--border-strong) text-(--ink-primary) hover:bg-(--surface-hover)'
+                                      }`}
+                                    >
+                                      {lvl}
+                                    </button>
+                                  );
+                                })}
+                                <span className="text-xs font-semibold text-(--ink-secondary) ml-1">
+                                  {lang === 'th' ? rubric.labelTh : rubric.label}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-(--ink-secondary) border-l-2 border-(--brand-primary) pl-2.5">
+                              {lang === 'th' ? rubric.anchorTh : rubric.anchor}
+                            </p>
+                            <textarea
+                              rows={2}
+                              value={cInput.selfNote}
+                              onChange={(e) =>
+                                setCompInputs((prev) => ({
+                                  ...prev,
+                                  [comp.id]: { ...cInput, selfNote: e.target.value },
+                                }))
+                              }
+                              placeholder={t.empCompNotePlaceholder}
+                              className="w-full rounded-md border border-(--border-strong) bg-(--surface-card) px-3 py-2 text-sm text-(--ink-primary)"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="block text-sm font-semibold text-(--ink-primary)">
                       {t.empReflectionLabel}

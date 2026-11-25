@@ -285,6 +285,7 @@ export function EvaluationDrawer({
             <h3 className="text-base font-bold text-(--ink-primary)">{t.drawerCompHeading}</h3>
             {COMPETENCIES.map((comp) => {
               const rating = form.competencyRatings.find((r) => r.competencyId === comp.id);
+              const selfComp = review.selfPayload?.competencyAssessments?.find((a) => a.competencyId === comp.id);
               const selectedRubric = RUBRIC_LEVELS[(rating?.score || 3) - 1];
               const needsEvidence = rating && (rating.score <= 2 || rating.score === 5);
 
@@ -293,9 +294,21 @@ export function EvaluationDrawer({
                   key={comp.id}
                   className="rounded-md border border-(--border-subtle) bg-(--surface-card) p-4 space-y-2.5"
                 >
-                  <p className="text-sm font-bold text-(--ink-primary)">
-                    {lang === 'th' ? comp.nameTh : comp.name}
-                  </p>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className="text-sm font-bold text-(--ink-primary)">
+                      {lang === 'th' ? comp.nameTh : comp.name}
+                    </p>
+                    {selfComp && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-(--surface-subtle) border border-(--border-subtle) text-(--ink-secondary) tabular-nums">
+                        {t.selfShortLabel}: {selfComp.selfScore}/5
+                      </span>
+                    )}
+                  </div>
+                  {selfComp?.selfNote && (
+                    <p className="text-xs text-(--ink-secondary) rounded bg-(--surface-subtle) px-3 py-2">
+                      <strong>{t.drawerSelfRef}:</strong> &ldquo;{selfComp.selfNote}&rdquo;
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 flex-wrap">
                     {[1, 2, 3, 4, 5].map((lvl) => {
                       const active = rating?.score === lvl;

@@ -293,6 +293,9 @@ export const TRANSLATIONS = {
     emptyOkrsTitle: 'No annual OKRs drafted yet',
     emptyOkrsDesc: 'Add your first OKR so total weight reaches 100%, then submit it to your manager for alignment.',
     empReflectionLabel: 'Overall Self-Reflection',
+    empCompSelfTitle: 'Core Competencies Self-Assessment (How)',
+    empCompSelfSub: 'Rate your behavior on each competency (1–5) and add a brief example for your manager to review.',
+    empCompNotePlaceholder: 'Briefly describe an example demonstrating this competency...',
     empSubmitSelf: 'Submit Self-Review',
     empResultsLockedTitle: 'Results Pending HR Publish',
     empResultsLockedDesc:
@@ -757,6 +760,9 @@ export const TRANSLATIONS = {
     emptyOkrsTitle: 'ยังไม่ได้ตั้งหัวข้อ OKR ประจำปี',
     emptyOkrsDesc: 'เพิ่มหัวข้อ OKR แรกให้ค่าน้ำหนักรวมครบ 100% จากนั้นส่งให้หัวหน้าอนุมัติ',
     empReflectionLabel: 'สรุปภาพรวมการทำงานด้วยตนเอง',
+    empCompSelfTitle: 'ประเมินสมรรถนะและพฤติกรรมด้วยตนเอง (How)',
+    empCompSelfSub: 'ประเมินคะแนนพฤติกรรมในแต่ละด้าน (1–5) พร้อมระบุตัวอย่างสั้นๆ ให้หัวหน้าพิจารณาประกอบการรีวิว',
+    empCompNotePlaceholder: 'ระบุตัวอย่างการทำงานที่สะท้อนสมรรถนะด้านนี้...',
     empSubmitSelf: 'ส่งแบบประเมินตนเอง',
     empResultsLockedTitle: 'อยู่ระหว่างรอ HR อนุมัติและประกาศผล',
     empResultsLockedDesc:
