@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { Bell, CalendarPlus, MessageSquarePlus, ShieldAlert } from 'lucide-react';
 import { getHrbpInterventionClient } from '../../constants/initialData.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
@@ -5,16 +6,46 @@ import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { TableRegion } from '../common/TableRegion.jsx';
 
 function ActionTooltip({ text, children }) {
+  const wrapRef = useRef(null);
+  const [coords, setCoords] = useState(null);
+
+  const show = () => {
+    const rect = wrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const placeBelow = rect.top < 96;
+    setCoords({
+      top: placeBelow ? rect.bottom + 8 : rect.top - 8,
+      right: Math.max(12, window.innerWidth - rect.right),
+      placeBelow,
+    });
+  };
+
+  const hide = () => setCoords(null);
+
   return (
-    <span className="relative inline-flex group/tip">
+    <span
+      ref={wrapRef}
+      className="inline-flex"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
+    >
       {children}
-      <span
-        role="tooltip"
-        className="pointer-events-none opacity-0 group-hover/tip:opacity-100 group-focus-within/tip:opacity-100 transition-opacity duration-150 absolute bottom-full right-0 mb-2 z-30 w-52 rounded-md px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white shadow-md text-left"
-        style={{ backgroundColor: '#0F172A' }}
-      >
-        {text}
-      </span>
+      {coords && (
+        <span
+          role="tooltip"
+          className="pointer-events-none fixed z-50 w-52 rounded-md px-2.5 py-1.5 text-[11px] font-medium leading-snug text-white shadow-md text-left"
+          style={{
+            backgroundColor: '#0F172A',
+            top: `${coords.top}px`,
+            right: `${coords.right}px`,
+            transform: coords.placeBelow ? 'none' : 'translateY(-100%)',
+          }}
+        >
+          {text}
+        </span>
+      )}
     </span>
   );
 }
