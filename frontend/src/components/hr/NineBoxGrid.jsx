@@ -63,7 +63,7 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
                     {lang === 'th' ? cell.labelTh : cell.label}
                   </h3>
                   <p className="text-xs text-[var(--ink-muted)] mt-0.5 tabular-nums">
-                    {cell.xLabel} · {cell.yLabel}
+                    {lang === 'th' ? cell.xLabelTh : cell.xLabel} · {lang === 'th' ? cell.yLabelTh : cell.yLabel}
                   </p>
                 </div>
                 <span
@@ -99,9 +99,9 @@ export function NineBoxGrid({ reviews, t, lang, onSelectReview }) {
       </div>
 
       <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink-muted)] pt-1 border-t border-[var(--border-subtle)]">
-        <span>← {t.nineBoxXAxis}: Low (&lt;65%)</span>
-        <span>Mid (65–89%)</span>
-        <span>High (&gt;=90%) →</span>
+        <span>← {t.nineBoxXAxis}: {t.nineBoxLow}</span>
+        <span>{t.nineBoxMid}</span>
+        <span>{t.nineBoxHigh} →</span>
       </div>
     </section>
   );

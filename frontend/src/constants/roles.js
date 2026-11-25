@@ -6,10 +6,10 @@ export const ROLES = {
 };
 
 export const JOB_LEVELS = [
-  { id: 'L1_JUNIOR', short: 'L1', label: 'L1 Junior', labelTh: 'L1 ระดับต้น (Junior)', tone: 'neutral' },
-  { id: 'L2_MID', short: 'L2', label: 'L2 Mid', labelTh: 'L2 ระดับกลาง (Mid)', tone: 'track' },
-  { id: 'L3_SENIOR', short: 'L3', label: 'L3 Senior', labelTh: 'L3 อาวุโส (Senior)', tone: 'indigo' },
-  { id: 'L4_LEAD', short: 'L4', label: 'L4 Lead', labelTh: 'L4 หัวหน้า/ผู้นำ (Lead)', tone: 'high' },
+  { id: 'L1_JUNIOR', short: 'L1', label: 'L1 Junior', labelTh: 'L1 ระดับต้น', tone: 'neutral' },
+  { id: 'L2_MID', short: 'L2', label: 'L2 Mid', labelTh: 'L2 ระดับกลาง', tone: 'track' },
+  { id: 'L3_SENIOR', short: 'L3', label: 'L3 Senior', labelTh: 'L3 ระดับอาวุโส', tone: 'indigo' },
+  { id: 'L4_LEAD', short: 'L4', label: 'L4 Lead', labelTh: 'L4 หัวหน้าทีม', tone: 'high' },
 ];
 
 export const DEMO_PERSONAS = [
@@ -110,7 +110,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 };
 
 export const EMPLOYEE_DEMO_SWITCHES = [
-  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Round 2 Ping-Pong', tagTh: 'ปิงปองรอบ 2' },
+  { userId: 'usr-emp-fah', employeeCode: 'EMP-3005', name: 'Fah Prapaporn', nameTh: 'ฟ้า ประภาพร', tag: 'Revision Round 2', tagTh: 'ปรับปรุงรอบที่ 2' },
   { userId: 'usr-emp-nida', employeeCode: 'EMP-3001', name: 'Nida Phanich', nameTh: 'นิดา พาณิชย์', tag: 'Published Early', tagTh: 'ประกาศผลแล้ว' },
   { userId: 'usr-emp-nut', employeeCode: 'EMP-3006', name: 'Nattapong Meekul', nameTh: 'ณัฐพงศ์ มีกุล', tag: 'Pending HR Publish', tagTh: 'รอ HR อนุมัติประกาศ' },
   { userId: 'usr-emp-ton', employeeCode: 'EMP-3002', name: 'Tonrak Chaiyawat', nameTh: 'ต้นรัก ชัยวัฒน์', tag: 'Pending Manager', tagTh: 'รอหัวหน้าประเมิน' },
@@ -119,5 +119,5 @@ export const EMPLOYEE_DEMO_SWITCHES = [
 export const MANAGER_DEMO_SWITCHES = [
   { userId: 'usr-mgr-eng', employeeCode: 'EMP-2001', name: 'Sarah Chen', nameTh: 'ซาร่า เฉิน', dept: 'Engineering', tag: '1 SLA Overdue', tagTh: 'เลย SLA 1 คน' },
   { userId: 'usr-mgr-sales', employeeCode: 'EMP-2002', name: 'Somchai Wattana', nameTh: 'สมชาย วัฒนา', dept: 'Sales', tag: 'Bias Alert', tagTh: 'แจ้งเตือนคะแนนสูง' },
-  { userId: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', dept: 'Product', tag: 'OKR Ping-Pong', tagTh: 'ปิงปอง OKR' },
+  { userId: 'usr-mgr-prod', employeeCode: 'EMP-2003', name: 'Kanya Rattanapong', nameTh: 'กัญญา รัตนพงศ์', dept: 'Product', tag: 'OKR Revisions', tagTh: 'รอปรับปรุง OKR' },
 ];

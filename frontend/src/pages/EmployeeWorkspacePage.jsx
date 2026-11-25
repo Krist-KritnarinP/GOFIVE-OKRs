@@ -374,7 +374,7 @@ export function EmployeeWorkspacePage({
                     className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-xs sm:text-sm font-semibold text-[var(--status-indigo-text)] hover:brightness-95 cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4" aria-hidden="true" />
-                    <span>{lang === 'th' ? 'เลือกตัวอย่างตามแผนก' : 'Starter Templates'}</span>
+                    <span>{t.okrTemplatesBtn}</span>
                   </button>
                   <button
                     type="button"
@@ -520,7 +520,7 @@ export function EmployeeWorkspacePage({
                         className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-sm font-semibold text-[var(--status-indigo-text)] cursor-pointer"
                       >
                         <Sparkles className="w-4 h-4" aria-hidden="true" />
-                        <span>{lang === 'th' ? 'เลือกจากตัวอย่างแผนก' : 'Pick Starter Template'}</span>
+                        <span>{t.okrTemplatesBtn}</span>
                       </button>
                       <button
                         type="button"

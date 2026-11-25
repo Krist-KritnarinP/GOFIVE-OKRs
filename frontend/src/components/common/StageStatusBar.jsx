@@ -29,7 +29,23 @@ function parseLocalNoonIso(dateStr) {
   return new Date(y, m - 1, d, 12, 0, 0).toISOString();
 }
 
-function TimingChip({ timing, pendingCount = 0, t }) {
+function TimingChip({ timing, pendingCount = 0, upcomingBlocked = false, t }) {
+  if (upcomingBlocked) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold"
+        style={{
+          backgroundColor: 'var(--surface-card)',
+          color: 'var(--ink-muted)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
+        <Clock className="w-3 h-3 shrink-0" aria-hidden="true" />
+        {t.timingWaitingStage || 'Pending prior stage'}
+      </span>
+    );
+  }
+
   if (pendingCount > 0 && timing?.state === 'OVERDUE') {
     return (
       <span
@@ -258,9 +274,10 @@ export function StageStatusBar({
             deadline: stage.date,
             completedAt: stage.done ? stage.completedAt || stage.date : null,
           });
+          const isUpcomingBlocked = mode === 'review' && !stage.done && !stage.active && timing?.state === 'OVERDUE';
           const barColor = stage.done
             ? 'var(--status-high-accent)'
-            : timing?.state === 'OVERDUE'
+            : !isUpcomingBlocked && timing?.state === 'OVERDUE'
               ? 'var(--status-warn-accent)'
               : stage.active
                 ? 'var(--brand-primary)'
@@ -380,7 +397,8 @@ export function StageStatusBar({
               deadline: stage.date,
               completedAt: stage.done ? stage.completedAt || stage.date : null,
             });
-            const isAttention = !stage.done && timing?.state === 'OVERDUE';
+            const isUpcomingBlocked = mode === 'review' && !stage.done && !stage.active && timing?.state === 'OVERDUE';
+            const isAttention = !stage.done && !isUpcomingBlocked && timing?.state === 'OVERDUE';
 
             const cardBorder = stage.done
               ? 'var(--status-high-border)'
@@ -465,7 +483,12 @@ export function StageStatusBar({
                   <span className="text-xs font-semibold text-[var(--ink-secondary)] tabular-nums">
                     {t.dueLabel}: {formatShortDate(stage.date, lang)}
                   </span>
-                  <TimingChip timing={timing} pendingCount={stage.pendingCount} t={t} />
+                  <TimingChip
+                    timing={timing}
+                    pendingCount={stage.pendingCount}
+                    upcomingBlocked={isUpcomingBlocked}
+                    t={t}
+                  />
                 </div>
               </li>
             );

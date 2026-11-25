@@ -160,7 +160,7 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
                   <div className="flex flex-wrap gap-3 text-xs text-[var(--ink-secondary)] tabular-nums">
                     <span>{t.typeLabel || 'Type'}: <strong>{metricLabel}</strong></span>
                     <span>{t.targetLabel || 'Target'}: <strong>{g.targetValue} {g.unit}</strong></span>
-                    <span>{t.hitDateLabel || 'Hit Date'}: <strong>{g.dueDate || '—'}</strong></span>
+                    <span>{t.hitDateLabel || 'Target Date'}: <strong>{g.dueDate || '—'}</strong></span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border-subtle)]">
