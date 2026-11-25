@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from 'react';
-import { AlertCircle, RotateCcw, X } from 'lucide-react';
+import { AlertCircle, Lock, RotateCcw, X } from 'lucide-react';
 import { COMPETENCIES, RUBRIC_LEVELS } from '../../constants/rubric.js';
 import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
@@ -42,6 +42,7 @@ export function EvaluationDrawer({
   onClose,
   onSave,
   onReturnToEmployee,
+  onHrReturnToManager,
 }) {
   const uid = useId();
   const titleId = `${uid}-title`;
@@ -148,6 +149,17 @@ export function EvaluationDrawer({
 
         {/* Drawer Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          {/* Governance Inspect-Only Notice when HR inspects an evaluation */}
+          {readOnly && (
+            <div className="flex items-start gap-2.5 rounded-md border border-(--border-strong) bg-(--surface-subtle) px-4 py-3 text-sm">
+              <Lock className="w-4 h-4 mt-0.5 shrink-0 text-(--ink-secondary)" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="font-bold text-(--ink-primary)">{t.hrInspectOnlyTitle}</p>
+                <p className="text-xs text-(--ink-secondary) mt-0.5">{t.hrInspectOnlyDesc}</p>
+              </div>
+            </div>
+          )}
+
           {/* Show HR Return Card if HR returned this evaluation to the Manager */}
           {review.status === 'SELF_REVIEW_SUBMITTED' && (
             <ReturnFeedbackCard review={review} mode="manager" t={t} />
@@ -431,6 +443,22 @@ export function EvaluationDrawer({
               </button>
             )}
           </div>
+
+          {readOnly && onHrReturnToManager && (
+            <button
+              type="button"
+              onClick={onHrReturnToManager}
+              className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border text-sm font-semibold cursor-pointer"
+              style={{
+                backgroundColor: 'var(--status-warn-bg)',
+                color: 'var(--status-warn-text)',
+                borderColor: 'var(--status-warn-border)',
+              }}
+            >
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
+              <span>{t.hrReturnMgrBtn}</span>
+            </button>
+          )}
 
           {!isLocked && (
             <div className="flex items-center gap-2.5">

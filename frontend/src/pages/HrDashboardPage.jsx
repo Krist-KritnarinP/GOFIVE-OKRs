@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Clock, Lock, RotateCcw, Send } from 'lucide-react';
+import { Clock, Lock, RotateCcw, Send, X } from 'lucide-react';
 import { filterActivityLogsForRole, getHrbpInterventionClient } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
+import { ModalDialog } from '../components/common/ModalDialog.jsx';
 import { ReasonModal } from '../components/common/ReasonModal.jsx';
 import { NineBoxGrid } from '../components/hr/NineBoxGrid.jsx';
 import { OrgDistributionBar } from '../components/hr/OrgDistributionBar.jsx';
@@ -30,10 +31,10 @@ export function HrDashboardPage({
   onPostHrbpAdvisorComment,
   onHrReturnToManager,
   onPublishReady,
-  onSaveEvaluation,
 }) {
   const [selectedReview, setSelectedReview] = useState(null);
   const [modalAction, setModalAction] = useState(null);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 
   const canConfigure = can ? can('cycle:configure') : true;
   const canPublish = can ? can('review:publish') : true;
@@ -48,7 +49,11 @@ export function HrDashboardPage({
   ).length;
   const completionPct = reviews.length > 0 ? Math.round((completed / reviews.length) * 100) : 0;
   const alertCount = reviews.filter((r) => r.isOverdue || getHrbpInterventionClient(r).needed).length;
-  const readyToPublishCount = reviews.filter((r) => r.status === 'MANAGER_APPROVED').length;
+  const readyToPublishReviews = reviews.filter((r) => r.status === 'MANAGER_APPROVED');
+  const readyToPublishCount = readyToPublishReviews.length;
+  const inProgressReviews = reviews.filter(
+    (r) => !['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status)
+  );
 
   return (
     <div className="w-full space-y-6">
@@ -86,7 +91,7 @@ export function HrDashboardPage({
           <button
             type="button"
             disabled={readyToPublishCount === 0 || !canPublish}
-            onClick={onPublishReady}
+            onClick={() => setShowPublishConfirm(true)}
             title={!canPublish ? t.permDeniedBanner : undefined}
             className="inline-flex items-center gap-2 min-h-11 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) disabled:bg-(--surface-hover) disabled:text-(--ink-muted) disabled:border disabled:border-(--border-subtle) text-sm font-semibold text-white transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed tabular-nums"
           >
@@ -263,13 +268,139 @@ export function HrDashboardPage({
         <EvaluationDrawer
           key={selectedReview.id}
           review={selectedReview}
-          readOnly={false}
+          readOnly
           t={t}
           lang={lang}
           onClose={() => setSelectedReview(null)}
-          onSave={onSaveEvaluation}
+          onHrReturnToManager={
+            canPublish && selectedReview.status === 'MANAGER_APPROVED'
+              ? () => {
+                  const target = selectedReview;
+                  setSelectedReview(null);
+                  setModalAction({ type: 'HR_RETURN', review: target });
+                }
+              : undefined
+          }
         />
       )}
+
+      {/* Publish Confirmation Dialog (Batch Summary + Lock Warning) */}
+      <ModalDialog
+        isOpen={showPublishConfirm}
+        onClose={() => setShowPublishConfirm(false)}
+        labelledBy="hr-publish-confirm-title"
+        panelClassName="max-w-lg rounded-lg border border-(--border-subtle) shadow-lg"
+      >
+        <div className="p-6 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-9 h-9 rounded-md flex items-center justify-center shrink-0"
+                style={{ backgroundColor: 'var(--status-track-bg)', color: 'var(--brand-primary)' }}
+              >
+                <Send className="w-4 h-4" aria-hidden="true" />
+              </div>
+              <h2 id="hr-publish-confirm-title" className="text-lg font-bold text-(--ink-primary)">
+                {t.publishConfirmTitle}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPublishConfirm(false)}
+              aria-label={t.cancelBtn}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary) cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              className="rounded-md border p-3.5 space-y-1.5"
+              style={{
+                backgroundColor: 'var(--status-high-bg)',
+                borderColor: 'var(--status-high-border)',
+              }}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--status-high-text)' }}>
+                {t.publishConfirmReadyLabel}
+              </p>
+              <p className="text-2xl font-extrabold tabular-nums" style={{ color: 'var(--status-high-text)' }}>
+                {readyToPublishCount}
+              </p>
+              <ul className="text-xs space-y-0.5 text-(--ink-primary)">
+                {readyToPublishReviews.map((rev) => (
+                  <li key={rev.id} className="truncate font-medium">
+                    • {lang === 'th' ? rev.employee.nameTh : rev.employee.name} ({rev.employee.department})
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div
+              className="rounded-md border p-3.5 space-y-1.5"
+              style={{
+                backgroundColor: inProgressReviews.length > 0 ? 'var(--status-warn-bg)' : 'var(--surface-subtle)',
+                borderColor: inProgressReviews.length > 0 ? 'var(--status-warn-border)' : 'var(--border-subtle)',
+              }}
+            >
+              <p
+                className="text-xs font-bold uppercase tracking-wider"
+                style={{
+                  color: inProgressReviews.length > 0 ? 'var(--status-warn-text)' : 'var(--ink-secondary)',
+                }}
+              >
+                {t.publishConfirmPendingLabel}
+              </p>
+              <p
+                className="text-2xl font-extrabold tabular-nums"
+                style={{
+                  color: inProgressReviews.length > 0 ? 'var(--status-warn-text)' : 'var(--ink-primary)',
+                }}
+              >
+                {inProgressReviews.length}
+              </p>
+              {inProgressReviews.length > 0 ? (
+                <ul className="text-xs space-y-0.5 text-(--ink-secondary)">
+                  {inProgressReviews.slice(0, 4).map((rev) => (
+                    <li key={rev.id} className="truncate">
+                      • {lang === 'th' ? rev.employee.nameTh : rev.employee.name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-(--ink-secondary)">{t.publishConfirmAllReady}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2 rounded-md border border-(--border-subtle) bg-(--surface-subtle) px-3.5 py-2.5 text-xs text-(--ink-secondary)">
+            <Lock className="w-4 h-4 mt-0.5 shrink-0 text-(--ink-muted)" aria-hidden="true" />
+            <p className="leading-relaxed">{t.publishConfirmLockNote}</p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => setShowPublishConfirm(false)}
+              className="min-h-11 px-4 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) cursor-pointer"
+            >
+              {t.cancelBtn}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowPublishConfirm(false);
+                onPublishReady();
+              }}
+              className="inline-flex items-center gap-2 min-h-11 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer tabular-nums"
+            >
+              <Send className="w-4 h-4" aria-hidden="true" />
+              <span>{t.publishConfirmCta} ({readyToPublishCount})</span>
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
 
       <ReasonModal
         isOpen={Boolean(modalAction)}
