@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, Info, RotateCcw, Users, X } from 'lucide-react';
 import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
@@ -10,6 +10,8 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
   const uid = useId();
   const titleId = `${uid}-title`;
   const commentId = `${uid}-comment`;
+  const errorId = `${uid}-error`;
+  const commentRef = useRef(null);
   const [comment, setComment] = useState('');
   const [error, setError] = useState('');
   const [edits, setEdits] = useState(() =>
@@ -28,8 +30,15 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
   };
 
   const handleReturn = () => {
-    if (comment.trim().length < 5) {
-      setError(t.revisionCommentPlaceholder);
+    const len = comment.trim().length;
+    if (len < 5) {
+      setError(
+        (t.errReasonTooShort || 'Please write at least 5 characters ({n}/5) so the employee knows what to adjust.').replace(
+          '{n}',
+          String(len)
+        )
+      );
+      commentRef.current?.focus();
       return;
     }
     onDecide(review.id, 'REQUEST_REVISION', comment.trim(), null);
@@ -38,7 +47,9 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
 
   const handleApprove = () => {
     if (totalWeight !== 100) {
-      setError(t.weightMustBe100);
+      setError(
+        (t.errWeightNot100 || t.weightMustBe100).replace('{w}', String(totalWeight))
+      );
       return;
     }
     onDecide(review.id, 'APPROVE', comment.trim() || 'OKRs approved and locked for execution.', edits);
@@ -181,9 +192,11 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
               {t.revisionCommentLabel}
             </label>
             <textarea
+              ref={commentRef}
               id={commentId}
               rows={3}
-              aria-invalid={error ? 'true' : undefined}
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? errorId : undefined}
               value={comment}
               onChange={(e) => {
                 setComment(e.target.value);
@@ -194,15 +207,16 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
             />
             {error && (
               <div
+                id={errorId}
                 role="alert"
-                className="flex items-center gap-2 rounded-md border p-2.5 text-xs font-semibold"
+                className="flex items-start gap-2 rounded-md border p-2.5 text-xs sm:text-sm font-semibold"
                 style={{
                   backgroundColor: 'var(--status-low-bg)',
                   color: 'var(--status-low-text)',
                   borderColor: 'var(--status-low-border)',
                 }}
               >
-                <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
                 <span>{error}</span>
               </div>
             )}

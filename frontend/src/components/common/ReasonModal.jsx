@@ -1,5 +1,5 @@
-import { useId, useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { useId, useRef, useState } from 'react';
+import { AlertCircle, Sparkles, X } from 'lucide-react';
 import { ModalDialog } from './ModalDialog.jsx';
 
 export function ReasonModal({
@@ -17,15 +17,23 @@ export function ReasonModal({
   const titleId = `${uid}-title`;
   const inputId = `${uid}-reason`;
   const errorId = `${uid}-error`;
+  const textareaRef = useRef(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
+  const trimmedLen = reason.trim().length;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (reason.trim().length < 5) {
-      setError(t.reasonPlaceholder);
+    if (trimmedLen < 5) {
+      const msg = (t.errReasonTooShort || 'Please write at least 5 characters ({n}/5) so the next action is clear.').replace(
+        '{n}',
+        String(trimmedLen)
+      );
+      setError(msg);
+      textareaRef.current?.focus();
       return;
     }
     onConfirm(reason.trim());
@@ -80,15 +88,21 @@ export function ReasonModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor={inputId} className="block text-sm font-semibold text-[var(--ink-primary)]">
-              {t.reasonLabel}
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor={inputId} className="block text-sm font-semibold text-[var(--ink-primary)]">
+                {t.reasonLabel}
+              </label>
+              <span className="text-xs font-medium text-[var(--ink-muted)] tabular-nums">
+                {trimmedLen}/5+ {t.charsUnit}
+              </span>
+            </div>
             <textarea
+              ref={textareaRef}
               id={inputId}
               name="reason"
               rows={3}
               autoFocus
-              aria-invalid={error ? 'true' : undefined}
+              aria-invalid={error ? 'true' : 'false'}
               aria-describedby={error ? errorId : undefined}
               value={reason}
               onChange={(e) => {
@@ -99,9 +113,19 @@ export function ReasonModal({
               className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
             />
             {error && (
-              <p id={errorId} role="alert" className="text-sm font-medium" style={{ color: 'var(--status-low-text)' }}>
-                {error}
-              </p>
+              <div
+                id={errorId}
+                role="alert"
+                className="flex items-start gap-2 rounded-md border p-2.5 text-xs sm:text-sm font-semibold"
+                style={{
+                  backgroundColor: 'var(--status-low-bg)',
+                  color: 'var(--status-low-text)',
+                  borderColor: 'var(--status-low-border)',
+                }}
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{error}</span>
+              </div>
             )}
           </div>
 

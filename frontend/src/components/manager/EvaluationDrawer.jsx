@@ -1,10 +1,11 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { AlertCircle, RotateCcw, X } from 'lucide-react';
 import { COMPETENCIES, RUBRIC_LEVELS } from '../../constants/rubric.js';
 import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
 import { CommentHistoryPanel } from '../common/CommentHistoryPanel.jsx';
+import { ReturnFeedbackCard } from '../common/ReturnFeedbackCard.jsx';
 
 function buildInitialForm(review) {
   const goalRatings = review.goals.map((g) => {
@@ -44,6 +45,7 @@ export function EvaluationDrawer({
 }) {
   const uid = useId();
   const titleId = `${uid}-title`;
+  const returnInputRef = useRef(null);
   const [form, setForm] = useState(() => buildInitialForm(review));
   const [returnNote, setReturnNote] = useState('');
   const [showReturnBox, setShowReturnBox] = useState(false);
@@ -71,14 +73,25 @@ export function EvaluationDrawer({
 
   const validateAndSubmit = (submit) => {
     if (submit) {
-      const invalidGoal = form.goalRatings.some(
-        (r) => (r.score <= 2 || r.score === 5) && r.evidence.trim().length < 20
-      );
-      const invalidComp = form.competencyRatings.some(
-        (r) => (r.score <= 2 || r.score === 5) && r.evidence.trim().length < 20
-      );
-      if (invalidGoal || invalidComp) {
-        setErrorMsg(t.drawerEvidenceErr);
+      const missingNames = [];
+      for (const r of form.goalRatings) {
+        if ((r.score <= 2 || r.score === 5) && r.evidence.trim().length < 20) {
+          const g = review.goals.find((item) => item.id === r.goalId);
+          missingNames.push(g ? (lang === 'th' ? g.titleTh : g.title) : r.goalId);
+        }
+      }
+      for (const r of form.competencyRatings) {
+        if ((r.score <= 2 || r.score === 5) && r.evidence.trim().length < 20) {
+          const c = COMPETENCIES.find((item) => item.id === r.competencyId);
+          missingNames.push(c ? (lang === 'th' ? c.nameTh : c.name) : r.competencyId);
+        }
+      }
+      if (missingNames.length > 0) {
+        const msg = (t.errEvidenceMissingList || t.drawerEvidenceErr).replace(
+          '{items}',
+          missingNames.join(', ')
+        );
+        setErrorMsg(msg);
         return;
       }
     }
@@ -87,8 +100,15 @@ export function EvaluationDrawer({
   };
 
   const handleConfirmReturn = () => {
-    if (returnNote.trim().length < 5) {
-      setErrorMsg(t.revisionCommentPlaceholder);
+    const len = returnNote.trim().length;
+    if (len < 5) {
+      setErrorMsg(
+        (t.errReasonTooShort || 'Please write at least 5 characters ({n}/5) so the employee knows what to fix.').replace(
+          '{n}',
+          String(len)
+        )
+      );
+      returnInputRef.current?.focus();
       return;
     }
     onReturnToEmployee(review.id, returnNote.trim());
@@ -128,6 +148,11 @@ export function EvaluationDrawer({
 
         {/* Drawer Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          {/* Show HR Return Card if HR returned this evaluation to the Manager */}
+          {review.status === 'SELF_REVIEW_SUBMITTED' && (
+            <ReturnFeedbackCard review={review} mode="manager" t={t} />
+          )}
+
           {/* Employee Self-Reflection Summary */}
           <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 space-y-1.5">
             <h3 className="text-sm font-bold text-[var(--ink-primary)]">{t.drawerSelfRef}</h3>
@@ -333,9 +358,14 @@ export function EvaluationDrawer({
                 {t.returnReviewBtn} — {t.revisionCommentLabel}
               </label>
               <textarea
+                ref={returnInputRef}
                 rows={2}
+                aria-invalid={errorMsg && showReturnBox ? 'true' : 'false'}
                 value={returnNote}
-                onChange={(e) => setReturnNote(e.target.value)}
+                onChange={(e) => {
+                  setReturnNote(e.target.value);
+                  if (errorMsg) setErrorMsg('');
+                }}
                 placeholder={t.revisionCommentPlaceholder}
                 className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
               />

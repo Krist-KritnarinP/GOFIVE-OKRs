@@ -8,6 +8,7 @@ import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
 import { CommentHistoryPanel } from '../components/common/CommentHistoryPanel.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
+import { ReturnFeedbackCard } from '../components/common/ReturnFeedbackCard.jsx';
 import { TieredSelect } from '../components/common/TieredSelect.jsx';
 import { GoalEditorModal } from '../components/employee/GoalEditorModal.jsx';
 
@@ -168,8 +169,10 @@ export function EmployeeWorkspacePage({
       <StageStatusBar mode="review" cycle={cycle} review={review} t={t} lang={lang} />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Left (7 cols): OKR Builder (Phase A) OR Self-Assessment (Phase B) + Ping-Pong History */}
+        {/* Left (7 cols): Return Feedback Card + OKR Builder (Phase A) OR Self-Assessment (Phase B) + Ping-Pong History */}
         <div className="xl:col-span-7 space-y-5">
+          <ReturnFeedbackCard review={review} mode="employee" t={t} />
+
           <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-wrap">

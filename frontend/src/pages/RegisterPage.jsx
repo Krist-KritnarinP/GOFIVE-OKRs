@@ -31,7 +31,11 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
       return;
     }
     if (form.password.length < 8) {
-      setError(t.regErrPasswordMin || 'Password must be at least 8 characters.');
+      const msg = (t.regErrPasswordMin || 'Password must be at least 8 characters ({n}/8 entered).').replace(
+        '{n}',
+        String(form.password.length)
+      );
+      setError(msg);
       return;
     }
     const res = onRegister(form);
@@ -109,6 +113,7 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
                       name="employeeCode"
                       type="text"
                       required
+                      aria-invalid={error ? 'true' : 'false'}
                       autoComplete="username"
                       autoCorrect="off"
                       spellCheck={false}
@@ -180,6 +185,7 @@ export function RegisterPage({ t, onToggleLanguage, onRegister, onBackToLogin })
                       type={showPassword ? 'text' : 'password'}
                       required
                       minLength={8}
+                      aria-invalid={error ? 'true' : 'false'}
                       autoComplete="new-password"
                       aria-describedby={`${uid}-pwd-hint`}
                       value={form.password}

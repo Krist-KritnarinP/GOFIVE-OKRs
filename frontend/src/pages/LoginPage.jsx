@@ -64,6 +64,7 @@ export function LoginPage({
                 name="employeeCode"
                 type="text"
                 required
+                aria-invalid={error ? 'true' : 'false'}
                 autoComplete="username"
                 autoCorrect="off"
                 autoCapitalize="characters"
@@ -86,6 +87,7 @@ export function LoginPage({
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  aria-invalid={error ? 'true' : 'false'}
                   autoComplete="current-password"
                   enterKeyHint="done"
                   value={password}

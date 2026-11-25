@@ -144,7 +144,7 @@ export function App() {
         />
       )}
 
-      <ToastBar toast={store.toast} onDismiss={store.dismissToast} />
+      <ToastBar toast={store.toast} onDismiss={store.dismissToast} t={t} />
     </AppShell>
   );
 }
