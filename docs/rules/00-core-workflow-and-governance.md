@@ -104,3 +104,20 @@ Explain in plain language:
 4. Commit reference and handover location, when available.
 
 Finish only when authorized scope and acceptance criteria are satisfied, or a concrete external blocker prevents further progress. Do not label incomplete, unsafe, or unverified work as production-ready.
+
+---
+
+## Standing Auto-Gates (Execute Automatically Without User Prompting)
+
+### 1. Automatic Enterprise Copy Hygiene Gate (Before Every UI Commit)
+Whenever adding or editing ANY user-facing text in `frontend/src/i18n/translations.js`, `constants/`, `components/`, or `pages/`, you MUST automatically screen your new/edited strings against these rules **before** committing:
+- **Zero informal slang / conversational filler:** No `Ping-Pong`/`ปิงปอง`, `Nudge`, `Hit Date`, `ปรับจูน`, `นัดคุย`, `โพสต์`, `ได้เลย`, `อีกเล็กน้อย`, `ครับ`/`ค่ะ`, or `!` in system UI copy.
+- **Zero over-explained rationale leaks or redundant English parens in Thai UI:** Never put UX rationale (`No Mental Math`, `1-Click Add`, `HR Governance`, `Next Batch`) or redundant English words in parentheses next to clear Thai labels (e.g., use `เชิญพนักงานใหม่` instead of `เพิ่มพนักงานใหม่ (Invite)`).
+- **Zero Developer/Demo hints in production auth/error copy:** Never tell users to "open EMP-0001" inside auth/validation error messages.
+- **Consistent Thai Enterprise vocabulary:** Use `รายการ` instead of casual `เคส` in formal UI labels.
+
+### 2. Automatic Handover, Status Log & Git Sync Gate (After Every Completed Change)
+Whenever a code or documentation change is completed and verified (`lint` + `build` and/or `test` PASS):
+1. Automatically update `docs/handover.md` and `docs/agent-hub/99-status-log.md` (and `docs/note.md` if product decisions/PO evidence changed).
+2. Automatically stage, `git commit` with a clear conventional message, and `git push origin main`.
+3. End the reply with a 1-line **Auto-Sync Status** checklist (`Copy Gate ✅ | handover.md ✅ | status-log ✅ | git push ✅`) so the user never has to ask whether everything was synced.
