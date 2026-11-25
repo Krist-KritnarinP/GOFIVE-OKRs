@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Building2, CheckCircle2, Users } from 'lucide-react';
+import { AlertTriangle, Building2, CheckCircle2, Search, Users, X } from 'lucide-react';
 import { MANAGER_DEMO_SWITCHES } from '../constants/roles.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
@@ -26,6 +26,8 @@ export function ManagerWorkspacePage({
 }) {
   const [evalReview, setEvalReview] = useState(null);
   const [goalReview, setGoalReview] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   const teamReviews = reviews.filter((r) => r.managerId === activeManagerId);
   const managerLogs = filterActivityLogsForRole(auditLogs, {
@@ -48,9 +50,32 @@ export function ManagerWorkspacePage({
 
   const waitingGoals = teamReviews.filter((r) => r.status === 'GOAL_PENDING_APPROVAL');
   const waitingEvals = teamReviews.filter((r) => r.status === 'SELF_REVIEW_SUBMITTED');
+  const overdueTeam = teamReviews.filter((r) => r.isOverdue);
+  const doneTeam = teamReviews.filter((r) => ['MANAGER_APPROVED', 'PUBLISHED'].includes(r.status));
   const firstWaitingGoal = waitingGoals[0] || null;
   const firstWaitingEval = waitingEvals[0] || null;
   const hasWaitingAction = Boolean(firstWaitingGoal || firstWaitingEval);
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredTeamReviews = teamReviews.filter((rev) => {
+    if (statusFilter === 'GOALS' && rev.status !== 'GOAL_PENDING_APPROVAL') return false;
+    if (statusFilter === 'REVIEWS' && rev.status !== 'SELF_REVIEW_SUBMITTED') return false;
+    if (statusFilter === 'OVERDUE' && !rev.isOverdue) return false;
+    if (statusFilter === 'DONE' && !['MANAGER_APPROVED', 'PUBLISHED'].includes(rev.status)) return false;
+    if (normalizedQuery) {
+      const hay = `${rev.employee?.name || ''} ${rev.employee?.nameTh || ''} ${rev.employee?.title || ''}`.toLowerCase();
+      if (!hay.includes(normalizedQuery)) return false;
+    }
+    return true;
+  });
+
+  const filterChips = [
+    { id: 'ALL', label: t.mgrFilterAll, count: teamReviews.length },
+    { id: 'GOALS', label: t.mgrFilterGoals, count: waitingGoals.length },
+    { id: 'REVIEWS', label: t.mgrFilterReviews, count: waitingEvals.length },
+    { id: 'OVERDUE', label: t.mgrFilterOverdue, count: overdueTeam.length },
+    { id: 'DONE', label: t.mgrFilterDone, count: doneTeam.length },
+  ];
 
   return (
     <div className="w-full space-y-6">
@@ -73,11 +98,6 @@ export function ManagerWorkspacePage({
               <span>
                 {teamReviews.length} {t.peopleUnit}
               </span>
-              {teamReviews.length > 0 && (
-                <span className="text-(--ink-secondary) font-normal">
-                  ({teamReviews.map((r) => (lang === 'th' ? r.employee.nameTh : r.employee.name)).join(', ')})
-                </span>
-              )}
             </span>
           </div>
         </div>
@@ -207,8 +227,58 @@ export function ManagerWorkspacePage({
         </div>
       </section>
 
-      {/* Scannable Team Table (Full-Width) */}
-      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5">
+      {/* Scannable Team Table (Full-Width, Scales Cleanly to 40+ Direct Reports) */}
+      <section className="min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-card) p-5 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* 1-Click Status Filter Chips */}
+          <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label={t.directReportsLabel}>
+            {filterChips.map((chip) => {
+              const active = statusFilter === chip.id;
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() => setStatusFilter(chip.id)}
+                  aria-pressed={active}
+                  className={`min-h-9 px-3 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer tabular-nums ${
+                    active
+                      ? 'bg-(--brand-primary) border-(--brand-primary) text-white'
+                      : 'bg-(--surface-card) border-(--border-strong) text-(--ink-secondary) hover:bg-(--surface-hover)'
+                  }`}
+                >
+                  {chip.label} ({chip.count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Direct Reports */}
+          <div className="relative w-full lg:w-64 shrink-0">
+            <Search
+              className="w-4 h-4 text-(--ink-muted) absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t.mgrSearchPlaceholder}
+              aria-label={t.mgrSearchPlaceholder}
+              className="w-full min-h-10 pl-9 pr-8 rounded-md border border-(--border-strong) bg-(--surface-card) text-sm text-(--ink-primary) placeholder:text-(--ink-muted)"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label={t.mgrFilterReset}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-(--ink-muted) hover:text-(--ink-primary) cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+
         <TableRegion label={t.mgrTitle}>
             <table className="w-full text-left border-collapse">
               <caption className="visually-hidden">{t.mgrTitle}</caption>
@@ -221,7 +291,24 @@ export function ManagerWorkspacePage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-(--border-subtle) text-sm">
-                {teamReviews.map((rev) => {
+                {filteredTeamReviews.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 px-3 text-center text-sm text-(--ink-muted)">
+                      <p>{t.mgrFilterEmpty}</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter('ALL');
+                          setSearchQuery('');
+                        }}
+                        className="mt-2 inline-flex items-center min-h-9 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs font-semibold text-(--ink-primary) cursor-pointer"
+                      >
+                        {t.mgrFilterReset}
+                      </button>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTeamReviews.map((rev) => {
                   const isGoalStage = ['GOAL_DRAFT', 'GOAL_PENDING_APPROVAL', 'GOAL_REVISION_REQUIRED'].includes(rev.status);
                   return (
                     <tr key={rev.id} className="hover:bg-(--surface-hover) transition-colors duration-150">
@@ -290,7 +377,8 @@ export function ManagerWorkspacePage({
                       </td>
                     </tr>
                   );
-                })}
+                })
+                )}
               </tbody>
             </table>
         </TableRegion>
