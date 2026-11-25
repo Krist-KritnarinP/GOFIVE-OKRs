@@ -5,6 +5,7 @@ import { filterActivityLogsForRole } from '../constants/initialData.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
+import { NextActionBanner } from '../components/common/NextActionBanner.jsx';
 import { TableRegion } from '../components/common/TableRegion.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
 import { EvaluationDrawer } from '../components/manager/EvaluationDrawer.jsx';
@@ -45,6 +46,12 @@ export function ManagerWorkspacePage({
       : null;
   const hasBiasRisk = teamAvg !== null && teamAvg - analytics.orgAverageScore >= 0.65;
 
+  const waitingGoals = teamReviews.filter((r) => r.status === 'GOAL_PENDING_APPROVAL');
+  const waitingEvals = teamReviews.filter((r) => r.status === 'SELF_REVIEW_SUBMITTED');
+  const firstWaitingGoal = waitingGoals[0] || null;
+  const firstWaitingEval = waitingEvals[0] || null;
+  const hasWaitingAction = Boolean(firstWaitingGoal || firstWaitingEval);
+
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -78,6 +85,28 @@ export function ManagerWorkspacePage({
           })}
         </div>
       </div>
+
+      {/* Single "Your Turn" Manager Next-Action Banner */}
+      <NextActionBanner
+        tone={hasWaitingAction ? 'action' : 'done'}
+        badgeLabel={hasWaitingAction ? t.nextActionYourTurn : t.nextActionDone}
+        message={
+          hasWaitingAction
+            ? t.mgrBannerPending
+                .replace('{goals}', String(waitingGoals.length))
+                .replace('{reviews}', String(waitingEvals.length))
+            : t.mgrBannerDone
+        }
+        ctaLabel={hasWaitingAction ? t.mgrOpenFirstBtn : ''}
+        onCta={
+          hasWaitingAction
+            ? () => {
+                if (firstWaitingGoal) setGoalReview(firstWaitingGoal);
+                else if (firstWaitingEval) setEvalReview(firstWaitingEval);
+              }
+            : null
+        }
+      />
 
       {/* 3-Stage Cycle SLA Status Bar */}
       <StageStatusBar mode="cycle" cycle={cycle} reviews={teamReviews} editable={false} t={t} lang={lang} />

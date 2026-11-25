@@ -141,6 +141,7 @@ export function App() {
           lang={lang}
           onSubmitGoals={store.handleSubmitEmployeeGoals}
           onSubmitSelfReview={store.handleSubmitSelfReview}
+          onNotify={store.showToast}
         />
       )}
 

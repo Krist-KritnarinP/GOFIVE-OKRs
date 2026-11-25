@@ -1,11 +1,20 @@
-import { useId, useState } from 'react';
-import { X } from 'lucide-react';
+import { useId, useRef, useState } from 'react';
+import { AlertCircle, Info, X } from 'lucide-react';
 import { ModalDialog } from '../common/ModalDialog.jsx';
 import { TieredSelect } from '../common/TieredSelect.jsx';
+
+const MODE_DEFAULTS = {
+  QUANTITATIVE: { targetPlaceholder: 'e.g. 95 or 12M', unitPlaceholder: 'e.g. %, M THB, hours', defaultUnit: '%' },
+  MILESTONE: { targetPlaceholder: 'e.g. 12 or 4', unitPlaceholder: 'e.g. monthly reports, handbook', defaultUnit: 'deliverables' },
+  QUALITATIVE: { targetPlaceholder: 'e.g. 4.5 or 85', unitPlaceholder: 'e.g. / 5 CSAT, SUS Score', defaultUnit: '/ 5 score' },
+};
 
 export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
   const uid = useId();
   const titleId = `${uid}-title`;
+  const titleRef = useRef(null);
+  const targetRef = useRef(null);
+  const [error, setError] = useState('');
   const [form, setForm] = useState(() => ({
     id: initialGoal?.id || `g-${Date.now()}`,
     title: initialGoal?.title || '',
@@ -13,7 +22,7 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
     metricType: initialGoal?.metricType || 'QUANTITATIVE',
     targetValue: initialGoal?.targetValue || '',
     unit: initialGoal?.unit || '%',
-    weight: initialGoal?.weight ?? 25,
+    weight: initialGoal?.weight ?? 30,
     multiplier: initialGoal?.multiplier ?? 1.0,
     dueDate: initialGoal?.dueDate || '2026-11-30',
     actualValue: initialGoal?.actualValue || '',
@@ -22,21 +31,54 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
 
   if (!isOpen) return null;
 
+  const modeMeta = MODE_DEFAULTS[form.metricType] || MODE_DEFAULTS.QUANTITATIVE;
+  const modeTip =
+    form.metricType === 'MILESTONE'
+      ? t.metricTipMilestone
+      : form.metricType === 'QUALITATIVE'
+        ? t.metricTipQuality
+        : t.metricTipNumeric;
+
+  const handleModeChange = (nextMode) => {
+    const nextMeta = MODE_DEFAULTS[nextMode] || MODE_DEFAULTS.QUANTITATIVE;
+    setForm((p) => ({
+      ...p,
+      metricType: nextMode,
+      unit: !p.unit || p.unit === '%' || p.unit === 'deliverables' || p.unit === '/ 5 score' ? nextMeta.defaultUnit : p.unit,
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.targetValue.trim()) return;
+    if (!form.title.trim()) {
+      setError(t.errGoalTitleRequired || 'Enter an OKR title before saving.');
+      titleRef.current?.focus();
+      return;
+    }
+    if (!form.targetValue.trim()) {
+      setError(t.errGoalTargetRequired || 'Enter a target value before saving.');
+      targetRef.current?.focus();
+      return;
+    }
+    setError('');
     onSave({
       ...form,
       title: form.title.trim(),
       titleTh: form.titleTh.trim() || form.title.trim(),
       targetValue: form.targetValue.trim(),
-      unit: form.unit.trim() || '%',
-      metric: `${form.targetValue.trim()} ${form.unit.trim() || '%'}`,
+      unit: form.unit.trim() || modeMeta.defaultUnit,
+      metric: `${form.targetValue.trim()} ${form.unit.trim() || modeMeta.defaultUnit}`,
       weight: Number(form.weight),
       multiplier: Number(form.multiplier),
     });
     onClose();
   };
+
+  const priorityChoices = [
+    { value: 50, label: t.priorityMain || 'Main Focus (50%)' },
+    { value: 30, label: t.priorityStandard || 'Core Work (30%)' },
+    { value: 20, label: t.prioritySupport || 'Supporting (20%)' },
+  ];
 
   return (
     <ModalDialog isOpen={isOpen} labelledBy={titleId} variant="center" maxWidthClass="max-w-xl" onClose={onClose}>
@@ -55,24 +97,30 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor={`${uid}-gtitle`} className="block text-sm font-semibold text-[var(--ink-primary)]">
               {t.goalTitleLabel}
             </label>
             <input
+              ref={titleRef}
               id={`${uid}-gtitle`}
               name="title"
               type="text"
               required
               autoFocus
+              aria-invalid={error && !form.title.trim() ? 'true' : 'false'}
               value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value, titleTh: e.target.value }))}
+              onChange={(e) => {
+                setForm((p) => ({ ...p, title: e.target.value, titleTh: e.target.value }));
+                if (error) setError('');
+              }}
               placeholder={t.goalTitlePlaceholder || 'e.g. Ship WCAG AA Audit across 5 core HR screens'}
               className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-base text-[var(--ink-primary)]"
             />
           </div>
 
+          {/* 3 Natural Measurement Modes with 1-line Contextual Tip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label htmlFor={`${uid}-mtype`} className="block text-sm font-semibold text-[var(--ink-primary)]">
@@ -82,10 +130,11 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 id={`${uid}-mtype`}
                 name="metricType"
                 value={form.metricType}
-                onChange={(e) => setForm((p) => ({ ...p, metricType: e.target.value }))}
+                onChange={(e) => handleModeChange(e.target.value)}
                 className="w-full min-h-11"
                 options={[
                   { value: 'QUANTITATIVE', label: t.metricQuantitative, tone: 'track' },
+                  { value: 'MILESTONE', label: t.metricMilestone, tone: 'high' },
                   { value: 'QUALITATIVE', label: t.metricQualitative, tone: 'indigo' },
                 ]}
               />
@@ -106,19 +155,31 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
             </div>
           </div>
 
+          {modeTip && (
+            <p className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3 py-2 flex items-start gap-2 text-xs text-[var(--ink-secondary)]">
+              <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[var(--brand-primary)]" aria-hidden="true" />
+              <span>{modeTip}</span>
+            </p>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label htmlFor={`${uid}-target`} className="block text-sm font-semibold text-[var(--ink-primary)]">
                 {t.goalTargetLabel}
               </label>
               <input
+                ref={targetRef}
                 id={`${uid}-target`}
                 name="targetValue"
                 type="text"
                 required
+                aria-invalid={error && !form.targetValue.trim() ? 'true' : 'false'}
                 value={form.targetValue}
-                onChange={(e) => setForm((p) => ({ ...p, targetValue: e.target.value }))}
-                placeholder="e.g. 88 or 12M"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, targetValue: e.target.value }));
+                  if (error) setError('');
+                }}
+                placeholder={modeMeta.targetPlaceholder}
                 className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)] tabular-nums"
               />
             </div>
@@ -133,9 +194,35 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
                 required
                 value={form.unit}
                 onChange={(e) => setForm((p) => ({ ...p, unit: e.target.value }))}
-                placeholder="e.g. SUS Score, M THB, %"
+                placeholder={modeMeta.unitPlaceholder}
                 className="w-full min-h-11 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 text-sm text-[var(--ink-primary)]"
               />
+            </div>
+          </div>
+
+          {/* Zero-Math Quick Importance Buttons */}
+          <div className="space-y-1.5">
+            <span className="block text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+              {t.priorityQuickLabel}
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {priorityChoices.map((choice) => {
+                const active = Number(form.weight) === choice.value;
+                return (
+                  <button
+                    key={choice.value}
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, weight: choice.value }))}
+                    className={`min-h-10 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                      active
+                        ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
+                        : 'bg-[var(--surface-subtle)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                    }`}
+                  >
+                    {choice.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -175,6 +262,21 @@ export function GoalEditorModal({ isOpen, initialGoal, t, onClose, onSave }) {
               />
             </div>
           </div>
+
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-md border p-3 text-sm font-semibold"
+              style={{
+                backgroundColor: 'var(--status-low-bg)',
+                color: 'var(--status-low-text)',
+                borderColor: 'var(--status-low-border)',
+              }}
+            >
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-subtle)]">
             <button

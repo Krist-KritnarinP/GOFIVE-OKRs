@@ -1,5 +1,6 @@
 import { useId, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, Info, RotateCcw, Users, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, RotateCcw, Scale, Users, X } from 'lucide-react';
+import { autoBalanceWeights } from '../../constants/okrTemplates.js';
 import { ModalDialog } from '../common/ModalDialog.jsx';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import { JobLevelBadge } from '../common/JobLevelBadge.jsx';
@@ -105,13 +106,28 @@ export function GoalApprovalDrawer({ review, t, lang, onClose, onDecide }) {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-[var(--ink-primary)]">
                 OKRs ({review.goals.length})
               </h2>
-              <StatusBadge tone={totalWeight === 100 ? 'high' : 'low'}>
-                {t.totalWeightLabel}: {totalWeight}% / 100%
-              </StatusBadge>
+              <div className="flex items-center gap-2 flex-wrap">
+                {totalWeight !== 100 && edits.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEdits((prev) => autoBalanceWeights(prev));
+                      setError('');
+                    }}
+                    className="inline-flex items-center gap-1 min-h-9 px-3 rounded-md border border-[var(--brand-primary)] bg-[var(--status-track-bg)] hover:bg-[var(--surface-hover)] text-xs font-bold text-[var(--status-track-text)] cursor-pointer"
+                  >
+                    <Scale className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{t.autoBalanceBtn}</span>
+                  </button>
+                )}
+                <StatusBadge tone={totalWeight === 100 ? 'high' : 'low'}>
+                  {t.totalWeightLabel}: {totalWeight}% / 100%
+                </StatusBadge>
+              </div>
             </div>
 
             {review.goals.map((g, idx) => {

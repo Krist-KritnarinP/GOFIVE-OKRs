@@ -1,24 +1,33 @@
-import { useState } from 'react';
-import { AlertCircle, Lock, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  Pencil,
+  Plus,
+  Scale,
+  Sparkles,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { EMPLOYEE_DEMO_SWITCHES } from '../constants/roles.js';
 import { COMPETENCIES, NINE_BOX_CELLS } from '../constants/rubric.js';
 import { filterActivityLogsForRole } from '../constants/initialData.js';
+import {
+  STARTER_DEPARTMENTS,
+  autoBalanceWeights,
+  resolveStarterDepartmentId,
+} from '../constants/okrTemplates.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
 import { JobLevelBadge } from '../components/common/JobLevelBadge.jsx';
 import { StageStatusBar } from '../components/common/StageStatusBar.jsx';
+import { NextActionBanner } from '../components/common/NextActionBanner.jsx';
+import { ReturnFeedbackCard } from '../components/common/ReturnFeedbackCard.jsx';
 import { CommentHistoryPanel } from '../components/common/CommentHistoryPanel.jsx';
 import { ActivityLogPanel } from '../components/common/ActivityLogPanel.jsx';
-import { ReturnFeedbackCard } from '../components/common/ReturnFeedbackCard.jsx';
 import { TieredSelect } from '../components/common/TieredSelect.jsx';
+import { ModalDialog } from '../components/common/ModalDialog.jsx';
 import { GoalEditorModal } from '../components/employee/GoalEditorModal.jsx';
-
-const SCORE_TONE = {
-  1: 'low',
-  2: 'warn',
-  3: 'neutral',
-  4: 'track',
-  5: 'high',
-};
 
 const EMPLOYEE_SAFE_ACTIONS = new Set([
   'GOAL_SUBMITTED',
@@ -30,6 +39,23 @@ const EMPLOYEE_SAFE_ACTIONS = new Set([
   'PUBLISHED',
 ]);
 
+const SCORE_TONE = {
+  1: 'low',
+  2: 'warn',
+  3: 'neutral',
+  4: 'track',
+  5: 'high',
+};
+
+function loadDraftFromStorage(reviewId) {
+  try {
+    const raw = window.localStorage.getItem(`empeo-draft-${reviewId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function EmployeeWorkspacePage({
   cycle,
   reviews,
@@ -40,18 +66,34 @@ export function EmployeeWorkspacePage({
   lang,
   onSubmitGoals,
   onSubmitSelfReview,
+  onNotify,
 }) {
+  const uid = useId();
   const review = reviews.find((r) => r.employeeId === activeEmployeeId) || reviews[0];
   const canEditGoals = ['GOAL_DRAFT', 'GOAL_REVISION_REQUIRED'].includes(review.status);
   const canFillSelfReview = ['GOAL_APPROVED', 'REVIEW_REVISION_REQUIRED'].includes(review.status);
 
-  const [draftGoals, setDraftGoals] = useState(() => review.goals || []);
-  const [goalNote, setGoalNote] = useState('');
-  const [goalModal, setGoalModal] = useState({ open: false, goal: null });
+  const savedDraft = loadDraftFromStorage(review.id);
 
-  const [reflection, setReflection] = useState(review.selfPayload?.reflection || '');
-  const [goalInputs, setGoalInputs] = useState(() =>
-    Object.fromEntries(
+  const [draftGoals, setDraftGoals] = useState(() =>
+    canEditGoals && Array.isArray(savedDraft?.draftGoals) && savedDraft.draftGoals.length > 0
+      ? savedDraft.draftGoals
+      : review.goals || []
+  );
+  const [goalNote, setGoalNote] = useState(() => (canEditGoals ? savedDraft?.goalNote || '' : ''));
+  const [goalModal, setGoalModal] = useState({ open: false, goal: null });
+  const [showTemplates, setShowTemplates] = useState(() => (review.goals || []).length === 0);
+  const [starterDeptId, setStarterDeptId] = useState(() =>
+    resolveStarterDepartmentId(review.employee?.department)
+  );
+  const [showSubmitPreview, setShowSubmitPreview] = useState(false);
+  const [autoSavedAt, setAutoSavedAt] = useState(null);
+
+  const [reflection, setReflection] = useState(
+    () => (canFillSelfReview && savedDraft?.reflection) || review.selfPayload?.reflection || ''
+  );
+  const [goalInputs, setGoalInputs] = useState(() => {
+    const base = Object.fromEntries(
       (review.goals || []).map((g) => {
         const existing = review.selfPayload?.goalAssessments?.find((a) => a.goalId === g.id);
         return [
@@ -64,12 +106,41 @@ export function EmployeeWorkspacePage({
           },
         ];
       })
-    )
-  );
+    );
+    return canFillSelfReview && savedDraft?.goalInputs ? { ...base, ...savedDraft.goalInputs } : base;
+  });
+
+  // Auto-save active draft to localStorage so closing the tab never wipes work
+  useEffect(() => {
+    if (!canEditGoals && !canFillSelfReview) return;
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          `empeo-draft-${review.id}`,
+          JSON.stringify({ draftGoals, goalNote, goalInputs, reflection })
+        );
+        setAutoSavedAt(new Date());
+      } catch {
+        // Ignore storage quota errors in restricted browsing modes.
+      }
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [review.id, canEditGoals, canFillSelfReview, draftGoals, goalNote, goalInputs, reflection]);
+
+  const clearSavedDraft = () => {
+    try {
+      window.localStorage.removeItem(`empeo-draft-${review.id}`);
+    } catch {
+      // Ignore storage errors.
+    }
+    setAutoSavedAt(null);
+  };
 
   const displayedGoals = canEditGoals ? draftGoals : review.goals || [];
   const totalWeight = displayedGoals.reduce((acc, g) => acc + Number(g.weight || 0), 0);
   const cellInfo = NINE_BOX_CELLS.find((c) => c.id === review.nineBoxCell);
+  const activeStarterDept =
+    STARTER_DEPARTMENTS.find((d) => d.id === starterDeptId) || STARTER_DEPARTMENTS[0];
 
   // Strict privacy filter: unpublished internal manager/HR comments never shown to employee
   const safeCommentHistory =
@@ -82,6 +153,39 @@ export function EmployeeWorkspacePage({
     userId: review.employeeId,
   });
 
+  const mgrName = lang === 'th' ? review.manager?.nameTh || review.manager?.name : review.manager?.name;
+
+  // Single clear "Your Turn" guidance per status
+  const bannerConfig = (() => {
+    if (review.status === 'GOAL_DRAFT') {
+      return { tone: 'action', badge: t.nextActionYourTurn, message: t.empBannerDraft };
+    }
+    if (review.status === 'GOAL_REVISION_REQUIRED') {
+      return { tone: 'warn', badge: t.nextActionYourTurn, message: t.empBannerGoalReturn };
+    }
+    if (review.status === 'GOAL_PENDING_APPROVAL') {
+      return {
+        tone: 'done',
+        badge: t.nextActionWaiting,
+        message: t.empBannerGoalPending.replace('{mgr}', mgrName || ''),
+      };
+    }
+    if (review.status === 'GOAL_APPROVED') {
+      return { tone: 'action', badge: t.nextActionYourTurn, message: t.empBannerFillSelf };
+    }
+    if (review.status === 'REVIEW_REVISION_REQUIRED') {
+      return { tone: 'warn', badge: t.nextActionYourTurn, message: t.empBannerRevReturn };
+    }
+    if (review.status === 'PUBLISHED') {
+      return { tone: 'done', badge: t.nextActionDone, message: t.empBannerPublished };
+    }
+    return {
+      tone: 'done',
+      badge: t.nextActionWaiting,
+      message: t.empBannerSelfPending.replace('{mgr}', mgrName || ''),
+    };
+  })();
+
   const handleSaveModalGoal = (goalObj) => {
     setDraftGoals((prev) => {
       const exists = prev.some((g) => g.id === goalObj.id);
@@ -89,14 +193,63 @@ export function EmployeeWorkspacePage({
     });
   };
 
+  const handleAddStarterTemplate = (tpl) => {
+    const unitLabel = lang === 'th' ? tpl.unitTh : tpl.unit;
+    const newGoal = {
+      id: `g-tpl-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+      title: tpl.title,
+      titleTh: tpl.titleTh,
+      metricType: tpl.metricType,
+      targetValue: tpl.targetValue,
+      unit: unitLabel,
+      metric: `${tpl.targetValue} ${unitLabel}`,
+      weight: tpl.weight,
+      multiplier: tpl.multiplier,
+      dueDate: '2026-11-30',
+      actualValue: '',
+      progressPct: 0,
+    };
+    setDraftGoals((prev) => [...prev, newGoal]);
+    if (onNotify && t.starterAddedToast) {
+      onNotify(
+        t.starterAddedToast.replace('{title}', lang === 'th' ? tpl.titleTh : tpl.title),
+        'success'
+      );
+    }
+  };
+
+  const handleAutoBalance = () => {
+    if (draftGoals.length === 0) return;
+    setDraftGoals((prev) => autoBalanceWeights(prev));
+    if (onNotify && t.autoBalancedToast) {
+      onNotify(t.autoBalancedToast, 'success');
+    }
+  };
+
   const handleDeleteGoal = (goalId) => {
     setDraftGoals((prev) => prev.filter((g) => g.id !== goalId));
   };
 
-  const handleSubmitGoalsClick = () => {
+  const handleConfirmSubmitGoals = () => {
     if (totalWeight !== 100 || draftGoals.length === 0) return;
+    setShowSubmitPreview(false);
+    clearSavedDraft();
     onSubmitGoals(review.id, draftGoals, goalNote);
     setGoalNote('');
+  };
+
+  const handleInsertEvidencePrompt = (goalId, promptText) => {
+    setGoalInputs((prev) => {
+      const current = prev[goalId] || {
+        actualValue: '',
+        progressPct: 0,
+        selfScore: 3,
+        selfEvidence: '',
+      };
+      const existingText = current.selfEvidence.trim();
+      const nextText = existingText ? `${existingText}\n${promptText}` : promptText;
+      return { ...prev, [goalId]: { ...current, selfEvidence: nextText } };
+    });
   };
 
   const handleSubmitSelf = (e) => {
@@ -106,6 +259,7 @@ export function EmployeeWorkspacePage({
       actualValue: goalInputs[g.id]?.actualValue ?? g.actualValue,
       progressPct: Number(goalInputs[g.id]?.progressPct ?? g.progressPct),
     }));
+    clearSavedDraft();
     onSubmitSelfReview(
       review.id,
       {
@@ -126,6 +280,12 @@ export function EmployeeWorkspacePage({
       updatedGoals
     );
   };
+
+  const evidencePrompts = [
+    { label: t.evidencePrompt1Label, text: t.evidencePrompt1Text },
+    { label: t.evidencePrompt2Label, text: t.evidencePrompt2Text },
+    { label: t.evidencePrompt3Label, text: t.evidencePrompt3Text },
+  ];
 
   return (
     <div className="w-full space-y-6">
@@ -165,11 +325,18 @@ export function EmployeeWorkspacePage({
         </div>
       </div>
 
-      {/* Tasteful Colorful 4-Stage Status Bar with Dates + Countdown / Overdue / Done Early Chips */}
+      {/* Single Plain-Language "Your Turn" Next-Action Banner */}
+      <NextActionBanner
+        tone={bannerConfig.tone}
+        badgeLabel={bannerConfig.badge}
+        message={bannerConfig.message}
+      />
+
+      {/* 4-Stage Status Bar with Dates + Countdown / Overdue / Done Early Chips */}
       <StageStatusBar mode="review" cycle={cycle} review={review} t={t} lang={lang} />
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Left (7 cols): Return Feedback Card + OKR Builder (Phase A) OR Self-Assessment (Phase B) + Ping-Pong History */}
+        {/* Left (7 cols): Return Feedback Card + OKR Builder (Phase A) OR Self-Assessment (Phase B) + History */}
         <div className="xl:col-span-7 space-y-5">
           <ReturnFeedbackCard review={review} mode="employee" t={t} />
 
@@ -190,19 +357,94 @@ export function EmployeeWorkspacePage({
                 >
                   {t.status[review.status]}
                 </StatusBadge>
+                {autoSavedAt && (canEditGoals || canFillSelfReview) && (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--status-high-text)]">
+                    <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    {t.autoSavedLabel}
+                  </span>
+                )}
               </div>
 
               {canEditGoals && (
-                <button
-                  type="button"
-                  onClick={() => setGoalModal({ open: true, goal: null })}
-                  className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" aria-hidden="true" />
-                  <span>{t.addGoalBtn}</span>
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplates((v) => !v)}
+                    aria-expanded={showTemplates}
+                    className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-xs sm:text-sm font-semibold text-[var(--status-indigo-text)] hover:brightness-95 cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4" aria-hidden="true" />
+                    <span>{lang === 'th' ? 'เลือกตัวอย่างตามแผนก' : 'Starter Templates'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGoalModal({ open: true, goal: null })}
+                    className="inline-flex items-center gap-1.5 min-h-10 px-3.5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" aria-hidden="true" />
+                    <span>{t.addGoalBtn}</span>
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* 1-Click Department Starter Templates Panel (Zero-Learning-Curve for Every Dept) */}
+            {canEditGoals && showTemplates && (
+              <div className="rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] p-4 space-y-3">
+                <div>
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--status-indigo-text)' }}>
+                    {t.starterTemplatesTitle}
+                  </h3>
+                  <p className="text-xs text-[var(--ink-secondary)] mt-0.5">{t.starterTemplatesSub}</p>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {STARTER_DEPARTMENTS.map((dept) => {
+                    const active = dept.id === activeStarterDept.id;
+                    return (
+                      <button
+                        key={dept.id}
+                        type="button"
+                        onClick={() => setStarterDeptId(dept.id)}
+                        className={`min-h-9 px-2.5 rounded-md border text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                          active
+                            ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white'
+                            : 'bg-[var(--surface-card)] border-[var(--border-strong)] text-[var(--ink-primary)] hover:bg-[var(--surface-hover)]'
+                        }`}
+                      >
+                        {lang === 'th' ? dept.labelTh : dept.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-1 gap-2">
+                  {activeStarterDept.templates.map((tpl, idx) => (
+                    <div
+                      key={`${activeStarterDept.id}-${idx}`}
+                      className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-card)] px-3 py-2.5 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="text-xs sm:text-sm font-semibold text-[var(--ink-primary)]">
+                          {lang === 'th' ? tpl.titleTh : tpl.title}
+                        </p>
+                        <p className="text-xs text-[var(--ink-muted)] tabular-nums">
+                          {t.metricTypes?.[tpl.metricType] || tpl.metricType} · {t.targetLabel}:{' '}
+                          {tpl.targetValue} {lang === 'th' ? tpl.unitTh : tpl.unit} · {tpl.weight}%
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddStarterTemplate(tpl)}
+                        className="min-h-9 px-3 rounded-md border border-[var(--brand-primary)] bg-[var(--status-track-bg)] hover:bg-[var(--brand-primary)] hover:text-white text-xs font-bold text-[var(--status-track-text)] transition-colors duration-150 cursor-pointer shrink-0"
+                      >
+                        {t.starterAddBtn}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Ping-Pong >= 2 Calm 1-on-1 Alignment Recommendation */}
             {canEditGoals && (review.revisionRound || 1) >= 2 && (
@@ -221,10 +463,10 @@ export function EmployeeWorkspacePage({
               </div>
             )}
 
-            {/* Live Weight Counter Bar during OKR Setting */}
+            {/* Live Weight Counter Bar with 1-Click Auto-Balance 100% */}
             {canEditGoals && (
               <div
-                className="rounded-md border p-3 flex items-center justify-between gap-3 text-sm font-semibold tabular-nums"
+                className="rounded-md border p-3 flex flex-wrap items-center justify-between gap-3 text-sm font-semibold tabular-nums"
                 style={
                   totalWeight === 100
                     ? {
@@ -239,14 +481,27 @@ export function EmployeeWorkspacePage({
                       }
                 }
               >
-                <span>
-                  {t.totalWeightLabel}: {totalWeight}% / 100%
-                </span>
-                {totalWeight !== 100 && (
-                  <span className="inline-flex items-center gap-1 text-xs">
-                    <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-                    {t.weightMustBe100}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    {t.totalWeightLabel}: {totalWeight}% / 100%
                   </span>
+                  {totalWeight !== 100 && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium">
+                      <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                      {t.weightMustBe100}
+                    </span>
+                  )}
+                </div>
+
+                {totalWeight !== 100 && draftGoals.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleAutoBalance}
+                    className="inline-flex items-center gap-1.5 min-h-9 px-3 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-xs font-bold text-white cursor-pointer shrink-0"
+                  >
+                    <Scale className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{t.autoBalanceBtn}</span>
+                  </button>
                 )}
               </div>
             )}
@@ -258,177 +513,207 @@ export function EmployeeWorkspacePage({
                   <p className="text-base font-bold text-[var(--ink-primary)]">{t.emptyOkrsTitle}</p>
                   <p className="text-sm text-[var(--ink-secondary)] max-w-md mx-auto">{t.emptyOkrsDesc}</p>
                   {canEditGoals && (
-                    <button
-                      type="button"
-                      onClick={() => setGoalModal({ open: true, goal: null })}
-                      className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" aria-hidden="true" />
-                      <span>{t.addGoalBtn}</span>
-                    </button>
+                    <div className="flex items-center justify-center gap-2.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplates(true)}
+                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md border border-[var(--status-indigo-border)] bg-[var(--status-indigo-bg)] text-sm font-semibold text-[var(--status-indigo-text)] cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4" aria-hidden="true" />
+                        <span>{lang === 'th' ? 'เลือกจากตัวอย่างแผนก' : 'Pick Starter Template'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGoalModal({ open: true, goal: null })}
+                        className="inline-flex items-center gap-1.5 min-h-11 px-4 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] active:scale-[0.98] text-sm font-semibold text-white transition-[background-color,transform] duration-150 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" aria-hidden="true" />
+                        <span>{t.addGoalBtn}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               ) : (
-              <div className="space-y-3">
-                {displayedGoals.map((goal) => {
-                  const input = goalInputs[goal.id] || {
-                    actualValue: goal.actualValue || '',
-                    progressPct: goal.progressPct ?? 0,
-                    selfScore: 3,
-                    selfEvidence: '',
-                  };
-                  const metricLabel = t.metricTypes?.[goal.metricType] || goal.metricType || 'QUANTITATIVE';
+                <div className="space-y-3">
+                  {displayedGoals.map((goal) => {
+                    const input = goalInputs[goal.id] || {
+                      actualValue: goal.actualValue || '',
+                      progressPct: goal.progressPct ?? 0,
+                      selfScore: 3,
+                      selfEvidence: '',
+                    };
+                    const metricLabel = t.metricTypes?.[goal.metricType] || goal.metricType || 'QUANTITATIVE';
 
-                  return (
-                    <div
-                      key={goal.id}
-                      className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-[var(--ink-primary)]">
-                            {lang === 'th' ? goal.titleTh : goal.title}
-                          </p>
-                          <div className="flex flex-wrap gap-2 text-xs text-[var(--ink-secondary)] tabular-nums">
-                            <span className="px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] font-semibold">
-                              {metricLabel}
-                            </span>
-                            <span>{t.targetLabel}: <strong>{goal.targetValue || goal.metric} {goal.unit || ''}</strong></span>
-                            <span>{t.weightLabel}: <strong>{goal.weight}%</strong></span>
-                            <span>{t.multiplierLabel}: <strong>{goal.multiplier || 1.0}x</strong></span>
-                            <span>{t.hitDateLabel}: <strong>{goal.dueDate || '—'}</strong></span>
+                    return (
+                      <div
+                        key={goal.id}
+                        className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] p-4 space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-sm font-bold text-[var(--ink-primary)]">
+                              {lang === 'th' ? goal.titleTh : goal.title}
+                            </p>
+                            <div className="flex flex-wrap gap-2 text-xs text-[var(--ink-secondary)] tabular-nums">
+                              <span className="px-2 py-0.5 rounded bg-[var(--surface-card)] border border-[var(--border-subtle)] font-semibold">
+                                {metricLabel}
+                              </span>
+                              <span>
+                                {t.targetLabel}: <strong>{goal.targetValue || goal.metric} {goal.unit || ''}</strong>
+                              </span>
+                              <span>{t.weightLabel}: <strong>{goal.weight}%</strong></span>
+                              <span>{t.multiplierLabel}: <strong>{goal.multiplier || 1.0}x</strong></span>
+                              <span>{t.hitDateLabel}: <strong>{goal.dueDate || '—'}</strong></span>
+                            </div>
                           </div>
+
+                          {canEditGoals ? (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => setGoalModal({ open: true, goal })}
+                                className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
+                              >
+                                <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+                                {t.editGoalBtn}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteGoal(goal.id)}
+                                className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
+                                style={{
+                                  backgroundColor: 'var(--status-low-bg)',
+                                  color: 'var(--status-low-text)',
+                                  borderColor: 'var(--status-low-border)',
+                                }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                                {t.deleteGoalBtn}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-sm font-bold text-[var(--ink-primary)] tabular-nums shrink-0">
+                              {goal.progressPct}%
+                            </span>
+                          )}
                         </div>
 
-                        {canEditGoals ? (
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setGoalModal({ open: true, goal })}
-                              className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--ink-primary)] cursor-pointer"
-                            >
-                              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
-                              {t.editGoalBtn}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteGoal(goal.id)}
-                              className="inline-flex items-center gap-1 min-h-10 px-3 rounded-md border text-xs font-semibold cursor-pointer"
-                              style={{
-                                backgroundColor: 'var(--status-low-bg)',
-                                color: 'var(--status-low-text)',
-                                borderColor: 'var(--status-low-border)',
-                              }}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                              {t.deleteGoalBtn}
-                            </button>
+                        {!canEditGoals && (
+                          <div className="h-2 w-full rounded bg-[var(--border-subtle)] overflow-hidden">
+                            <div
+                              className="h-full"
+                              style={{ width: `${goal.progressPct}%`, backgroundColor: 'var(--brand-primary)' }}
+                            />
+                          </div>
+                        )}
+
+                        {canFillSelfReview ? (
+                          <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                  {t.actualAchievedLabel}
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  value={input.actualValue}
+                                  onChange={(e) =>
+                                    setGoalInputs((p) => ({
+                                      ...p,
+                                      [goal.id]: { ...input, actualValue: e.target.value },
+                                    }))
+                                  }
+                                  placeholder="e.g. 92%"
+                                  className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)]"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                  {t.progressPctLabel}
+                                </label>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  required
+                                  value={input.progressPct}
+                                  onChange={(e) =>
+                                    setGoalInputs((p) => ({
+                                      ...p,
+                                      [goal.id]: { ...input, progressPct: e.target.value },
+                                    }))
+                                  }
+                                  className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)] tabular-nums"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="block text-xs font-semibold text-[var(--ink-primary)]">
+                                  {t.selfScoreLabel}
+                                </label>
+                                <TieredSelect
+                                  ariaLabel={t.selfScoreLabel}
+                                  value={input.selfScore}
+                                  onChange={(e) =>
+                                    setGoalInputs((p) => ({
+                                      ...p,
+                                      [goal.id]: { ...input, selfScore: Number(e.target.value) },
+                                    }))
+                                  }
+                                  className="w-full tabular-nums"
+                                  options={[1, 2, 3, 4, 5].map((n) => ({
+                                    value: n,
+                                    label: `${n} / 5`,
+                                    tone: SCORE_TONE[n],
+                                  }))}
+                                />
+                              </div>
+                            </div>
+
+                            {/* 3-Question Guided Evidence Prompt Chips */}
+                            <div className="space-y-1.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-medium text-[var(--ink-muted)]">
+                                  {t.evidencePromptsLabel}
+                                </span>
+                                {evidencePrompts.map((chip, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleInsertEvidencePrompt(goal.id, chip.text)}
+                                    className="px-2 py-1 rounded border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-xs font-semibold text-[var(--brand-primary)] cursor-pointer"
+                                  >
+                                    {chip.label}
+                                  </button>
+                                ))}
+                              </div>
+                              <textarea
+                                rows={2}
+                                required
+                                value={input.selfEvidence}
+                                onChange={(e) =>
+                                  setGoalInputs((p) => ({
+                                    ...p,
+                                    [goal.id]: { ...input, selfEvidence: e.target.value },
+                                  }))
+                                }
+                                placeholder={t.drawerEvidenceLabel}
+                                className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
+                              />
+                            </div>
                           </div>
                         ) : (
-                          <span className="text-sm font-bold text-[var(--ink-primary)] tabular-nums shrink-0">
-                            {goal.progressPct}%
-                          </span>
+                          input.selfEvidence && (
+                            <p className="text-xs text-[var(--ink-secondary)]">
+                              {goal.actualValue && <strong>{t.actualLabel}: {goal.actualValue} · </strong>}
+                              &ldquo;{input.selfEvidence}&rdquo;
+                            </p>
+                          )
                         )}
                       </div>
-
-                      {!canEditGoals && (
-                        <div className="h-2 w-full rounded bg-[var(--border-subtle)] overflow-hidden">
-                          <div
-                            className="h-full"
-                            style={{ width: `${goal.progressPct}%`, backgroundColor: 'var(--brand-primary)' }}
-                          />
-                        </div>
-                      )}
-
-                      {canFillSelfReview ? (
-                        <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div className="space-y-1">
-                              <label className="block text-xs font-semibold text-[var(--ink-primary)]">
-                                {t.actualAchievedLabel}
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                value={input.actualValue}
-                                onChange={(e) =>
-                                  setGoalInputs((p) => ({
-                                    ...p,
-                                    [goal.id]: { ...input, actualValue: e.target.value },
-                                  }))
-                                }
-                                placeholder="e.g. 92%"
-                                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)]"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="block text-xs font-semibold text-[var(--ink-primary)]">
-                                {t.progressPctLabel}
-                              </label>
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                required
-                                value={input.progressPct}
-                                onChange={(e) =>
-                                  setGoalInputs((p) => ({
-                                    ...p,
-                                    [goal.id]: { ...input, progressPct: e.target.value },
-                                  }))
-                                }
-                                className="w-full min-h-10 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-2.5 text-sm text-[var(--ink-primary)] tabular-nums"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="block text-xs font-semibold text-[var(--ink-primary)]">
-                                {t.selfScoreLabel}
-                              </label>
-                              <TieredSelect
-                                ariaLabel={t.selfScoreLabel}
-                                value={input.selfScore}
-                                onChange={(e) =>
-                                  setGoalInputs((p) => ({
-                                    ...p,
-                                    [goal.id]: { ...input, selfScore: Number(e.target.value) },
-                                  }))
-                                }
-                                className="w-full tabular-nums"
-                                options={[1, 2, 3, 4, 5].map((n) => ({
-                                  value: n,
-                                  label: `${n} / 5`,
-                                  tone: SCORE_TONE[n],
-                                }))}
-                              />
-                            </div>
-                          </div>
-
-                          <textarea
-                            rows={2}
-                            required
-                            value={input.selfEvidence}
-                            onChange={(e) =>
-                              setGoalInputs((p) => ({
-                                ...p,
-                                [goal.id]: { ...input, selfEvidence: e.target.value },
-                              }))
-                            }
-                            placeholder={t.drawerEvidenceLabel}
-                            className="w-full rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] px-3 py-2 text-sm text-[var(--ink-primary)]"
-                          />
-                        </div>
-                      ) : (
-                        input.selfEvidence && (
-                          <p className="text-xs text-[var(--ink-secondary)]">
-                            {goal.actualValue && <strong>{t.actualLabel}: {goal.actualValue} · </strong>}
-                            &ldquo;{input.selfEvidence}&rdquo;
-                          </p>
-                        )
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
               )}
 
               {canEditGoals && (
@@ -444,7 +729,7 @@ export function EmployeeWorkspacePage({
                     <button
                       type="button"
                       disabled={totalWeight !== 100 || draftGoals.length === 0}
-                      onClick={handleSubmitGoalsClick}
+                      onClick={() => setShowSubmitPreview(true)}
                       className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] disabled:bg-[var(--surface-hover)] disabled:text-[var(--ink-muted)] text-sm font-semibold text-white cursor-pointer disabled:cursor-not-allowed"
                     >
                       {review.status === 'GOAL_REVISION_REQUIRED' ? t.resubmitGoalsBtn : t.submitGoalsBtn}
@@ -483,7 +768,7 @@ export function EmployeeWorkspacePage({
           <CommentHistoryPanel history={safeCommentHistory} t={t} />
         </div>
 
-        {/* Right (5 cols): Locked vs Published Result + Own-Review Private Activity Log */}
+        {/* Right (5 cols): Locked vs Published Result */}
         <div className="xl:col-span-5 space-y-5">
           <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-card)] p-5 space-y-4">
             {review.status !== 'PUBLISHED' ? (
@@ -568,6 +853,59 @@ export function EmployeeWorkspacePage({
           onSave={handleSaveModalGoal}
         />
       )}
+
+      {/* Preview & Confirm Dialog before Sending OKRs (reduces click anxiety for non-IT staff) */}
+      <ModalDialog
+        isOpen={showSubmitPreview}
+        labelledBy={`${uid}-preview-title`}
+        variant="center"
+        maxWidthClass="max-w-lg"
+        onClose={() => setShowSubmitPreview(false)}
+      >
+        <div className="p-6 space-y-4">
+          <div className="space-y-1">
+            <h1 id={`${uid}-preview-title`} className="text-lg font-bold text-[var(--ink-primary)]">
+              {t.previewSubmitTitle}
+            </h1>
+            <p className="text-sm text-[var(--ink-secondary)]">
+              {t.previewSubmitSub.replace('{n}', String(draftGoals.length))}
+            </p>
+          </div>
+
+          <ul className="space-y-2 max-h-60 overflow-y-auto">
+            {draftGoals.map((g, i) => (
+              <li
+                key={g.id}
+                className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3 py-2.5 flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="font-semibold text-[var(--ink-primary)]">
+                  {i + 1}. {lang === 'th' ? g.titleTh : g.title}
+                </span>
+                <span className="font-bold text-[var(--brand-primary)] tabular-nums shrink-0">
+                  {g.weight}%
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-subtle)]">
+            <button
+              type="button"
+              onClick={() => setShowSubmitPreview(false)}
+              className="min-h-11 px-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-card)] hover:bg-[var(--surface-hover)] text-sm font-semibold text-[var(--ink-primary)] cursor-pointer"
+            >
+              {t.previewBackEditBtn}
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmSubmitGoals}
+              className="min-h-11 px-5 rounded-md bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-sm font-semibold text-white cursor-pointer"
+            >
+              {t.previewConfirmSendBtn}
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
     </div>
   );
 }
