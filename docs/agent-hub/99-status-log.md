@@ -25,6 +25,9 @@
   - Implemented `React.lazy` + `<Suspense>` route/workspace code splitting (0 Vite chunk warnings; main chunk `105.09 kB` gzip; 0 `npm audit` vulnerabilities).
   - Created root `vercel.json` (1-click monorepo deploy) and `frontend/vercel.json` with SPA rewrites, strict CSP, HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Permissions-Policy`, and `X-Robots-Tag: noindex, nofollow, noarchive` (+ matching `<meta>` tags in `frontend/index.html`).
   - Verified **0 secrets / internal URLs** in compiled `frontend/dist/` and **7/7 Production-Build Browser QA/QC PASS** (0 console errors, 0 failed requests, 1440px Desktop + 375px Mobile zero-overflow).
+- **Browser-Isolated Demo Persistence & Reset (`empeo-clarify-demo-state-v1`):**
+  - Added versioned `localStorage` persistence in `usePerformanceStore.js` with salted 64-bit credential digest hashing (zero plaintext passwords in storage) so newly registered/invited accounts and evaluations survive page refreshes (`F5`) on Vercel with zero cold-start latency.
+  - Added confirmed `Reset Demo` modal action in `AppShell.jsx` and `DemoRolePickerPage.jsx` (+ EN/TH copy) and mounted `ToastBar` across unauthenticated screens.
 
 ### 2026-11-25 — UI/UX Polish + Zero-Learning-Curve & Close Gen-Gap Sprint Complete (Phases 2–5 Pushed)
 - **Skills Loaded & Applied:** `modern-web-guidance` (`branded-select-styling`, `persistent-toast-notifications`, `accessible-error-announcement`), `interface-design`, `ux-writing`, `ponytail`, `anti-slop-craft`.

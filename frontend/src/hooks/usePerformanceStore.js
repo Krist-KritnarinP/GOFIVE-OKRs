@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   computeAnalytics,
   computeOverdueClient,
@@ -7,6 +7,85 @@ import {
   defaultManagerForDepartmentClient,
 } from '../constants/initialData.js';
 import { DEMO_PERSONAS, ROLES } from '../constants/roles.js';
+
+const STORAGE_KEY = 'empeo-clarify-demo-state-v1';
+const STORAGE_VERSION = 1;
+
+/**
+ * Synchronous salted 64-bit digest so demo credentials are never persisted in plaintext in localStorage.
+ */
+function hashDemoCredential(employeeCode, password) {
+  const input = `empeo-v1:${String(employeeCode || '').trim().toUpperCase()}:${String(password || '')}`;
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 0x01000193);
+    h2 = Math.imul(h2 ^ (ch + i), 0x85ebca6b);
+  }
+  return `v1_${(h1 >>> 0).toString(16).padStart(8, '0')}${(h2 >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function buildInitialPasswordHashes(users) {
+  return Object.fromEntries(
+    users.map((u) => [u.employeeCode.toUpperCase(), hashDemoCredential(u.employeeCode, 'DemoPass123!')])
+  );
+}
+
+function loadHydratedDemoState() {
+  const fresh = createInitialClientState();
+  const fallback = {
+    ...fresh,
+    passwordHashes: buildInitialPasswordHashes(fresh.users),
+    currentUserId: null,
+    authScreen: 'login',
+    activeRole: ROLES.HR_ADMIN,
+    activeManagerId: 'usr-mgr-eng',
+    activeEmployeeId: 'usr-emp-fah',
+  };
+
+  if (typeof window === 'undefined' || !window.localStorage) return fallback;
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return fallback;
+    const saved = JSON.parse(raw);
+    if (
+      !saved ||
+      saved.version !== STORAGE_VERSION ||
+      !saved.cycle ||
+      !Array.isArray(saved.users) ||
+      !Array.isArray(saved.reviews) ||
+      !Array.isArray(saved.auditLogs) ||
+      !saved.rolePermissions
+    ) {
+      return fallback;
+    }
+
+    const passwordHashes =
+      saved.passwordHashes && typeof saved.passwordHashes === 'object'
+        ? saved.passwordHashes
+        : buildInitialPasswordHashes(saved.users);
+
+    return {
+      cycle: saved.cycle,
+      reviews: saved.reviews,
+      auditLogs: saved.auditLogs,
+      users: saved.users,
+      rolePermissions: saved.rolePermissions,
+      passwordHashes,
+      currentUserId: typeof saved.currentUserId === 'string' ? saved.currentUserId : null,
+      authScreen: ['login', 'register', 'demo-picker'].includes(saved.authScreen)
+        ? saved.authScreen
+        : 'login',
+      activeRole: saved.activeRole || ROLES.HR_ADMIN,
+      activeManagerId: saved.activeManagerId || 'usr-mgr-eng',
+      activeEmployeeId: saved.activeEmployeeId || 'usr-emp-fah',
+    };
+  } catch {
+    return fallback;
+  }
+}
 
 function makeComment(review, { phase, actorName, actorRole, action, comment }) {
   return {
@@ -22,23 +101,60 @@ function makeComment(review, { phase, actorName, actorRole, action, comment }) {
 }
 
 export function usePerformanceStore(t) {
-  const initial = useMemo(() => createInitialClientState(), []);
+  const initial = useMemo(() => loadHydratedDemoState(), []);
   const [cycle, setCycle] = useState(initial.cycle);
   const [reviews, setReviews] = useState(initial.reviews);
   const [auditLogs, setAuditLogs] = useState(initial.auditLogs);
   const [users, setUsers] = useState(initial.users);
   const [rolePermissions, setRolePermissions] = useState(initial.rolePermissions);
-  const [passwords, setPasswords] = useState(() =>
-    Object.fromEntries(initial.users.map((u) => [u.employeeCode, 'DemoPass123!']))
+  const [passwordHashes, setPasswordHashes] = useState(initial.passwordHashes);
+
+  const [currentUser, setCurrentUser] = useState(() =>
+    initial.currentUserId ? initial.users.find((u) => u.id === initial.currentUserId) || null : null
   );
+  const [authScreen, setAuthScreen] = useState(initial.authScreen);
 
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authScreen, setAuthScreen] = useState('login');
-
-  const [activeRole, setActiveRole] = useState(ROLES.HR_ADMIN);
-  const [activeManagerId, setActiveManagerId] = useState('usr-mgr-eng');
-  const [activeEmployeeId, setActiveEmployeeId] = useState('usr-emp-fah');
+  const [activeRole, setActiveRole] = useState(initial.activeRole);
+  const [activeManagerId, setActiveManagerId] = useState(initial.activeManagerId);
+  const [activeEmployeeId, setActiveEmployeeId] = useState(initial.activeEmployeeId);
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          version: STORAGE_VERSION,
+          cycle,
+          reviews,
+          auditLogs,
+          users,
+          rolePermissions,
+          passwordHashes,
+          currentUserId: currentUser?.id || null,
+          authScreen,
+          activeRole,
+          activeManagerId,
+          activeEmployeeId,
+        })
+      );
+    } catch {
+      // Ignore storage quota / private-mode write errors
+    }
+  }, [
+    cycle,
+    reviews,
+    auditLogs,
+    users,
+    rolePermissions,
+    passwordHashes,
+    currentUser,
+    authScreen,
+    activeRole,
+    activeManagerId,
+    activeEmployeeId,
+  ]);
 
   const showToast = useCallback((message, tone = 'success') => {
     setToast({ id: Date.now(), message, tone });
@@ -92,12 +208,12 @@ export function usePerformanceStore(t) {
     (employeeCode, password) => {
       const code = String(employeeCode || '').trim().toUpperCase();
       const user = users.find((u) => u.employeeCode.toUpperCase() === code);
-      const expectedPassword = passwords[code];
+      const expectedHash = passwordHashes[code];
 
       if (user?.accountStatus === 'INVITED') {
         return { ok: false, error: t.authErrInvited };
       }
-      if (!user || !expectedPassword || password !== expectedPassword) {
+      if (!user || !expectedHash || hashDemoCredential(code, password) !== expectedHash) {
         return { ok: false, error: t.authErrInvalid };
       }
       if (user.accountStatus === 'PENDING_APPROVAL') {
@@ -113,7 +229,7 @@ export function usePerformanceStore(t) {
       if (user.role === ROLES.EMPLOYEE) setActiveEmployeeId(user.id);
       return { ok: true, user };
     },
-    [users, passwords, t.authErrInvited, t.authErrInvalid, t.authErrPending, t.authErrSuspended]
+    [users, passwordHashes, t.authErrInvited, t.authErrInvalid, t.authErrPending, t.authErrSuspended]
   );
 
   const handleInviteUser = useCallback(
@@ -182,7 +298,7 @@ export function usePerformanceStore(t) {
         inviteExpiresAt: null,
       };
       setUsers((prev) => prev.map((u) => (u.id === target.id ? activated : u)));
-      setPasswords((prev) => ({ ...prev, [code]: password }));
+      setPasswordHashes((prev) => ({ ...prev, [code]: hashDemoCredential(code, password) }));
 
       if (activated.role === ROLES.EMPLOYEE) {
         const assignedManager =
@@ -269,7 +385,7 @@ export function usePerformanceStore(t) {
         accountStatus: 'PENDING_APPROVAL',
       };
       setUsers((prev) => [newUser, ...prev]);
-      setPasswords((prev) => ({ ...prev, [code]: password }));
+      setPasswordHashes((prev) => ({ ...prev, [code]: hashDemoCredential(code, password) }));
       appendLog({
         action: 'USER_REGISTERED',
         visibilityScope: 'ADMIN_SECURITY',
@@ -287,6 +403,37 @@ export function usePerformanceStore(t) {
     setCurrentUser(null);
     setAuthScreen('login');
   }, []);
+
+  const handleResetDemo = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(STORAGE_KEY);
+        const draftKeys = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith('empeo-draft-')) draftKeys.push(key);
+        }
+        draftKeys.forEach((key) => window.localStorage.removeItem(key));
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+
+    const fresh = createInitialClientState();
+    setCycle(fresh.cycle);
+    setReviews(fresh.reviews);
+    setAuditLogs(fresh.auditLogs);
+    setUsers(fresh.users);
+    setRolePermissions(fresh.rolePermissions);
+    setPasswordHashes(buildInitialPasswordHashes(fresh.users));
+    setActiveManagerId('usr-mgr-eng');
+    setActiveEmployeeId('usr-emp-fah');
+    setCurrentUser((prev) => {
+      if (!prev) return null;
+      return fresh.users.find((u) => u.id === prev.id) || fresh.users.find((u) => u.role === ROLES.HR_ADMIN) || null;
+    });
+    showToast(t.toastDemoReset || 'Demo data restored to initial state.', 'success');
+  }, [showToast, t.toastDemoReset]);
 
   const handleBypassDemo = useCallback(() => {
     setCurrentUser(null);
@@ -1051,6 +1198,7 @@ export function usePerformanceStore(t) {
     handleInviteUser,
     handleActivateInvite,
     handleLogout,
+    handleResetDemo,
     handleBypassDemo,
     handleEnterAsUser,
     handleUpdateUser,

@@ -58,37 +58,47 @@ export function App() {
   if (!store.currentUser) {
     if (store.authScreen === 'demo-picker') {
       return (
-        <Suspense fallback={<WorkspaceFallback />}>
-          <DemoRolePickerPage
-            users={store.users}
-            reviews={store.reviews}
-            t={t}
-            lang={lang}
-            onToggleLanguage={toggleLanguage}
-            onEnterAsUser={store.handleEnterAsUser}
-            onBackToLogin={() => store.setAuthScreen('login')}
-          />
-        </Suspense>
+        <>
+          <Suspense fallback={<WorkspaceFallback />}>
+            <DemoRolePickerPage
+              users={store.users}
+              reviews={store.reviews}
+              t={t}
+              lang={lang}
+              onToggleLanguage={toggleLanguage}
+              onEnterAsUser={store.handleEnterAsUser}
+              onBackToLogin={() => store.setAuthScreen('login')}
+              onResetDemo={store.handleResetDemo}
+            />
+          </Suspense>
+          <ToastBar toast={store.toast} onDismiss={store.dismissToast} t={t} />
+        </>
       );
     }
     return store.authScreen === 'register' ? (
-      <Suspense fallback={<WorkspaceFallback />}>
-        <RegisterPage
+      <>
+        <Suspense fallback={<WorkspaceFallback />}>
+          <RegisterPage
+            t={t}
+            onToggleLanguage={toggleLanguage}
+            onActivateInvite={store.handleActivateInvite}
+            onRegister={store.handleRegister}
+            onBackToLogin={() => store.setAuthScreen('login')}
+          />
+        </Suspense>
+        <ToastBar toast={store.toast} onDismiss={store.dismissToast} t={t} />
+      </>
+    ) : (
+      <>
+        <LoginPage
           t={t}
           onToggleLanguage={toggleLanguage}
-          onActivateInvite={store.handleActivateInvite}
-          onRegister={store.handleRegister}
-          onBackToLogin={() => store.setAuthScreen('login')}
+          onLogin={store.handleLogin}
+          onBypassDemo={store.handleBypassDemo}
+          onGoRegister={() => store.setAuthScreen('register')}
         />
-      </Suspense>
-    ) : (
-      <LoginPage
-        t={t}
-        onToggleLanguage={toggleLanguage}
-        onLogin={store.handleLogin}
-        onBypassDemo={store.handleBypassDemo}
-        onGoRegister={() => store.setAuthScreen('register')}
-      />
+        <ToastBar toast={store.toast} onDismiss={store.dismissToast} t={t} />
+      </>
     );
   }
 
@@ -101,6 +111,7 @@ export function App() {
       activeRole={store.activeRole}
       onSelectRole={store.setActiveRole}
       onOpenDemoPicker={store.handleBypassDemo}
+      onResetDemo={store.handleResetDemo}
       onToggleLanguage={toggleLanguage}
       onLogout={store.handleLogout}
     >

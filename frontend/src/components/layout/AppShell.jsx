@@ -1,6 +1,8 @@
-import { Languages, Lock, LogOut, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Languages, Lock, LogOut, RotateCcw, Users, X } from 'lucide-react';
 import { DEMO_PERSONAS } from '../../constants/roles.js';
 import { StatusBadge } from '../common/StatusBadge.jsx';
+import { ModalDialog } from '../common/ModalDialog.jsx';
 
 export function AppShell({
   t,
@@ -10,10 +12,12 @@ export function AppShell({
   activeRole,
   onSelectRole,
   onOpenDemoPicker,
+  onResetDemo,
   onToggleLanguage,
   onLogout,
   children,
 }) {
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col bg-(--surface-page) text-(--ink-primary)">
       {/* Skip link for keyboard navigation (modern-web-guidance: accessibility §1) */}
@@ -100,6 +104,19 @@ export function AppShell({
               <span>{t.switchLanguage}</span>
             </button>
 
+            {onResetDemo && (
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                title={t.resetDemoBtn}
+                aria-label={t.resetDemoBtn}
+                className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-xs sm:text-sm font-semibold text-(--ink-secondary) hover:text-(--ink-primary) transition-colors duration-150 cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden xl:inline">{t.resetDemoBtn}</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={onLogout}
@@ -115,6 +132,50 @@ export function AppShell({
       <main id="main-content" tabIndex={-1} className="flex-1 w-full max-w-full min-w-0 overflow-x-clip px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
+
+      <ModalDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        labelledBy="reset-demo-modal-title"
+        panelClassName="max-w-md rounded-lg border border-(--border-subtle) shadow-lg"
+      >
+        <div className="p-6 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <h2 id="reset-demo-modal-title" className="text-lg font-bold text-(--ink-primary)">
+              {t.resetDemoConfirmTitle}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(false)}
+              aria-label={t.cancelBtn}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary) cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="text-sm leading-relaxed text-(--ink-secondary)">{t.resetDemoConfirmDesc}</p>
+          <div className="flex items-center justify-end gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(false)}
+              className="min-h-10 px-4 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) cursor-pointer"
+            >
+              {t.cancelBtn}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowResetConfirm(false);
+                onResetDemo?.();
+              }}
+              className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
+              <span>{t.resetDemoConfirmCta}</span>
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
     </div>
   );
 }

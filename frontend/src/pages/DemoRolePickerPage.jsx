@@ -4,14 +4,17 @@ import {
   ChevronRight,
   Clock,
   Languages,
+  RotateCcw,
   Shield,
   UserCheck,
   Users,
   Briefcase,
   User,
+  X,
 } from 'lucide-react';
 import { ROLES } from '../constants/roles.js';
 import { StatusBadge } from '../components/common/StatusBadge.jsx';
+import { ModalDialog } from '../components/common/ModalDialog.jsx';
 
 const GROUP_CONFIG = [
   {
@@ -74,8 +77,10 @@ export function DemoRolePickerPage({
   onToggleLanguage,
   onEnterAsUser,
   onBackToLogin,
+  onResetDemo,
 }) {
   const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const selectedGroup = GROUP_CONFIG.find((g) => g.id === selectedGroupId) || null;
   const groupUsers = selectedGroup ? users.filter(selectedGroup.filter) : [];
@@ -95,7 +100,17 @@ export function DemoRolePickerPage({
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {onResetDemo && (
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(true)}
+                className="inline-flex items-center gap-1.5 min-h-10 px-3 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-secondary) hover:text-(--ink-primary) transition-colors duration-150 cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                <span>{t.resetDemoBtn}</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onBackToLogin}
@@ -319,6 +334,51 @@ export function DemoRolePickerPage({
           )}
         </div>
       </main>
+
+      <ModalDialog
+        isOpen={showResetConfirm}
+        onClose={() => setShowResetConfirm(false)}
+        labelledBy="picker-reset-demo-title"
+        panelClassName="max-w-md rounded-lg border border-(--border-subtle) shadow-lg"
+      >
+        <div className="p-6 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <h2 id="picker-reset-demo-title" className="text-lg font-bold text-(--ink-primary)">
+              {t.resetDemoConfirmTitle}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(false)}
+              aria-label={t.cancelBtn}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-(--ink-primary) cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="text-sm leading-relaxed text-(--ink-secondary)">{t.resetDemoConfirmDesc}</p>
+          <div className="flex items-center justify-end gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(false)}
+              className="min-h-10 px-4 rounded-md border border-(--border-strong) bg-(--surface-card) hover:bg-(--surface-hover) text-sm font-semibold text-(--ink-primary) cursor-pointer"
+            >
+              {t.cancelBtn}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowResetConfirm(false);
+                setSelectedGroupId(null);
+                onResetDemo?.();
+              }}
+              className="inline-flex items-center gap-1.5 min-h-10 px-4 rounded-md bg-(--brand-primary) hover:bg-(--brand-primary-hover) text-sm font-semibold text-white cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
+              <span>{t.resetDemoConfirmCta}</span>
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
     </div>
   );
 }
