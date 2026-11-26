@@ -5,14 +5,26 @@
 ---
 
 ## Current Phase & Gate Status
-- **Active Phase:** Phase 4.0 Complete — Zero-Learning-Curve / Gen-Gap UX, Bottom Activity Log, Color-Coded TieredSelect, Return Cards & Accessible Toasts Shipped & Browser-Verified
+- **Active Phase:** Phase 5.0 Complete — Pre-Vercel Full QA/QC, Security Hardening, Code-Splitting & Production-Build Browser Verification Complete
 - **Gate 1 (Before Dev):** PASSED
 - **Gate 2 (Before QA):** PASSED
-- **Gate 3 (Before Release):** PASSED (`docs/agent-hub/04-qa-report.md` Rev 3 — 0 console errors, 9/9 backend tests, 5/5 `autoBalanceWeights` self-check, `oxlint` 0 errors across 36 files, `vite build` 360ms, Desktop 1440px + Mobile 375px Browser QA pass)
+- **Gate 3 (Before Release):** PASSED (0 console errors, 0 failed requests, 10/10 backend tests, `oxlint` 0 errors across 36 files, `vite build` 0 warnings / 105.09 kB gzip main chunk, 0 leaked secrets in `dist/`, Desktop 1440px + Mobile 375px Production-Build Browser QA PASS)
 
 ---
 
 ## Activity Log
+
+### 2026-11-26 — Pre-Vercel Full QA/QC, Security Hardening & Deployment Config
+- **Backend Security Hardening:**
+  - Fixed Zod `z.coerce.boolean()` footgun in `backend/src/config/env.js` so `ENABLE_DEMO_MODE="false"` strictly evaluates to `false`.
+  - Gated `GET /api/v1/auth/demo-accounts` behind `ENABLE_DEMO_MODE` in production and applied `authLimiter`.
+  - Enabled `app.set('trust proxy', 1)`, hardened `helmet` (`referrerPolicy`, `crossOriginResourcePolicy`), and masked internal `storageMode`/`phase` on `GET /api/v1/health` in production.
+  - Added regression test verifying `HR_ADMIN` receives `403 FORBIDDEN` on `PUT /reviews/:id/manager-review` (**10/10 backend tests PASS**).
+- **Frontend Security, Performance & Vercel Readiness:**
+  - Enforced 72-hour `inviteExpiresAt` expiration check in `usePerformanceStore.js` and removed unused `onSaveEvaluation` prop from `HrDashboardPage` in `App.jsx`.
+  - Implemented `React.lazy` + `<Suspense>` route/workspace code splitting (0 Vite chunk warnings; main chunk `105.09 kB` gzip; 0 `npm audit` vulnerabilities).
+  - Created root `vercel.json` (1-click monorepo deploy) and `frontend/vercel.json` with SPA rewrites, strict CSP, HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Permissions-Policy`, and `X-Robots-Tag: noindex, nofollow, noarchive` (+ matching `<meta>` tags in `frontend/index.html`).
+  - Verified **0 secrets / internal URLs** in compiled `frontend/dist/` and **7/7 Production-Build Browser QA/QC PASS** (0 console errors, 0 failed requests, 1440px Desktop + 375px Mobile zero-overflow).
 
 ### 2026-11-25 — UI/UX Polish + Zero-Learning-Curve & Close Gen-Gap Sprint Complete (Phases 2–5 Pushed)
 - **Skills Loaded & Applied:** `modern-web-guidance` (`branded-select-styling`, `persistent-toast-notifications`, `accessible-error-announcement`), `interface-design`, `ux-writing`, `ponytail`, `anti-slop-craft`.

@@ -9,7 +9,13 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
   JWT_SECRET: z.string().min(16).default('dev-only-change-this-secret-before-production'),
   JWT_EXPIRES_IN: z.string().default('8h'),
-  ENABLE_DEMO_MODE: z.coerce.boolean().default(false),
+  ENABLE_DEMO_MODE: z
+    .preprocess((val) => {
+      if (typeof val === 'boolean') return val;
+      if (typeof val === 'string') return val.trim().toLowerCase() === 'true';
+      return false;
+    }, z.boolean())
+    .default(false),
   DATABASE_URL: z.string().optional(),
   DIRECT_URL: z.string().optional(),
 });

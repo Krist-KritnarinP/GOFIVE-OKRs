@@ -1,8 +1,8 @@
 # Project Handover — empeo Performance Management Prototype (`GOFIVE TEST`)
 
-**Last Updated:** 2026-11-25  
-**Current Milestone:** Phase 4.0 Complete — **Activity Log Bottom Anchor, Color-Coded `TieredSelect`, `ReturnFeedbackCard` + Persistent Accessible `ToastBar` + Actionable EN/TH Errors, and Zero-Learning-Curve & Gen-Gap UX (Department Starter Templates, Auto-Balance 100%, 3 Measurement Modes, `NextActionBanner`, Guided Evidence Prompts, Auto-Save & Preview Submit)**  
-**Next Action:** Deploy public prototype link (Frontend + Backend with Supabase env vars) for Gofive PO Assignment submission and finalize Part 2 written answers.
+**Last Updated:** 2026-11-26  
+**Current Milestone:** Phase 5.0 Complete — **Full Pre-Vercel Security Hardening, Code-Splitting, Security Headers (`vercel.json`) & Production-Build Browser QA/QC Verified**  
+**Next Action:** Import `https://github.com/Krist-KritnarinP/GOFIVE-OKRs.git` into Vercel (1-click zero-config via root `vercel.json`) and submit live Demo URL + Part 2 written answers.
 
 ---
 
@@ -75,3 +75,4 @@ Build a working, clickable multi-role prototype for **empeo Performance Manageme
    - **Manager → HR OKR Amendment Unlock Flow (`3d75e80`):** Managers can click `Request OKR Unlock` on locked post-Stage-1 reviews with a mandatory reason (`ReasonModal`); HR sees pending requests at the top of `ExceptionQueue` and can `Approve Unlock` (transitions back to `GOAL_REVISION_REQUIRED` so the employee can add/edit OKRs) or `Decline`, with full `Actor → Recipient` Activity Log tracking. *(Parked future item: Dual-Hat `My OKRs` tab for Manager/HR).*
    - **Official Product Architecture & User Demo Guide PDF (`docs/empeo-user-demo-tester-guide.pdf`):** Upgraded to 17-page A4 executive PDF (`2.2 MB`) featuring **Key Highlights & Core Capabilities**, **Tech Stack**, **6-Table SVG ERD**, **Detailed Application Mechanics** (Dual-Axis Scoring Engine, Guardrails, User Workflow), **11 live English (`EN`) UI snapshots**, and **6 End-to-End Test Scenarios & Success Cases** (removed QA/QC Sign-Off Checklist; screened 0 informal copy leaks).
    - **Branding & Matrix Naming Update:** Renamed app title/wordmark to **`empeo - ClarifyHRPlatform`** and replaced `9-Box` UI labels with **`Impact & Competency Map`** (`แผนผังผลลัพธ์และสมรรถนะ`) across HR Dashboard, Employee Results, Super Admin Permission Matrix, and Demo Picker.
+   - **Pre-Vercel Full QA/QC & Security Hardening (2026-11-26):** Fixed Zod boolean coercion bug (`ENABLE_DEMO_MODE="false"` strictly parses `false`), gated `GET /api/v1/auth/demo-accounts` in production with rate-limiting, enabled `trust proxy` + hardened `helmet` headers, masked internal health metadata in production, enforced 72-hour `inviteExpiresAt` check on invite activation, removed unused `onSaveEvaluation` prop from `HrDashboardPage`, added `React.lazy` + `<Suspense>` code splitting (`105.09 kB` gzip main chunk, 0 Vite warnings, 0 frontend vulnerabilities), created root `vercel.json` + `frontend/vercel.json` with strict CSP/HSTS/anti-clickjacking/`noindex` headers, and verified **0 secrets leaked in `dist/`**, **10/10 backend tests PASS**, and **7/7 Production-Build Browser QA/QC PASS** (0 console errors, 0 failed requests).

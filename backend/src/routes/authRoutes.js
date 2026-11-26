@@ -28,7 +28,7 @@ const authLimiter = rateLimit({
   },
 });
 
-router.get('/demo-accounts', listDemoAccounts);
+router.get('/demo-accounts', authLimiter, listDemoAccounts);
 router.post('/register', authLimiter, validateBody(registerSchema), register);
 router.post('/login', authLimiter, validateBody(loginSchema), login);
 router.post('/demo-switch', authLimiter, validateBody(demoSwitchSchema), demoSwitch);

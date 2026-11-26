@@ -53,12 +53,22 @@ function signUserToken(user) {
 }
 
 export function listDemoAccounts(_req, res) {
+  if (env.NODE_ENV === 'production' && !env.ENABLE_DEMO_MODE) {
+    return res.status(403).json({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Demo accounts are disabled in production.',
+      },
+    });
+  }
+
   const demoIds = ['usr-super', 'usr-hr', 'usr-mgr-eng', 'usr-emp-nida'];
   const accounts = getUsers()
     .filter((u) => demoIds.includes(u.id))
     .map(toPublicUser);
 
-  res.json({
+  return res.json({
     ok: true,
     data: { accounts },
     meta: { timestamp: new Date().toISOString() },

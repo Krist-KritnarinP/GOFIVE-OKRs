@@ -171,8 +171,16 @@ export function usePerformanceStore(t) {
       if (!target) {
         return { ok: false, error: t.authErrInviteInvalid };
       }
+      if (target.inviteExpiresAt && Date.now() > new Date(target.inviteExpiresAt).getTime()) {
+        return { ok: false, error: t.authErrInviteInvalid };
+      }
 
-      const activated = { ...target, accountStatus: 'ACTIVE', inviteCode: null };
+      const activated = {
+        ...target,
+        accountStatus: 'ACTIVE',
+        inviteCode: null,
+        inviteExpiresAt: null,
+      };
       setUsers((prev) => prev.map((u) => (u.id === target.id ? activated : u)));
       setPasswords((prev) => ({ ...prev, [code]: password }));
 

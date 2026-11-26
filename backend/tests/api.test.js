@@ -396,3 +396,22 @@ test('State Guards & Dept Manager Mapping: Published reviews reject mutations wi
     assert.equal(regSales.json.data.user.managerId, 'usr-mgr-sales');
   });
 });
+
+test('Governance & Security Hardening: HR_ADMIN cannot mutate manager ratings (403 Inspect-Only)', async () => {
+  await withServer(async ({ req, tokenFor }) => {
+    const hrToken = await tokenFor('usr-hr');
+    const overrideRes = await req('/reviews/rev-ton/manager-review', {
+      method: 'PUT',
+      token: hrToken,
+      body: {
+        goalRatings: [{ goalId: 'g-ton-1', score: 4, evidence: 'HR attempting override' }],
+        competencyRatings: [{ competencyId: 'comp-ownership', score: 4, evidence: '' }],
+        managerSummary: 'Attempted HR override',
+        developmentFocus: '',
+        submit: true,
+      },
+    });
+    assert.equal(overrideRes.status, 403);
+    assert.equal(overrideRes.json.error.code, 'FORBIDDEN');
+  });
+});

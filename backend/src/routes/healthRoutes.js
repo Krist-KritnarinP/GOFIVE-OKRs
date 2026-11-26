@@ -4,13 +4,13 @@ import { env } from '../config/env.js';
 const router = Router();
 
 router.get('/health', (_req, res) => {
+  const isProd = env.NODE_ENV === 'production';
   res.json({
     ok: true,
     data: {
       service: 'empeo-performance-api',
       status: 'healthy',
-      storageMode: env.storageMode,
-      phase: 'phase-0-ready',
+      ...(isProd ? {} : { storageMode: env.storageMode }),
     },
     meta: {
       timestamp: new Date().toISOString(),
