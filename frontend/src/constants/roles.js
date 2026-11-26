@@ -58,7 +58,7 @@ export const DEMO_PERSONAS = [
 export const PERMISSION_CATALOG = [
   { key: 'rbac:manage', label: 'Manage Roles & Approvals', labelTh: 'กำหนดสิทธิ์แต่ละตำแหน่งและอนุมัติบัญชี' },
   { key: 'cycle:configure', label: 'Configure Cycle / Stage Dates / Lock', labelTh: 'ตั้งค่ารอบประเมิน / เส้นตายแต่ละช่วง / ปิดรอบ' },
-  { key: 'analytics:view_org', label: 'View Org 9-Box & Bias Alerts', labelTh: 'ดู 9-Box และแจ้งเตือนอคติทั้งองค์กร' },
+  { key: 'analytics:view_org', label: 'View Impact & Competency Map & Bias Alerts', labelTh: 'ดูแผนผังผลลัพธ์และสมรรถนะ และแจ้งเตือนอคติ' },
   { key: 'exception:manage', label: 'Manage SLA & HRBP Interventions', labelTh: 'จัดการเคสเลย SLA และคอมเมนต์ช่วยไกล่เกลี่ย' },
   { key: 'review:publish', label: 'HR Approve & Publish Results', labelTh: 'อนุมัติและประกาศผลประเมินให้พนักงานเห็น' },
   { key: 'team:evaluate', label: 'Review OKRs & Evaluate Direct Reports', labelTh: 'อนุมัติ OKR และประเมินผลงานลูกทีม' },

@@ -29,6 +29,7 @@
 - **Employee Core Competencies (How) Self-Assessment (`2c29ab2`):** Added 1–5 Core Competency self-assessment with behavioral anchors & example notes (auto-saved) to `EmployeeWorkspacePage.jsx` and surfaced `Self: X/5` + employee self-notes inside `EvaluationDrawer.jsx` for Manager review.
 - **Manager → HR OKR Amendment Unlock Flow (`3d75e80`):** Added `Request OKR Unlock` (`ReasonModal`) on `ManagerWorkspacePage` for post-Stage-1 locked OKRs, surfaced pending unlock requests in `ExceptionQueue` with `Approve Unlock` (reopens `GOAL_REVISION_REQUIRED`) and `Decline` actions, and logged full `Actor → Recipient` audit entries.
 - **Product Architecture & User Demo Guide PDF (`docs/empeo-user-demo-tester-guide.pdf` Rev 2):** Rebuilt 17-page A4 PDF (`2.2 MB`) with 11 live English (`EN`) UI snapshots, Key Highlights & Core Capabilities, Tech Stack, 6-Table SVG ERD, Detailed Application Mechanics (Scoring Engine, Guardrails, Workflow), and 6 End-to-End Test Scenarios & Success Cases (removed QA/QC Checklist; 0 informal copy leaks).
+- **Branding & Matrix Naming Update:** Updated app title/wordmark to `empeo - ClarifyHRPlatform` and renamed `9-Box` UI copy to `Impact & Competency Map` (`แผนผังผลลัพธ์และสมรรถนะ`) across all views.
 
 ### 2026-11-24 — 4-Phase Full-Site Skill Audit & Hardening Complete (Phases A–D Pushed to `GOFIVE-OKRs.git`)
 - **Skills Loaded & Applied:** `modern-web-guidance` (`dialog`, `responsive-table`, `forms`, `accessibility`), `interface-design`, `ux-writing`, `ponytail-review`, `anti-slop-craft`, `ponytail`.

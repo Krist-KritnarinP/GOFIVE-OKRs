@@ -30,8 +30,8 @@ const GROUP_CONFIG = [
     tone: 'high',
     labelEn: 'HR Admin',
     labelTh: 'ฝ่ายบุคคล',
-    descEn: 'Oversee 9-Box Grid, detect manager bias, resolve overdue reviews, and publish results.',
-    descTh: 'คุมภาพรวมตาราง 9-Box ตรวจจับอคติการให้คะแนน จัดการเคสส่งช้า และประกาศผล',
+    descEn: 'Oversee Impact & Competency Map, detect manager bias, resolve overdue reviews, and publish results.',
+    descTh: 'คุมภาพรวมแผนผังผลลัพธ์และสมรรถนะ ตรวจจับอคติการให้คะแนน จัดการรายการส่งช้า และประกาศผล',
     filter: (u) => u.accountStatus === 'ACTIVE' && u.role === ROLES.HR_ADMIN,
   },
   {
